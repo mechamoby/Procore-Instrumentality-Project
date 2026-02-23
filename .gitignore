@@ -1,0 +1,28 @@
+# Secrets and local runtime
+.credentials/
+.openclaw/
+.security-pin
+
+# Python/cache
+__pycache__/
+*.pyc
+.venv/
+
+# Local generated artifacts
+*.log
+/tmp/
+
+# Local media/docs not for source control
+media/
+eva01-reviews/
+NERV-DOCS/
+
+# Local personal memory logs
+memory/daily/
+memory/nap/
+memory/heartbeat-state.json
+
+# OS/editor
+.DS_Store
+.vscode/
+.idea/
