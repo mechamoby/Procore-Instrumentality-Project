@@ -46,3 +46,4 @@ memory/heartbeat-state.json
 eva-sentry-v1/ingest/
 eva-sentry-v1/state/verdicts/
 nerv-deploy/
+eva-agent/btv5-dxf/

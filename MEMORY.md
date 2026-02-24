@@ -73,6 +73,30 @@
 - Role: overflow/research/drafting, no production changes
 - Status: config done, Telegram delivery unconfirmed at session end
 
+## Standing Protocols
+- **Rei Clone Reset** *(since 2026-02-19)*: If Nick sends the Rei Ayanami clones image (End of Evangelion Dummy Plug System), it means: save all critical project state to memory files, update daily log, commit to git, then start a fresh context session. Image saved at `protocols/rei-clone-reset.jpg`. THIS IS A CORE PROTOCOL — NEVER DELETE.
+- Monitor context usage — warn Nick at 75%, recommend fresh session at 85%
+- Auto-abort wasteful loops — stop after 2-3 attempts max and ask Nick
+- 7 PM evening task list — Recurring cron (weekdays). Compile pending home tasks and send.
+
+## Business Model v2 — The Digital Superintendent *(2026-02-24)*
+- **Pivot**: OpenClaw agent (full digital employee) vs Procore agents (feature inside their app)
+- **Pricing**: $15K setup (one-time) + $3,500/month all-in per project
+- **Core offering**: Digital PM + Night Crew (overnight processing) + 6 AM morning report
+- **Signature feature**: "Your projects make progress while you sleep"
+- **Target**: South Florida GCs, mid-size ($20-100M annual volume)
+- **Year 1 conservative**: ~$294K revenue
+- **Full doc**: `business/SEELE-MODEL-V2.md`
+
+## Procore Competitive Intelligence *(2026-02-24)*
+- Agent Builder v1 launched Sep 2025, already shut down for new activations
+- Acquired Datagrid AI (Jan 20, 2026) — rebuilding as "next gen Procore AI"
+- Datagrid: 31-person team, CEO Thiago da Costa (sold Lagoa to Autodesk for $60M)
+- Integration timeline: 12-18 months before serious competitive threat
+- Their agents: cloud-only, create-only (can't modify/delete), Procore-only
+- Our edge: cross-platform, overnight processing, local deployment, white-glove service
+- Procore Drive: only useful for onboarding bulk import, locked into deployment protocol
+
 ## Lessons to Retain
 - Diagnose with minimal reproducible tests before speculative fixes
 - Prefer deterministic state files over chat-context assumptions

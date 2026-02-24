@@ -11,7 +11,7 @@
 - No night wasted — EVER. Idle overnight = failure.
 
 ## Pending
-- [ ] EVA Sentry v1 — make 100% deployable on emails to mecha.moby@gmail.com, follow GitHub protocols, ready for testing
+- [x] EVA Sentry v1 — make 100% deployable on emails to mecha.moby@gmail.com, follow GitHub protocols, ready for testing ✅
 - [x] EVA-01 submittal flow refinements (file naming, open status, placeholder number, PM title override) ✅
 - [x] Multi-project user profile DB schema design ✅
 - [x] Column-level DB security grants ✅
