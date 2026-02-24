@@ -17,6 +17,21 @@ media/
 eva01-reviews/
 NERV-DOCS/
 
+# Large binary project files (not for git)
+eva-agent/btv5-dxf/
+eva-agent/btv5-submittals/raw/
+eva-agent/btv5-submittals/*.zip
+eva-agent/btv5-submittals/*.pdf
+eva-agent/*.pdf
+*.docx
+
+# Large data directories (runtime/client data)
+client-docs/
+shared-knowledge/
+eva-drawing-index/
+nerv-uploads/
+katsuragi-email-state.json
+
 # Local personal memory logs
 memory/daily/
 memory/nap/
@@ -26,3 +41,8 @@ memory/heartbeat-state.json
 .DS_Store
 .vscode/
 .idea/
+
+# Sentry ingest data (runtime)
+eva-sentry-v1/ingest/
+eva-sentry-v1/state/verdicts/
+nerv-deploy/

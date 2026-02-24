@@ -1,20 +1,22 @@
 # HEARTBEAT.md
 
 ## NAP Protocol
-- Check for Nightly Action Plan after 10 PM
-- If received: execute all items overnight, have report ready by morning
-- If not received by midnight: **self-direct into productive work immediately**
-  - Priority order: HEARTBEAT.md pending items → NERV bugs → code improvements → documentation → research
-  - Log everything in daily file
-  - Have status report ready by morning either way
+- **Full protocol:** `protocols/NIGHTLY-ACTION-PLAN.md` — read it before executing any NAP
+- After 10 PM: check for `NERV-DOCS/NIGHTLY ACTION PLAN - MM.DD.YYYY.html`
+- If source file exists: **read the HTML directly, copy tasks VERBATIM into ledger, then execute**
+- NEVER paraphrase or reinterpret NAP items — exact text only
+- If ledger already exists: **re-read source HTML and validate ledger matches before working**
+- NAP items ALWAYS override HEARTBEAT pending items
+- If no NAP by midnight: self-direct into productive work (HEARTBEAT pending → NERV bugs → code → docs → research)
 - No night wasted — EVER. Idle overnight = failure.
 
 ## Pending
+- [ ] EVA Sentry v1 — make 100% deployable on emails to mecha.moby@gmail.com, follow GitHub protocols, ready for testing
 - [x] EVA-01 submittal flow refinements (file naming, open status, placeholder number, PM title override) ✅
 - [x] Multi-project user profile DB schema design ✅
 - [x] Column-level DB security grants ✅
 - [x] Formalize multi-agent deployment config in deployment template (Option B, Section 11 of Third Impact) ✅
-- [ ] 2026-02-24 AM: EVA Sentry v1 expansion — research, development, and implementation for email + Procore item ingest scanning
+- [x] 2026-02-24 AM: EVA Sentry v1.1 — email + Procore ingest modules built (ingest_email.py, ingest_procore.py, ingest_api.py). Needs IMAP creds + NERV route mounting to go live. ✅
 
 ## NERV Bugs (from 2026-02-20 night session)
 - [x] Doc editor text color dark-on-dark fix ✅

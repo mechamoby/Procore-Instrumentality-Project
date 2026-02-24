@@ -5,6 +5,7 @@ Uses chat.send for real agent runs (tools, files, commands, memory).
 
 import logging
 import asyncio
+import sys
 import json
 import os
 import re
@@ -749,6 +750,14 @@ async def sentry_verdict(path: str):
     return {"ok": True, "path": path, "sentry": verdict}
 
 
+# Mount EVA Sentry ingest API routes
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "eva-sentry-v1"))
+try:
+    from ingest_api import mount_ingest_routes
+    mount_ingest_routes(app)
+except Exception as _ingest_err:
+    print(f"⚠️  Sentry ingest routes not loaded: {_ingest_err}")
+
 DOCUMENTS_DIR = Path(__file__).parent / "documents"
 DOCUMENTS_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -932,8 +941,13 @@ async def export_document(name: str, fmt: str = "docx"):
     if not file_path.exists():
         return {"error": f"Document '{safe_name}.{fmt}' not found"}
 
-    media_type = "application/vnd.openxmlformats-officedocument.wordprocessingml.document" if fmt == "docx" else "text/html"
-    return FileResponse(path=file_path, media_type=media_type, filename=file_path.name)
+    media_type = "application/vnd.openxmlformats-officedocument.wordprocessingml.document" if fmt == "docx" else "text/html; charset=utf-8"
+    return FileResponse(
+        path=file_path,
+        media_type=media_type,
+        filename=file_path.name,
+        headers={"Content-Disposition": f'attachment; filename="{file_path.name}"'},
+    )
 
 
 @app.delete("/api/documents/delete")

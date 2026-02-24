@@ -1927,6 +1927,12 @@
             100% { background-position: 40px 0; }
         }
 
+        .message.search-highlight {
+            outline: 2px solid var(--nerv-orange);
+            outline-offset: -2px;
+            background: rgba(80, 200, 200, 0.12) !important;
+        }
+
         .header.disconnected::before {
             content: '';
             position: absolute;
@@ -2056,6 +2062,15 @@
                 <button class="panel-btn" onclick="toggleFilePanel()" style="margin-left: 8px;">FILES</button>
                 <button class="panel-btn" onclick="toggleAgentPanel()" style="margin-left: 8px;">AGENTS</button>
                 <span class="chat-bar-info" id="chatBarInfo">READY</span>
+            </div>
+
+            <div class="chat-search-bar" id="chatSearchBar" style="display:none; padding:6px 16px; background:var(--bg-panel); border-bottom:1px solid var(--border);">
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <span style="font-family:'Share Tech Mono',monospace; font-size:11px; color:var(--text-muted);">⌕</span>
+                    <input type="text" id="chatSearchInput" placeholder="Search messages..." style="flex:1; background:var(--bg-input); border:1px solid var(--border); color:var(--text-primary); font-family:'Share Tech Mono',monospace; font-size:11px; padding:4px 8px; outline:none;" oninput="searchMessages(this.value)">
+                    <span id="chatSearchCount" style="font-family:'Share Tech Mono',monospace; font-size:9px; color:var(--text-muted);"></span>
+                    <button onclick="closeChatSearch()" style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:14px; padding:2px 4px;">×</button>
+                </div>
             </div>
 
             <div class="messages" id="messages">
@@ -3441,6 +3456,13 @@
                 return;
             }
             
+            // Ctrl+F: Chat search
+            if (e.ctrlKey && e.key === 'f') {
+                e.preventDefault();
+                toggleChatSearch();
+                return;
+            }
+            
             // Ctrl+K: Focus search (if feed search exists)
             if (e.ctrlKey && e.key === 'k') {
                 e.preventDefault();
@@ -4045,6 +4067,52 @@
             }
             document.getElementById('ytPlayer').innerHTML =
                 `<iframe src="https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
+        }
+
+        // === CHAT SEARCH ===
+        function toggleChatSearch() {
+            const bar = document.getElementById('chatSearchBar');
+            if (bar.style.display === 'none') {
+                bar.style.display = 'block';
+                document.getElementById('chatSearchInput').focus();
+            } else {
+                closeChatSearch();
+            }
+        }
+
+        function closeChatSearch() {
+            document.getElementById('chatSearchBar').style.display = 'none';
+            document.getElementById('chatSearchInput').value = '';
+            // Remove all highlights
+            document.querySelectorAll('.message.search-highlight').forEach(el => {
+                el.classList.remove('search-highlight');
+            });
+            document.getElementById('chatSearchCount').textContent = '';
+        }
+
+        function searchMessages(query) {
+            const q = query.toLowerCase().trim();
+            const messages = document.querySelectorAll('.message.user, .message.assistant');
+            let matches = 0;
+
+            messages.forEach(msg => {
+                const text = (msg.dataset.raw || msg.textContent || '').toLowerCase();
+                if (q && text.includes(q)) {
+                    msg.classList.add('search-highlight');
+                    matches++;
+                } else {
+                    msg.classList.remove('search-highlight');
+                }
+            });
+
+            const countEl = document.getElementById('chatSearchCount');
+            countEl.textContent = q ? `${matches} found` : '';
+
+            // Scroll to first match
+            if (matches > 0) {
+                const first = document.querySelector('.message.search-highlight');
+                if (first) first.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
         }
 
         init();

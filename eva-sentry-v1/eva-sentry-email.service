@@ -1,0 +1,18 @@
+[Unit]
+Description=EVA Sentry Email Ingest Daemon
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=moby
+WorkingDirectory=/home/moby/.openclaw/workspace/eva-sentry-v1
+ExecStart=/usr/bin/python3 /home/moby/.openclaw/workspace/eva-sentry-v1/ingest_email.py --daemon --interval 300
+Restart=on-failure
+RestartSec=30
+StandardOutput=journal
+StandardError=journal
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=multi-user.target

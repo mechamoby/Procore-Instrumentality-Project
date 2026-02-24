@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head><title>File Upload Test</title></head>
+<body style="background:#111;color:#eee;font-family:monospace;padding:40px">
+<h2>NERV File Upload Diagnostic</h2>
+<p>Test each method below. After selecting a file, you should see "SUCCESS" and the filename.</p>
+<div id="results" style="margin:20px 0;padding:10px;background:#222;min-height:100px"></div>
+<hr style="border-color:#333">
+
+<h3>Test 1: Visible file input (direct)</h3>
+<input type="file" id="test1" style="color:#eee">
+<script>
+document.getElementById('test1').addEventListener('change', function(e) {
+    log('Test 1 SUCCESS: ' + e.target.files[0].name + ' (' + e.target.files.length + ' files)');
+    testUpload(e.target.files[0]);
+});
+</script>
+
+<h3>Test 2: Button with programmatic .click() on hidden input</h3>
+<button onclick="document.getElementById('test2input').click()" style="padding:8px 16px;cursor:pointer">Click to attach</button>
+<input type="file" id="test2input" style="display:none">
+<script>
+document.getElementById('test2input').addEventListener('change', function(e) {
+    log('Test 2 SUCCESS: ' + e.target.files[0].name);
+    this.value = '';
+});
+</script>
+
+<h3>Test 3: Button creates fresh input each click</h3>
+<button id="test3btn" style="padding:8px 16px;cursor:pointer">Click to attach</button>
+<script>
+document.getElementById('test3btn').addEventListener('click', function() {
+    var inp = document.createElement('input');
+    inp.type = 'file';
+    inp.style.display = 'none';
+    document.body.appendChild(inp);
+    inp.addEventListener('change', function(e) {
+        log('Test 3 SUCCESS: ' + e.target.files[0].name);
+        inp.remove();
+    });
+    inp.click();
+});
+</script>
+
+<h3>Test 4: Label-for with clip-hidden input</h3>
+<label for="test4input" style="padding:8px 16px;background:#444;cursor:pointer;display:inline-block">Click to attach</label>
+<input type="file" id="test4input" style="position:absolute;clip:rect(0,0,0,0);width:1px;height:1px">
+<script>
+document.getElementById('test4input').addEventListener('change', function(e) {
+    log('Test 4 SUCCESS: ' + e.target.files[0].name);
+    this.value = '';
+});
+</script>
+
+<h3>Test 5: Transparent input overlay on div (current NERV approach)</h3>
+<div style="position:relative;display:inline-block;padding:8px 16px;background:#444;cursor:pointer">
+    Click to attach
+    <input type="file" id="test5" style="position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;cursor:pointer">
+</div>
+<script>
+document.getElementById('test5').addEventListener('change', function(e) {
+    log('Test 5 SUCCESS: ' + e.target.files[0].name);
+    this.value = '';
+});
+</script>
+
+<h3>Test 6: Upload to server</h3>
+<p id="uploadResult">Upload result will appear here after any successful test</p>
+
+<script>
+function log(msg) {
+    var el = document.getElementById('results');
+    el.innerHTML += '<div style="color:#0f0;margin:4px 0">' + new Date().toLocaleTimeString() + ' — ' + msg + '</div>';
+    console.log(msg);
+}
+
+function testUpload(file) {
+    var fd = new FormData();
+    fd.append('file', file);
+    fetch('/api/upload', { method: 'POST', body: fd })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            log('UPLOAD SUCCESS: ' + JSON.stringify(data));
+            document.getElementById('uploadResult').textContent = 'Upload OK: ' + data.path;
+        })
+        .catch(function(err) {
+            log('UPLOAD FAILED: ' + err.message);
+        });
+}
+</script>
+</body>
+</html>
