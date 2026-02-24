@@ -83,37 +83,47 @@ Every night, the AI processes the day's work and prepares tomorrow.
 
 ## Pricing
 
-### Tier 1: "Night Crew" — $3,500/month per project
-- Overnight processing only (submittals, RFIs, daily logs, morning briefing)
-- Email triage
-- Morning report by 6 AM
-- Best for: Firms that want to test the concept on one project
+### One Product. One Price. No Tiers.
 
-### Tier 2: "Digital PM" — $6,000/month per project
-- Everything in Night Crew
-- Full daytime capabilities (research, document analysis, meeting prep)
-- Real-time Telegram/messaging access to AI operator
-- Custom workflow automation
-- Best for: Active projects with heavy PM workload
+**Setup: $15,000 (one-time)**
+- NERV hardware (client keeps it)
+- On-site deployment by Nick
+- Procore Drive bulk import of all historical project data
+- Full system configuration tailored to client's workflows, team, and tools
+- Procore API + email + messaging integration
+- 2 weeks of calibration with human QA on all AI output
+- Team training on how to interact with their AI operator
 
-### Tier 3: "Operations Center" — $12,000/month (company-wide, up to 5 projects)
-- Everything in Digital PM across all projects
-- Dedicated account management from Nick
-- Cross-project intelligence (portfolio-level insights)
-- Priority support and custom agent development
-- Monthly strategy sessions
-- Best for: GCs running multiple active projects
+**Monthly: $3,500/month per project**
+- **Digital PM** — Full 24/7 AI operator configured to their workflows
+- **Night Crew** — Overnight processing with morning report by 6 AM
+- **Email triage** — Urgent flagging, draft responses, noise filtering
+- **Submittal review** — AI reviews, drafts responses, prepares Procore submissions
+- **RFI processing** — Cross-references specs/drawings, drafts responses
+- **Daily log automation** — Generated from schedule, weather, and field data
+- **Document analysis** — Specs, contracts, change orders, risk flagging
+- **Research on demand** — Vendor due diligence, product research, code lookups
+- **Real-time messaging** — PM can talk to their AI operator via Telegram anytime
+- **Monthly strategy call** with Nick
 
-### Setup Fee: $2,500 (all tiers)
-- Includes NERV hardware, on-site deployment, initial configuration
-- Procore Drive bulk import
-- First week of calibration included
+### Why This Price
 
-### ROI Pitch
-- Junior PM salary: $55-70K/year ($4,600-5,800/month)
-- Our Digital PM: $6,000/month — works 24/7, never calls in sick, handles 3x the volume
-- Break-even: Client saves PM hours on submittals, RFIs, daily logs, and email alone
-- Bonus: Overnight processing means projects move faster = earlier completion = saved carrying costs
+| Compare To | Monthly Cost |
+|---|---|
+| Junior PM salary | $4,600-5,800/month |
+| Part-time admin | $2,500-3,500/month (limited hours, no nights) |
+| **SEELE Digital PM** | **$3,500/month (24/7, every project tool, overnight processing)** |
+
+- Cheaper than a full-time hire
+- Works 24/7 including nights, weekends, holidays
+- Never calls in sick, never quits, never needs training twice
+- Gets smarter over time — learns the client's preferences and workflows
+- Overnight processing means projects move faster = earlier completion = saved carrying costs
+
+### Additional Projects
+- $3,500/month per additional project on the same NERV box
+- No additional setup fee for projects added after initial deployment
+- Cross-project intelligence included (portfolio-level insights across all active projects)
 
 ---
 
@@ -186,21 +196,32 @@ The Night Crew tier at $3,500/month is the foot in the door. Low commitment, hig
 
 ## Revenue Projections (Conservative)
 
-### Month 1-3: Proof of Concept
-- 1 client, Night Crew tier: $3,500/month
-- Revenue: $10,500
+### Month 1-3: First Client
+- 1 client: $15K setup + $3,500/month
+- Revenue: $25,500
 
-### Month 4-6: First Expansion
-- 2 clients (1 Night Crew, 1 Digital PM): $9,500/month
-- Revenue: $28,500
+### Month 4-6: Early Growth
+- 3 total clients (2 new): $30K new setups + $10,500/month
+- Period revenue: $61,500
 
-### Month 7-12: Growth
-- 5 clients (2 Night Crew, 2 Digital PM, 1 Operations Center): $31,000/month
-- Revenue: $186,000
+### Month 7-12: Scaling
+- 7 total clients (4 new): $60K new setups + $24,500/month
+- Period revenue: $207,000
 
-### Year 1 Total: ~$225,000
+### Year 1 Total: ~$294,000
+- Setup fees: $105,000 (7 clients × $15K)
+- Monthly recurring: $189,000
 
-### Year 2 Target: 15 clients, $60-80K/month → $720-960K/year
+### Year 2 Target
+- 15 total clients, $52,500/month recurring
+- New setups: 8 clients × $15K = $120,000
+- Year 2 total: ~$750,000
+
+### Long-Term (Year 3+)
+- 30+ clients, $100K+/month recurring
+- Hire junior AI operators at 15-20 clients to maintain quality
+- Each operator manages 5-7 client NERV instances
+- Nick focuses on sales, strategy, and key accounts
 
 ---
 
