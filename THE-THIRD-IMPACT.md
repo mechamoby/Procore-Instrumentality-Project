@@ -324,9 +324,43 @@ Three data sources for equipment/material info, ranked by quality:
 - **Procore API knowledge base** — Comprehensive endpoint documentation in memory/eva/procore-api/ *(2026-02-19)*
 - **Memory system restructured** — Timestamped entries, project sub-folders (eva/, nerv/, infrastructure/, business/) *(2026-02-19)*
 
+### Completed Since Last Update ✅ *(2026-02-19 → 2026-02-20)*
+- **Procore OAuth FIXED** — Root cause: using production auth URLs for sandbox app. Must use `login-sandbox.procore.com`. Token working *(2026-02-19)*
+- **Procore token auto-refresh cron** — Hourly, `scripts/procore-token-refresh.py` *(2026-02-19)*
+- **MAGI Sprint 1 COMPLETE** — 10 endpoint docs, full API knowledge base at `memory/eva/procore-api/` *(2026-02-19)*
+- **EVA-01 full flow DEMO'D** — PDF in → text extraction → compliance analysis → PM approval → stamp → Procore submittal + attachment upload. End-to-end working *(2026-02-19)*
+- **NERV file attachment support** — Upload → media/inbound → agent message *(2026-02-20)*
+- **NERV activity feed + chat timestamps** — Real event timestamps from session logs *(2026-02-20)*
+- **Multi-agent architecture decision** — Option B confirmed (see Section 11 below) *(2026-02-20)*
+
+### Completed Since Last Update ✅ *(2026-02-20 → 2026-02-23)*
+- **NAP protocol hardened** — canonical ledger path + explicit status taxonomy + proof-of-work requirements in `protocols/NIGHTLY-ACTION-PLAN.md` *(2026-02-23)*
+- **Morning report validator gate added** — `scripts/nap-validate.py` blocks final report unless NAP ledger passes integrity checks *(2026-02-23)*
+- **HEARTBEAT false-alert root cause fixed** — stale checkbox state corrected in `HEARTBEAT.md`; heartbeat now returns `HEARTBEAT_OK` when fully closed *(2026-02-23)*
+- **NERV document export shipped** — UI export button + backend `/api/documents/export` endpoint for docx/html *(2026-02-23)*
+- **NERV Evangelion random event effect shipped** — occasional EVA-themed visual/log event on response completion *(2026-02-23)*
+- **NERV system metrics hardened** — `/api/system` now has psutil primary + `/proc` fallback path *(2026-02-23)*
+- **EVA-01 refinements implemented** — filename format, status=open default, placeholder number logic, PM title override precedence in `eva01_flow.py` *(2026-02-23)*
+- **Attachment truth-check guardrail implemented** — explicit fail-loud behavior when attachment path missing/invalid *(2026-02-23)*
+- **Telegram/NERV reliability tooling added** — `scripts/check-telegram-sync.sh`, `scripts/telegram-ingest-observability.sh`, runbook in `memory/infrastructure/NERV-TELEGRAM-SYNC-RUNBOOK.md` *(2026-02-23)*
+- **EVA-SENTRY v1 scaffold created** — deterministic lightweight security classifier with policy config *(2026-02-23)*
+- **Souls upgraded** — Moby SOUL v2 (Senior Engineer + Business Partner) and Katsuragi SOUL refreshed to production PM/Super standards *(2026-02-23)*
+
 ### In Progress 🔄
-- Procore OAuth token re-authentication (redirect URI updated, awaiting browser flow)
-- Procore API deep exploration (daily logs, webhooks, inspections — blocked on auth)
+- EVA-00 production database deployment with real Procore data
+- Internal-only Browser Relay proof-of-concept for API-gap actions (defer client rollout)
+- MAGI v2 Grok integration currently blocked on cost-constrained auth path (subscription-only no-extra-fee requirement)
+
+### Updated Strategic Security Position (2026-02-23 Afternoon)
+- Public risk narrative response standardized:
+  - Agents execute on NERV host boundary by default, not user workstation boundary.
+  - NERV sees only data explicitly ingested/provided.
+  - Additional capability surfaces (Browser Relay, paired nodes) are explicit opt-in integrations and should remain disabled in client defaults.
+- Hardening pass initiated after autonomous-destruction risk review:
+  - `gateway.controlUi.allowInsecureAuth=false`
+  - `gateway.controlUi.dangerouslyDisableDeviceAuth=false`
+  - exec default posture tightened to approval-first (`host=gateway`, `security=allowlist`, `ask=always`)
+  - per-agent approvals file initialized with deny fallback and no pre-approved binaries.
 
 ### Not Yet Started 📋
 1. **EVA-00 actual database deployment** (schema exists, not yet running) — FIRST PRIORITY
@@ -338,14 +372,16 @@ Three data sources for equipment/material info, ranked by quality:
 7. **NERV remote access** — Tailscale/Cloudflare Tunnel for access outside LAN
 8. **Cognee knowledge graph** — memory enhancement for complex cross-referencing (evaluate when scale demands it)
 
-### Priority Order (Moby's recommendation)
-1. Get Procore auth restored → deep API exploration (daily logs, webhooks, inspections)
-2. Get EVA-00 database running with real Procore data
-3. Build EVA-00 as first demo-able product (the foundation everything else builds on)
-4. Create client demo package
-5. Build EVA-01 submittal agent on top of EVA-00
-6. Pricing model finalization
-7. First sales conversation with a target GC
+### Priority Order (Moby's recommendation, updated 2026-02-20)
+1. ~~Get Procore auth restored~~ ✅ DONE
+2. ~~Deep API exploration~~ ✅ DONE (MAGI Sprint 1)
+3. Get EVA-00 database running with real Procore data
+4. Build EVA-00 as first demo-able product (the foundation everything else builds on)
+5. Formalize multi-agent deployment config (Option B)
+6. Create client demo package
+7. Build EVA-01 submittal agent on top of EVA-00
+8. Pricing model finalization
+9. First sales conversation with a target GC
 
 ---
 
@@ -390,7 +426,150 @@ Full architecture documented in `nerv-deploy/docs/SECURITY-ARCHITECTURE.md`. 7-l
 
 ---
 
-## 11. FILE SYSTEM MAP
+## 11. MULTI-AGENT ARCHITECTURE *(2026-02-20)*
+
+### Decision: Katsuragi + EVA Sub-Agents
+
+**Katsuragi** (named after Misato Katsuragi, the tactical operations director) is the **single client-facing agent**. She's the one Telegram bot clients interact with. She delegates to specialist EVAs behind the scenes — the client never needs to know which EVA is doing the work.
+
+This mirrors the Moby→MAGI pattern: one intelligent coordinator managing specialists.
+
+### Agent Hierarchy
+- **Katsuragi** — Operations Director, main agent. Client-facing. Routes work to EVAs.
+- **EVA-00** — Master Clerk & Project Historian (sub-agent). Structured local DB, cross-referencing.
+- **EVA-01** — Submittal Specialist (sub-agent). PDF intake, compliance review, Procore submittal creation.
+- **EVA-02** — RFI Specialist (sub-agent). Drawing analysis, gap detection, Procore RFI drafting.
+
+### What "One Agent" Means in OpenClaw
+- Own **workspace** (files, SOUL.md, AGENTS.md, prompts, workflow code)
+- Own **state directory** (`~/.openclaw/agents/<agentId>/agent`) for auth + config
+- Own **session store** (chat history, routing state)
+- Completely isolated — no cross-talk unless explicitly enabled via `sessions_send`
+
+### Client Deployment Architecture
+```
+One NERV Box (mini PC at client site)
+├── OpenClaw Gateway (single process)
+├── Katsuragi (Operations Director — CLIENT-FACING)
+│   ├── Telegram: @ClientKatsuragiBot (the ONE bot clients talk to)
+│   ├── Workspace: ~/workspace-katsuragi/
+│   └── Role: Receives all requests, delegates to EVAs, reports back to client
+├── EVA-00 (Master Clerk — sub-agent)
+│   ├── Workspace: ~/workspace-eva-00/
+│   └── Role: Project history queries, cross-referencing, data lookups
+├── EVA-01 (Submittal Agent — sub-agent)
+│   ├── Workspace: ~/workspace-eva-01/
+│   └── Role: PDF analysis, compliance review, Procore submittal creation
+├── EVA-02 (RFI Agent — sub-agent)
+│   ├── Workspace: ~/workspace-eva-02/
+│   └── Role: Drawing analysis, gap detection, Procore RFI drafting
+├── PostgreSQL (shared DB, per-agent schemas/roles)
+├── Redis (shared cache)
+└── NERV Web Interface (unified view for execs)
+```
+
+### OpenClaw Config Structure
+```json5
+{
+  agents: {
+    list: [
+      { id: "katsuragi", workspace: "~/workspace-katsuragi", model: "anthropic/claude-sonnet-4-5", default: true },
+      { id: "eva-00", workspace: "~/workspace-eva-00", model: "anthropic/claude-sonnet-4-5" },
+      { id: "eva-01", workspace: "~/workspace-eva-01", model: "anthropic/claude-sonnet-4-5" },
+      { id: "eva-02", workspace: "~/workspace-eva-02", model: "anthropic/claude-sonnet-4-5" },
+    ]
+  },
+  bindings: [
+    { agentId: "katsuragi", match: { channel: "telegram", accountId: "default" } },
+  ],
+  channels: {
+    telegram: {
+      accounts: {
+        default: { botToken: "...", dmPolicy: "allowlist" },
+      }
+    }
+  },
+  tools: {
+    agentToAgent: { enabled: true, allow: ["katsuragi", "eva-00", "eva-01", "eva-02"] }
+  }
+}
+```
+
+### How It Works for the Client
+1. PM sends a submittal PDF to Katsuragi on Telegram
+2. Katsuragi recognizes the intent → spawns/sends to EVA-01
+3. EVA-01 does the analysis, creates the Procore submittal
+4. Katsuragi reports the result back to the PM
+5. PM never knows EVA-01 exists — they just see Katsuragi handling it
+
+### Cross-Agent Communication
+- Katsuragi delegates to EVAs via `sessions_send` or `sessions_spawn`
+- EVAs can query each other (e.g., EVA-01 asks EVA-00 for project history)
+- Each agent has per-agent sandbox and tool restrictions
+- Execs get unified view through NERV web interface
+
+### Multi-User Concurrency
+Each user's Telegram DM with Katsuragi = separate OpenClaw session (keyed by `chat_id`). Fully isolated context — PM A's conversation never bleeds into PM B's.
+
+**Session flow for concurrent users:**
+```
+PM A sends submittal PDF → Katsuragi session A → spawns EVA-01 subagent (session A tree)
+PM B asks RFI status    → Katsuragi session B → sends to EVA-02 (session B tree)
+PM C asks project history→ Katsuragi session C → sends to EVA-00 (session C tree)
+```
+
+**User identification:** Katsuragi queries EVA-00's PostgreSQL database to identify users:
+1. Message arrives from `chat_id` 12345
+2. Katsuragi looks up (or asks EVA-00): "who is this?"
+3. DB returns: role, projects, permissions
+4. Katsuragi routes with full context
+
+**Shared resource:** The PostgreSQL database (project data, submittals, RFIs, user profiles) is the single source of truth across all sessions and agents.
+
+**Scaling note:** 10 concurrent users = 10 parallel Anthropic API calls through one gateway. OpenClaw queues per-session, so all process — last in line just waits slightly. Fine for mid-size GCs (5-15 active users). For larger clients, evaluate response latency and consider model tier adjustments.
+
+### Why This Architecture
+1. **One contact for the client** — no confusion about which bot to use
+2. **Clean separation behind the scenes** — each EVA laser-focused on its domain
+3. **No context waste** — submittal context doesn't pollute RFI context
+4. **Modular pricing** — sell EVAs individually or as a bundle (Katsuragi always included)
+5. **Independent scaling** — can upgrade one EVA's model without touching others
+6. **Familiar pattern** — like a real PM delegating to their team
+
+### Deployment Steps (for new client)
+1. Ship/configure NERV box (mini PC or client's server)
+2. Install OpenClaw (`npm install -g openclaw`)
+3. Clone deployment template into workspace
+4. Run setup wizard → creates agents, Telegram bots (via BotFather), bindings, DB schemas
+5. Each agent gets pre-built SOUL.md + AGENTS.md + workflow prompts from our templates
+6. Configure client's Procore OAuth connection
+7. `openclaw gateway start` → live
+
+Target: deploy a new client in under 30 minutes.
+
+---
+
+### Scaling Strategy *(2026-02-20)*
+
+**Bottleneck is Anthropic API, not hardware.** NERV box just forwards requests.
+
+**Tiered Inference (v2 roadmap):**
+- Tier 1: Local model (NVIDIA GPU on NERV) — handles 80% of interactions (status checks, lookups, data entry). 1-3 second response, $0 per query.
+- Tier 2: Cloud API (Claude) — handles complex reasoning (compliance analysis, submittal review, RFI drafting). 5-30 second response, metered.
+- Katsuragi triages automatically based on request complexity.
+
+**Distributed NERV Network:**
+- Multiple NERV boxes per client, each with own OpenClaw gateway + own API key
+- All connect to shared cloud PostgreSQL (AWS RDS / Google Cloud SQL / Supabase)
+- Each site gets own Telegram bots, own local processing
+- Connection string change is all agents need — zero code changes
+- Pricing tiers: Starter (1 NERV) → Professional (2-3 NERVs) → Enterprise (5+ NERVs)
+
+**For v1:** API-only with smart queuing. 20 concurrent users is fine on standard Anthropic tier. GPU tier is the v2 upsell.
+
+---
+
+## 12. FILE SYSTEM MAP
 
 ```
 /home/moby/.openclaw/workspace/
@@ -440,7 +619,7 @@ Full architecture documented in `nerv-deploy/docs/SECURITY-ARCHITECTURE.md`. 7-l
 
 ---
 
-## 12. NERV INTERFACE — CUSTOM WEB UI (v1.0 BUILT)
+## 13. NERV INTERFACE — CUSTOM WEB UI (v1.0 BUILT)
 
 **Problem:** OpenClaw on Telegram surfaces raw tool errors as notifications (e.g., "xelatex not found") with no context about retries or resolution. User can't see agent work history or what happened while away.
 
@@ -498,3 +677,36 @@ OPENCLAW_GATEWAY_TOKEN=<token from ~/.openclaw/openclaw.json> python3 server.py
 ---
 
 *This document was created as a contingency plan ("The Third Impact") in case the underlying AI platform needs to change. All project knowledge, mistakes, and progress are preserved here for continuity. — Moby 🐋, February 18, 2026*
+
+---
+
+## UPDATE LOG — 2026-02-22 (Late Night)
+
+### 1) OpenAI Codex OAuth is now LIVE for Katsuragi
+- Completed OAuth login using ChatGPT subscription path (`openai-codex` provider)
+- Katsuragi verified running on: `openai-codex/gpt-5.3-codex`
+- Health check result returned: `KATSURAGI_OK`
+- This confirms subscription-backed operation for client-facing agent runs
+
+### 2) Critical routing bug discovered and fixed
+- Symptom: Katsuragi replied “API rate limit reached” despite OAuth setup
+- Root cause: session/model override drifted to `openai/gpt-5.2` (API key path)
+- Fix: force model/auth back to `openai-codex/gpt-5.3-codex` and verify session status
+
+### 3) NERV document storage made explicit for operator use
+- NERV editor save path was effectively `nerv-interface/documents/`
+- Consolidated into clearer folder: `NERV-DOCS/`
+- Migrated existing files and symlinked old path to preserve compatibility:
+  - `nerv-interface/documents -> ../NERV-DOCS`
+
+### 4) Upload limits clarified (important for demos)
+- NERV UI upload limit encountered: 1MB
+- Created compressed demo-safe PDF: `stamped_output_small.pdf` (~154KB)
+- Telegram and NERV limits are different; demo scripts should account for channel limits
+
+### 5) Operational recommendation (security)
+- Implement lightweight “gatekeeper” policy in front of Katsuragi:
+  - Telegram allowlisted users = executable instructions
+  - Email = untrusted ingest only (no command execution)
+  - Risky actions require explicit confirmation
+

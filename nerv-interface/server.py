@@ -13,6 +13,7 @@ import time
 from pathlib import Path
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, UploadFile, File
+from eva_sentry import EVASentry
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 import httpx
@@ -48,6 +49,8 @@ async def serve_index():
 
 UPLOAD_DIR = Path.home() / ".openclaw" / "workspace" / "nerv-uploads"
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+SENTRY_STATE_DIR = Path.home() / ".openclaw" / "workspace" / "eva-sentry-v1" / "state"
+SENTRY = EVASentry(SENTRY_STATE_DIR)
 
 
 @app.get("/config")
@@ -308,6 +311,37 @@ async def chat_ws(websocket: WebSocket):
                     else:
                         message_text = file_context
                 
+                # EVA Sentry preflight: prompt-injection / malware intent in text
+                text_scan = SENTRY.scan_text(message_text or "")
+                if text_scan.get("verdict") in {"deny", "quarantine"}:
+                    await websocket.send_text(json.dumps({
+                        "type": "error",
+                        "content": "EVA Sentry blocked message (prompt-injection/malware pattern)."
+                    }))
+                    continue
+
+                # EVA Sentry preflight: attached file verdict enforcement
+                blocked_attachment = None
+                for att in attachments or []:
+                    p = att.get("mediaPath") or att.get("path")
+                    if not p:
+                        continue
+                    v = SENTRY.get_verdict_for_path(p) or SENTRY.get_verdict_for_path(att.get("path", ""))
+                    if not v:
+                        # If attachment somehow skipped upload scan, fail closed.
+                        blocked_attachment = {"path": p, "reason": "missing_verdict"}
+                        break
+                    if v.get("verdict") in {"quarantine", "deny"}:
+                        blocked_attachment = {"path": p, "reason": ", ".join(v.get("reasons", []))}
+                        break
+
+                if blocked_attachment:
+                    await websocket.send_text(json.dumps({
+                        "type": "error",
+                        "content": f"EVA Sentry blocked attachment: {blocked_attachment['path']} ({blocked_attachment['reason']})"
+                    }))
+                    continue
+
                 # Send via chat.send for full agent session
                 idempotency_key = f"nerv-{uuid.uuid4().hex[:12]}"
                 chat_params = {
@@ -318,7 +352,7 @@ async def chat_ws(websocket: WebSocket):
                 }
                 if gateway_attachments:
                     chat_params["attachments"] = gateway_attachments
-                
+
                 chat_req = {
                     "type": "req",
                     "id": idempotency_key,
@@ -670,21 +704,49 @@ async def upload_file(file: UploadFile = File(...)):
     dest = UPLOAD_DIR / f"{ts}_{safe_name}"
     with open(dest, "wb") as f:
         shutil.copyfileobj(file.file, f)
-    
+
     # Also copy to the inbound media dir so the agent's media pipeline can find it
     media_dir = Path.home() / ".openclaw" / "media" / "inbound"
     media_dir.mkdir(parents=True, exist_ok=True)
     media_dest = media_dir / f"nerv_{ts}_{safe_name}"
     import shutil as sh
     sh.copy2(dest, media_dest)
-    
+
+    # EVA Sentry ingest scan (document malware + prompt-injection payload checks)
+    sentry_verdict = SENTRY.scan_file(dest, declared_mime=file.content_type or "")
+    # Mirror verdict for media path key lookups
+    SENTRY.save_verdict_dict(str(media_dest), sentry_verdict)
+
     return {
         "path": str(dest),
         "mediaPath": str(media_dest),
         "filename": safe_name,
         "size": dest.stat().st_size,
         "mime": file.content_type or "application/octet-stream",
+        "sentry": sentry_verdict,
     }
+
+
+@app.post("/api/sentry/scan")
+async def sentry_scan(data: dict):
+    """Scan an existing file path (used by external ingest pipelines like email/Procore)."""
+    target = (data or {}).get("path", "")
+    mime = (data or {}).get("mime", "")
+    if not target:
+        return {"error": "path required"}
+    p = Path(target)
+    verdict = SENTRY.scan_file(p, declared_mime=mime)
+    return {"ok": True, "path": str(p), "sentry": verdict}
+
+
+@app.get("/api/sentry/verdict")
+async def sentry_verdict(path: str):
+    if not path:
+        return {"error": "path required"}
+    verdict = SENTRY.get_verdict_for_path(path)
+    if not verdict:
+        return {"error": "verdict not found"}
+    return {"ok": True, "path": path, "sentry": verdict}
 
 
 DOCUMENTS_DIR = Path(__file__).parent / "documents"
@@ -718,6 +780,11 @@ async def save_document(data: dict):
     safe_name = re.sub(r'[^\w\s\-.]', '', name).strip()
     if not safe_name:
         safe_name = "Untitled"
+
+    # EVA Sentry scan for injection/malware-like payloads in document body
+    doc_scan = SENTRY.scan_text(html or "")
+    if doc_scan.get("verdict") in {"deny", "quarantine"}:
+        return {"error": "EVA Sentry blocked document content", "sentry": doc_scan}
 
     # Save HTML
     html_path = DOCUMENTS_DIR / f"{safe_name}.html"
@@ -840,7 +907,7 @@ async def save_document(data: dict):
         except Exception as e:
             return {"ok": True, "html_path": str(html_path), "docx_error": str(e)}
 
-    return {"ok": True, "html_path": str(html_path), "docx_path": str(docx_path) if docx_path else None}
+    return {"ok": True, "html_path": str(html_path), "docx_path": str(docx_path) if docx_path else None, "sentry": doc_scan}
 
 
 @app.get("/api/documents/load")

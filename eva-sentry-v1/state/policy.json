@@ -1,0 +1,8 @@
+{
+  "maxBytes": 26214400,
+  "denyHashPrefixes": [],
+  "trustedChannels": [
+    "webchat",
+    "telegram"
+  ]
+}

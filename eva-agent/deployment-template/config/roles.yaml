@@ -1,0 +1,121 @@
+# ═══════════════════════════════════════════════════════════════
+# EVA Agent — Role-Based Access Control (RBAC)
+# ═══════════════════════════════════════════════════════════════
+# Roles define what each user type can do through the agent.
+# Assign roles to users in config/agent-config.yaml.
+# ═══════════════════════════════════════════════════════════════
+
+roles:
+
+  # ─── Admin ──────────────────────────────────────────────────
+  # Company IT or designated EVA administrator
+  admin:
+    description: "Full system access including user and configuration management"
+    permissions:
+      - "projects:*"              # All project operations
+      - "daily_logs:*"
+      - "submittals:*"
+      - "rfis:*"
+      - "change_orders:*"
+      - "pay_applications:*"
+      - "schedule:*"
+      - "directory:*"
+      - "documents:*"
+      - "email:send"
+      - "email:read"
+      - "docusign:send"
+      - "docusign:status"
+      - "reports:*"
+      - "users:manage"            # Add/remove/edit users
+      - "config:manage"           # Edit agent configuration
+      - "system:status"           # View system health
+      - "system:logs"             # View agent logs
+    project_scope: "all"
+
+  # ─── Project Manager ───────────────────────────────────────
+  # Manages project documents, correspondence, submittals, budget
+  project_manager:
+    description: "Full project management access for assigned projects"
+    permissions:
+      - "projects:read"
+      - "daily_logs:read"
+      - "daily_logs:create"
+      - "daily_logs:edit"
+      - "submittals:*"
+      - "rfis:*"
+      - "change_orders:read"
+      - "change_orders:create"
+      - "change_orders:edit"      # Can draft, but approval is manual
+      - "pay_applications:read"
+      - "pay_applications:create"
+      - "schedule:read"
+      - "schedule:update"
+      - "directory:read"
+      - "documents:*"
+      - "email:send"
+      - "email:read"
+      - "docusign:send"
+      - "docusign:status"
+      - "reports:project"
+      - "reports:financial"
+    project_scope: "assigned"     # Only projects listed in user config
+
+  # ─── Superintendent ────────────────────────────────────────
+  # Field-focused: daily logs, inspections, punch lists, manpower
+  superintendent:
+    description: "Field operations access for assigned projects"
+    permissions:
+      - "projects:read"
+      - "daily_logs:*"            # Primary daily log author
+      - "submittals:read"
+      - "submittals:update_status"  # Mark as received on site
+      - "rfis:read"
+      - "rfis:create"             # Can initiate field RFIs
+      - "schedule:read"
+      - "directory:read"
+      - "documents:read"
+      - "documents:upload"        # Photos, field reports
+      - "email:send"              # Limited to project distribution
+      - "reports:daily"
+      - "reports:manpower"
+    project_scope: "assigned"
+
+  # ─── Executive ─────────────────────────────────────────────
+  # Read-heavy access with financial reporting
+  executive:
+    description: "Executive dashboard and reporting access across all projects"
+    permissions:
+      - "projects:read"
+      - "daily_logs:read"
+      - "submittals:read"
+      - "rfis:read"
+      - "change_orders:read"
+      - "pay_applications:read"
+      - "schedule:read"
+      - "directory:read"
+      - "documents:read"
+      - "reports:*"               # All report types
+      - "reports:financial"
+      - "reports:executive_summary"
+    project_scope: "all"          # Visibility across all projects
+
+# ─── Permission Reference ────────────────────────────────────
+# Format: "resource:action"
+# Actions: read, create, edit, delete, * (all)
+#
+# Resources:
+#   projects          — Project list and details
+#   daily_logs        — Daily construction logs
+#   submittals        — Submittal packages and log
+#   rfis              — Requests for Information
+#   change_orders     — Change orders and PCOs
+#   pay_applications  — Payment applications (AIA G702/G703)
+#   schedule          — Project schedule / CPM
+#   directory         — Project directory (contacts)
+#   documents         — Project files and photos
+#   email             — Send/read email through EVA
+#   docusign          — DocuSign envelope operations
+#   reports           — Generate reports
+#   users             — User management
+#   config            — System configuration
+#   system            — System administration

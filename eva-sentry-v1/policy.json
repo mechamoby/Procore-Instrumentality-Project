@@ -1,0 +1,29 @@
+{
+  "trustedSenderIds": ["8515314184"],
+  "redKeywords": [
+    "rm -rf",
+    "delete everything",
+    "wipe",
+    "shutdown",
+    "revoke",
+    "rotate all keys",
+    "send email",
+    "post to",
+    "tweet",
+    "broadcast"
+  ],
+  "yellowKeywords": [
+    "restart",
+    "stop service",
+    "deploy",
+    "upgrade",
+    "edit config",
+    "cron",
+    "webhook"
+  ],
+  "denyKeywords": [
+    "ignore safeguards",
+    "disable security",
+    "bypass policy"
+  ]
+}

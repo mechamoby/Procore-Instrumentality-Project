@@ -2221,6 +2221,7 @@
         let ws = null;
         let isStreaming = false;
         let currentAssistantMsg = null;
+        let currentAssistantRaw = '';
         let messageCount = 0;
         let reconnectAttempts = 0;
         let pendingFiles = []; // {name, size, path} — path filled after upload
@@ -2351,9 +2352,18 @@
                     group.appendChild(wrapper);
                     messagesEl.appendChild(group);
                     currentAssistantMsg = msg;
+                    currentAssistantRaw = '';
                     typingBar.className = 'typing-bar';
                 }
-                currentAssistantMsg.textContent += data.content;
+                const chunk = String(data.content || '');
+                if (chunk.startsWith(currentAssistantRaw)) {
+                    // backend sent full accumulated text
+                    currentAssistantRaw = chunk;
+                } else {
+                    // backend sent incremental delta
+                    currentAssistantRaw += chunk;
+                }
+                currentAssistantMsg.textContent = currentAssistantRaw;
                 scrollToBottom();
             } else if (data.type === 'tool_start') {
                 // Create inline tool call block
@@ -2416,11 +2426,13 @@
                 saveSession();
                 playNotificationSound();
                 triggerEvaEasterEgg();
+                currentAssistantRaw = '';
                 scrollToBottom();
             } else if (data.type === 'error') {
                 addMessage('error', data.content);
                 isStreaming = false;
                 currentAssistantMsg = null;
+                currentAssistantRaw = '';
                 currentToolBlocks.clear();
                 sendBtn.disabled = false;
                 chatInput.disabled = false;
