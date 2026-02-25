@@ -191,6 +191,19 @@ Per Nick: drawing analysis will be the most AI-intensive daily task. Field guys,
 
 **Architecture note:** For repeat drawing queries (same drawing, different questions), we can cache the image tokens using Anthropic's prompt caching (cache hit = 10% of input cost) or pre-extract text/annotations from drawings and query the text instead. This could reduce drawing costs by 50-80% on frequently-accessed sheets.
 
+### x1000 Drawing Stress Test (1,000 drawings/day)
+
+1,000 drawing analyses per day = one every 36 seconds for a 10-hour workday. That's every person on a 30-man crew analyzing a drawing every 18 minutes, nonstop.
+
+| Scenario (1,000 dwgs/day) | Model | Drawing Cost | + Base Queries | Total/Proj/Mo | Margin |
+|---|---|---|---|---|---|
+| + Lean queries (30/day) | Sonnet 4 | $671 | $10.63 | **$682** | **80.5%** |
+| + Realistic queries (50/day) | Sonnet 4 | $671 | $17.72 | **$689** | **80.3%** |
+| + Heavy queries (100/day) | Sonnet 4 | $671 | $35.43 | **$706** | **79.8%** |
+| + Smart routing (70/30 Haiku/Sonnet) | Blended | $270 | $17.72 | **$288** | **91.8%** |
+
+**Even at 1,000 drawings/day on the most expensive model: 79.8% margin. With smart routing: 91.8% margin.**
+
 ### Revised Full Realistic Scenario (with drawings)
 
 | Scenario | Description | Cost/Proj/Mo | Margin % |
@@ -198,6 +211,7 @@ Per Nick: drawing analysis will be the most AI-intensive daily task. Field guys,
 | **Lean** | 30 queries + 20 drawings/day, smart routing | ~$20 | 99.4% |
 | **Realistic** | 50 queries + 50 drawings/day, smart routing, 10% retry | ~$50-65 | 98.1-98.6% |
 | **Heavy** | 100 queries + 100 drawings/day, all caveats | ~$150-200 | 94.3-95.7% |
+| **Extreme Drawing Load** | 50 queries + 1,000 drawings/day, smart routing | ~$288 | 91.8% |
 | **Abuse (100x)** | 3,000 queries + 500 drawings/day, all caveats | ~$2,000-2,500 | 28.6-42.9% |
 
 ### Revised Bottom Line
