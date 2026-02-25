@@ -224,6 +224,47 @@ Per Nick: drawing analysis will be the most AI-intensive daily task. Field guys,
 
 ---
 
+## Client Communication Architecture (Locked 2026-02-25)
+
+### Three Communication Lanes
+
+All lanes hit the same NERV database. The channel is just the delivery mechanism.
+
+| Lane | How It Works | Best For | Context Management |
+|---|---|---|---|
+| **Email** | Stateless — each email is a fresh EVA interaction backed by DB | Formal requests, subs, architects, owners | None needed (inherently stateless) |
+| **Telegram** | Conversational, real-time | Field guys, PMs on-site, quick questions | 24hr auto-delete + manual clear |
+| **NERV Web Portal** | Client-facing dashboard at `clientname.nerv-command.com` | Full interaction, drawing viewer, doc search, project dashboard | Server-side managed |
+
+### NERV Web Portal — Cloudflare Tunnel Architecture
+
+- Each client gets their own NERV box at their office
+- Cloudflare Tunnel (free tier, zero cost) exposes the portal securely
+- No ports opened on client network — tunnel is outbound-only
+- TLS encrypted end-to-end, data at rest stays on client's box
+- Accessible from any jobsite, any phone, anywhere
+- Domain: ~$10/year per client (`.com`)
+
+**Security ranking:** NERV Portal > Telegram > Email
+- Portal: encrypted transit + data stays on client's box
+- Telegram: encrypted transit + data on Telegram's servers  
+- Email: often unencrypted + data on Google/Microsoft servers
+
+### Deployment Checklist (per client)
+
+1. Install NERV box at client office (~30 min)
+2. `cloudflared tunnel create clientname` (~2 min)
+3. Register domain or subdomain (~$10/year)
+4. Configure Telegram bot + 24hr auto-delete
+5. Configure email ingest (EVA Sentry)
+6. Done — all three lanes operational
+
+### Proof of Concept
+
+- **nerv-command.com** — Live tunnel from moby-1, confirmed working from mobile on 2026-02-25
+- Cloudflare Tunnel running as systemd service (`cloudflared-nerv.service`), auto-start on reboot
+- 4 QUIC connections through Miami Cloudflare nodes (mia02, mia04, mia08)
+
 ## Calculator
 
 Tool: `nerv-deploy/tools/cost-calculator.py`

@@ -57,13 +57,34 @@ Nick and I just had a 3+ hour strategy session on NERV Command Interface. If you
 - mini-moby model confirmed as gpt-5.3-codex (MEMORY.md was outdated)
 - Everything committed and pushed to GitHub
 
+## What Was Done 2026-02-25 Morning Session (Telegram)
+
+### API Cost Ceiling Analysis — LOCKED
+- Built cost calculator (`nerv-deploy/tools/cost-calculator.py`)
+- Modeled 1x through 100x usage, all provider tiers, smart routing scenarios
+- mini-Moby fact-checked, 6 caveats analyzed and addressed
+- Drawing analysis modeled as #1 cost driver (Nick's input) — up to 1,000/day
+- Even worst case (1,000 drawings/day, Sonnet 4): 80% margin at $3,500/mo
+- Full doc: `NERV-DOCS/API-COST-ANALYSIS.md`
+
+### Client Communication Architecture — LOCKED
+- Three lanes: Email (stateless), Telegram (real-time), NERV Web Portal (dashboard)
+- All hit same NERV database
+
+### Cloudflare Tunnel — LIVE
+- Installed cloudflared, authed with Nick's Cloudflare account
+- Domain purchased: **nerv-command.com** ($10/year)
+- Tunnel created + DNS routed + systemd service enabled
+- **https://nerv-command.com is live and working from mobile**
+- Service: `cloudflared-nerv.service` (auto-start, auto-restart)
+
 ## Pending
-- NERV database actual implementation (SQL migrations, Docker)
-- Webhook receiver service
-- _Inbox file watcher service
-- Embedding pipeline
 - Smartsheet adapter (Phase 1 integration)
-- Nick may test this handoff on Telegram — confirm you read it
+- Procore OAuth token management
+- End-to-end integration test with real Procore sandbox
+- NERV interface updates (webhook stats, doc search)
+- Client-facing portal design (responsive mobile UI)
+- NERV web portal login/auth system (per-user accounts, role-based)
 
 ## Market Intel — SAVE THIS
 - Lunch with Shell concrete VP + Miller precon VP + estimators

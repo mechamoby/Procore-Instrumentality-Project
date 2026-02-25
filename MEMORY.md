@@ -117,6 +117,24 @@
 - Procore Drive: useful for onboarding bulk import
 - Procore webhooks: 113 resources confirmed from live sandbox API (full coverage)
 
+## NERV Client Communication Architecture *(locked 2026-02-25)*
+- Three lanes: **Email** (stateless/formal), **Telegram** (real-time/field), **NERV Web Portal** (full dashboard)
+- All three hit the same NERV database — channel is just delivery
+- Web portal via Cloudflare Tunnel: free, encrypted, outbound-only, no ports exposed
+- Domain: ~$10/year per client (`.com`), tunnel is free forever
+- **nerv-command.com** — live proof of concept, tunnel running as systemd service on moby-1
+- Mobile UI needs work (built as desktop internal tool) — client version needs responsive design
+- Security: Portal > Telegram > Email (portal = encrypted + data stays on client box)
+
+## API Cost Model *(locked 2026-02-25)*
+- At $3,500/mo revenue, API costs are negligible at any realistic usage
+- Realistic scenario (50 queries + 50 drawings/day, smart routing): ~$50-65/project/mo → 98% margin
+- Even 1,000 drawings/day on most expensive model: $706/project/mo → 80% margin
+- Drawing analysis is #1 cost driver (~$0.022/call Sonnet 4, ~$0.006 Haiku)
+- Smart routing (simple → cheap model, complex → expensive) is the key cost lever
+- Full analysis: `NERV-DOCS/API-COST-ANALYSIS.md`
+- Calculator tool: `nerv-deploy/tools/cost-calculator.py`
+
 ## Lessons to Retain
 - Diagnose with minimal reproducible tests before speculative fixes
 - Prefer deterministic state files over chat-context assumptions
