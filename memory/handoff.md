@@ -1,61 +1,48 @@
 # Session Handoff
-> Last updated: 2026-02-24 23:33 EST from NERV
+> Last updated: 2026-02-25 13:15 EST from Telegram
 
-## ⚠️ READ THIS FIRST — TONIGHT WAS MASSIVE
+## Latest Session: 2026-02-25 Morning/Afternoon (Telegram)
 
-Nick and I just had a 3+ hour strategy session on NERV Command Interface. If you're reading this on Telegram, you KNOW everything below. Don't ask Nick to re-explain anything.
+### API Cost Ceiling Analysis — LOCKED
+- Built `nerv-deploy/tools/cost-calculator.py` (standalone, no deps)
+- Full analysis doc: `NERV-DOCS/API-COST-ANALYSIS.md`
+- Modeled 1x through 100x usage across all provider tiers + smart routing
+- mini-Moby fact-checked, raised 6 caveats — all analyzed and addressed
+- **Drawing analysis** identified as #1 cost driver (Nick's input from field experience)
+- Modeled up to 1,000 drawings/day: $706/proj/mo on Sonnet 4 = 80% margin
+- **Conclusion: pricing model is bulletproof at $3,500/mo**
 
-## Major Decisions Made Tonight
+### Client Communication Architecture — LOCKED
+- Three lanes: **Email** (stateless/formal), **Telegram** (real-time/field), **NERV Web Portal** (dashboard)
+- All three hit the same NERV database — channel is just delivery mechanism
+- Security ranking: Portal > Telegram > Email
 
-### Rebrand
-- Company = **NERV** (dropped SEELE entirely)
-- All agents = **EVAs** (generic term — no more EVA-00, EVA-01, EVA-02, Katsuragi)
-- This is permanent. Do not use the old naming.
+### Cloudflare Tunnel — LIVE ✅
+- Domain purchased: **nerv-command.com** (~$10/year)
+- cloudflared installed, authed, tunnel created
+- **https://nerv-command.com is live** — confirmed working from Nick's phone
+- Running as systemd service: `cloudflared-nerv.service` (auto-start, auto-restart)
+- 4 QUIC connections through Miami Cloudflare nodes
 
-### Strategic Pivot
-- **100% focus on NERV database project**
-- Procore-specific agents (submittal review, RFI drafting) = **backburner**
-- Don't compete with Procore on Procore features — they'll always win that race
+### Client Deployment Walkthrough (DRAFT — not locked)
+- Discussed full contract-to-operational pipeline
+- Realistic timeline: ~2 weeks (not 4)
+- Nick flagged: will need employee/contractor for physical installs + training
+- Recommendation: Nick does first 3 clients himself, then hires
+- Install labor cost: ~$500-750 per deployment, barely dents margin
 
-### Core Positioning
-**"This isn't Procore AI. This is ABC Contractors AI."**
-- The database captures institutional knowledge: past projects, old bids, archived RFIs, vendor history, lessons learned, handbooks, newsletters — everything that makes a company THAT company
-- Without the database, we're just configuring OpenClaw agents — any dev can do that
-- The database is the moat. EVAs operate on accumulated intelligence. Day 1 smart, Day 365 indispensable.
-- Procore, Smartsheet, email = feeding tubes into the brain. The brain (database) is the product.
+### Branding Discussion (OPEN)
+- mini-Moby raised legit IP concerns about using "NERV" officially (Evangelion)
+- Moby proposed alternatives (AXON, CORTEX, FORGE, CITADEL, NEXUS) — Nick rejected all
+- **NERV stays as internal codename** until the right name hits
+- Name swap is just find-and-replace when ready — no technical impact
 
-### Smartsheet Integration — LOCKED IN
-- Lunch intel: GC VPs use "excel on steroids" as their real database. They're moving to Smartsheet.
-- Shell VP literally described our product: "agentic AI that works with the spreadsheet"
-- Smartsheet webhooks fully compatible with OpenClaw (confirmed by mini-moby research)
-- Entry strategy: connect to their existing Smartsheet → prove value → deploy full NERV box
-
-### Pricing Confirmed
-- $15K setup (one-time) + $3,500/month per project
-
-## What Was Built Tonight
-- `protocols/SESSION-HANDOFF.md` — this handoff protocol (you're using it right now)
-- `NERV-DOCS/NERV-DATA-ARCHITECTURE.md` — full file structure + DB schema + naming conventions
-- `NERV-DOCS/SCALE-ANALYSIS.md` — 5-project deployment, 97% margin, one PC handles it
-- `NERV-DOCS/HARDWARE-ANALYSIS.md` — CPU/RAM/GPU/storage deep dive
-- `NERV-DOCS/STORAGE-STRATEGY.md` — tiered storage, 15TB onboarding, index-based AI
-- `memory/eva/procore-api/WEBHOOK-RESOURCES-CONFIRMED.md` — 113 webhook resources from live Procore API
-
-### Hardware Config LOCKED
-- Ryzen 9 7950X, 64GB DDR5, 2TB NVMe + 8TB HDD, RTX 4060 Ti 16GB
-- ~$1,720 build cost against $15K setup fee = 89% margin
-
-### Key Technical Insights
-- AI indexes data (8GB in RAM), doesn't parse all of it (15TB). Queries return in seconds.
-- 15TB onboarding = ~1 week unattended (catalog overnight, embed in 30 min)
-- Storage optimizations reduce 15TB raw → ~7TB actual
-- Procore webhooks: 113 resources confirmed, every feature has full coverage, ~5 second latency
-- One high-end PC handles 5-15 active projects comfortably
-
-## Other Updates
-- mini-moby given full email access (mecha.moby@gmail.com — SMTP + IMAP)
-- mini-moby model confirmed as gpt-5.3-codex (MEMORY.md was outdated)
-- Everything committed and pushed to GitHub
+## Previous Session Context (2026-02-24 night)
+- Company = NERV (internal codename), agents = EVAs
+- Core positioning: "This isn't Procore AI. This is ABC Contractors AI."
+- 100% focus on NERV database + managed service
+- Pricing: $15K setup + $3,500/mo per project
+- Hardware: Ryzen 9 7950X, 64GB DDR5, 2TB NVMe + 8TB HDD, RTX 4060 Ti 16GB (~$1,720)
 
 ## What Was Done 2026-02-25 Morning Session (Telegram)
 
