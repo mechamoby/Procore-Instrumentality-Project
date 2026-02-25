@@ -149,6 +149,57 @@ Audio (voice-to-text for field reports) would use Whisper or similar. Negligible
 | **Heavy** | 10x queries, 25% heavy-context, 10% retry, 50 photos/day, full vision features | ~$200-250 | 92.9-94.3% |
 | **Abuse (100x)** | Trailer life stress test + all caveats stacked | ~$1,800-2,000 | 42.9-48.6% |
 
+### Caveat 7: Drawing Analysis — The Real Heavy Hitter (added 2026-02-25)
+**Risk: SIGNIFICANT — This is the #1 AI cost driver**
+
+Per Nick: drawing analysis will be the most AI-intensive daily task. Field guys, PMs, and supers will send drawings dozens of times per day per project for comparison, markup review, spec checking, RFI reference, etc.
+
+**Token cost per drawing analysis call:**
+- Anthropic: Images auto-resize to max 1568px edge → ~1,600 input tokens per image
+  - Formula: `(width × height) / 750`, capped at ~1,600 after resize
+  - Source: [Anthropic Vision Docs](https://platform.claude.com/docs/en/build-with-claude/vision)
+- OpenAI: 512×512 tiles, ~170 tokens/tile + 85 base → ~765-1,105 tokens per image (high detail)
+- Typical drawing analysis: 1-2 images + question prompt + AI response
+  - Per call: ~3,500 input tokens (1,600 image + 1,600 comparison image + 300 prompt) + ~800 output tokens
+
+**Drawing Analysis Cost Model:**
+
+| Drawings/Project/Day | Model | Cost/Call | Monthly Cost/Project | Total w/ Base | Margin % |
+|:---:|:---:|:---:|:---:|:---:|:---:|
+| 20 (conservative) | Sonnet 4 | $0.022 | $13.50 | $24.13 | 99.3% |
+| 20 | GPT-4o | $0.017 | $10.20 | $17.67 | 99.5% |
+| 20 | Haiku 3.5 | $0.006 | $3.60 | $6.43 | 99.8% |
+| 50 (heavy) | Sonnet 4 | $0.022 | $33.75 | $44.38 | 98.7% |
+| 50 | GPT-4o | $0.017 | $25.50 | $32.97 | 99.1% |
+| 50 | Haiku 3.5 | $0.006 | $9.00 | $11.83 | 99.7% |
+| 100 (stress test) | Sonnet 4 | $0.022 | $67.50 | $78.13 | 97.8% |
+| 100 | GPT-4o | $0.017 | $51.00 | $58.47 | 98.3% |
+| 100 | Haiku 3.5 | $0.006 | $18.00 | $20.83 | 99.4% |
+
+**Smart routing for drawings:**
+- Simple lookups ("what's the door schedule on A3.2?") → Haiku/4o-mini (~$0.003/call)
+- Comparison/redline ("what changed between Rev 3 and Rev 4?") → Sonnet/4o (~$0.022/call)
+- Estimated 70% simple / 30% complex split → blended ~$0.009/call
+
+**With smart routing at 50 drawings/day:**
+- Monthly cost: ~$13.50 drawing analysis + $10.63 base = **~$24/project/mo → 99.3% margin**
+
+**With smart routing at 100 drawings/day:**
+- Monthly cost: ~$27 drawing analysis + $10.63 base = **~$38/project/mo → 98.9% margin**
+
+**Key insight:** Even at 100 drawing analyses per project per day (which is one every 5 minutes for a 10-hour workday), we're under $80/project/month on the most expensive model. Drawing analysis is the biggest cost driver but it's still a rounding error against $3,500 revenue.
+
+**Architecture note:** For repeat drawing queries (same drawing, different questions), we can cache the image tokens using Anthropic's prompt caching (cache hit = 10% of input cost) or pre-extract text/annotations from drawings and query the text instead. This could reduce drawing costs by 50-80% on frequently-accessed sheets.
+
+### Revised Full Realistic Scenario (with drawings)
+
+| Scenario | Description | Cost/Proj/Mo | Margin % |
+|---|---|---|---|
+| **Lean** | 30 queries + 20 drawings/day, smart routing | ~$20 | 99.4% |
+| **Realistic** | 50 queries + 50 drawings/day, smart routing, 10% retry | ~$50-65 | 98.1-98.6% |
+| **Heavy** | 100 queries + 100 drawings/day, all caveats | ~$150-200 | 94.3-95.7% |
+| **Abuse (100x)** | 3,000 queries + 500 drawings/day, all caveats | ~$2,000-2,500 | 28.6-42.9% |
+
 ### Revised Bottom Line
 
 - **Base model is directionally correct and confirmed by independent review**
