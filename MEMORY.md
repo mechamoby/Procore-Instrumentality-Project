@@ -8,28 +8,34 @@
 - Priority channel: Telegram (phone + web.telegram.org)
 - Needs autonomous execution + concise decision-ready updates
 
-## Core Mission (EVA / SEELE)
-- Build/sell locally deployed AI agents for construction firms *(since 2026-02-16)*
-- Value prop: data stays on client-owned NERV box; fast PM workflows
+## Core Mission — NERV *(rebrand 2026-02-24)*
+- Company name: **NERV** (dropped SEELE)
+- All AI agents = **EVAs** (generic term, no more EVA-00/01/02 numbering)
+- Build/sell locally deployed AI agents (EVAs) for construction firms *(since 2026-02-16)*
+- Value prop: data stays on client-owned NERV box; intelligent data architecture + managed service
 - Target customer: exec-level GC/dev leaders in South Florida
-- Commercial model: setup + monthly per-agent pricing
+- Commercial model: $15K setup + $3,500/month per project
 
-## Product Lineup
-- **EVA-00**: Master Clerk / Project Historian *(2026-02-19)*
-- **EVA-01**: Submittal Agent (review + Procore draft creation)
-- **EVA-02**: RFI Agent
-- **Katsuragi**: client-facing operations director routing to EVA specialists *(2026-02-20)*
-- Modular packaging is preferred (sell agents individually or bundled)
+## Product Focus — NERV Database *(2026-02-24)*
+- **Core product is the NERV database + EVA agents + managed service**
+- **"This isn't Procore AI. This is ABC Contractors AI."** ← THE positioning statement
+- Without the database, we're just configuring OpenClaw agents — any dev can do that
+- The database captures **institutional knowledge**: past projects, old bids, archived RFIs, vendor history, lessons learned, employee handbooks, company newsletters — everything that makes a company THAT company
+- EVAs operate on this accumulated intelligence. Day 1 it's smart. Day 365 it's indispensable.
+- Procore, Smartsheet, email = **feeding tubes into the brain.** The brain (database) is the product.
+- Procore-specific agents (submittal review, RFI drafting) = backburner. Don't compete with Procore on Procore features.
+- Smartsheet integration = locked in as key integration (matches how GCs actually work — "excel on steroids")
+- Key architecture docs: `NERV-DOCS/NERV-DATA-ARCHITECTURE.md`, `NERV-DOCS/SCALE-ANALYSIS.md`, `NERV-DOCS/HARDWARE-ANALYSIS.md`, `NERV-DOCS/STORAGE-STRATEGY.md`
 
-## EVA-01 Critical Truths
-- Confirmed flow: PDF → review → PM approval → stamp → Procore draft + attachment *(2026-02-19)*
-- Required defaults:
-  - submittal `status` = `open`
-  - placeholder `number` required by Procore (TBD pattern)
-  - naming format: `{Project} - {Title} - {Date}.pdf`
-  - PM title override must be respected
-- Attachment upload method: `PATCH submittal[attachments][]`
-- Guardrail needed: never review random local files when attachment path is missing
+## Market Intelligence — Lunch with Shell VP + Miller VP *(2026-02-24)*
+- VP from large concrete company + Nick's VP of precon at Miller + estimators
+- Miller has CRM but doesn't use it. Precon team relies on "excel sheet on steroids" (forever spreadsheet as database)
+- Miller moving to Smartsheet for less friction on shared docs
+- Shell contractor VP had Outlook plugin sales pitch yesterday — auto-collects data from emails by parameters, NOT AI, but heard AI version coming
+- Shell VP explicitly said "the future is agentic AI" and "would work so well with the excel on steroids document"
+- **This is live market validation from our exact target customers**
+- Entry point strategy: connect to their existing Smartsheet/Excel → prove value → deploy full NERV box
+- Miller Smartsheet = potential internal pilot opportunity (proof of concept, not a sale)
 
 ## Procore API (Sandbox) — Operational Facts
 - Company ID: **4281379**, Project ID: **316469** *(since 2026-02-17)*
@@ -90,14 +96,15 @@
 - Auto-abort wasteful loops — stop after 2-3 attempts max and ask Nick
 - 7 PM evening task list — Recurring cron (weekdays). Compile pending home tasks and send.
 
-## Business Model v2 — The Digital Superintendent *(2026-02-24)*
-- **Pivot**: OpenClaw agent (full digital employee) vs Procore agents (feature inside their app)
+## Business Model — NERV *(updated 2026-02-24)*
+- **Company**: NERV
+- **Product**: Locally deployed AI data platform + managed EVA agents for construction
 - **Pricing**: $15K setup (one-time) + $3,500/month all-in per project
-- **Core offering**: Digital PM + Night Crew (overnight processing) + 6 AM morning report
+- **Core offering**: Intelligent local data architecture + 24/7 AI employee + managed service
 - **Signature feature**: "Your projects make progress while you sleep"
 - **Target**: South Florida GCs, mid-size ($20-100M annual volume)
-- **Year 1 conservative**: ~$294K revenue
-- **Full doc**: `business/SEELE-MODEL-V2.md`
+- **Dropped**: "Night Crew" branding (cheap vibe), SEELE name, individual agent numbering
+- **Key docs**: `NERV-DOCS/NERV-DATA-ARCHITECTURE.md`, `business/SEELE-MODEL-V2.md` (legacy naming)
 
 ## Procore Competitive Intelligence *(2026-02-24)*
 - Agent Builder v1 launched Sep 2025, already shut down for new activations
@@ -105,8 +112,10 @@
 - Datagrid: 31-person team, CEO Thiago da Costa (sold Lagoa to Autodesk for $60M)
 - Integration timeline: 12-18 months before serious competitive threat
 - Their agents: cloud-only, create-only (can't modify/delete), Procore-only
-- Our edge: cross-platform, overnight processing, local deployment, white-glove service
-- Procore Drive: only useful for onboarding bulk import, locked into deployment protocol
+- **Our edge: local data ownership, intelligent architecture, cross-platform, white-glove service**
+- **Strategic shift: don't compete on Procore features — compete on data intelligence + service**
+- Procore Drive: useful for onboarding bulk import
+- Procore webhooks: 113 resources confirmed from live sandbox API (full coverage)
 
 ## Lessons to Retain
 - Diagnose with minimal reproducible tests before speculative fixes
