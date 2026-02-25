@@ -71,12 +71,18 @@
 - Cross-session sync protocol (nerv-handoff.md) is critical gap — implement immediately
 - Browser Relay: internal-only, not client-facing
 
-## mini-Moby Agent *(2026-02-23)*
-- Registered in openclaw.json, model: openai/gpt-4o-mini
+## mini-Moby Agent *(2026-02-23, updated 2026-02-24)*
+- Registered in openclaw.json, model: openai-codex/gpt-5.3-codex
 - Workspace: /home/moby/.openclaw/workspace-mini-moby/
-- Telegram token wired + binding added
+- Telegram token wired + binding active
 - Role: overflow/research/drafting, no production changes
-- Status: config done, Telegram delivery unconfirmed at session end
+
+## Cross-Session Handoff Protocol *(2026-02-24)*
+- **Problem**: NERV and Telegram are separate sessions — work done in one is invisible to the other
+- **Solution**: `memory/handoff.md` — live shift-change file updated before session transitions
+- **Protocol doc**: `protocols/SESSION-HANDOFF.md`
+- **AGENTS.md updated**: handoff.md is now step 3 in bootup sequence
+- **Rule**: NEVER end a session with significant work without updating handoff.md
 
 ## Standing Protocols
 - **Rei Clone Reset** *(since 2026-02-19)*: Core protocol — see `protocols/REI-CLONE-RESET.md`. NEVER DELETE.
