@@ -44,6 +44,11 @@
 - NERV uploads land in `nerv-uploads/` and mirrored to `~/.openclaw/media/inbound/`
 - Avoid orphan `server.py` process on 8080 (can block managed service)
 
+## Telegram Settings
+- Messages set to **auto-delete after 24 hours** *(2026-02-24)*
+- Context bloat is only a same-day problem; history self-clears overnight
+- For immediate reset: Nick clears chat manually from Telegram app (bot can't bulk-delete)
+
 ## Telegram/NERV Reliability Notes
 - Explicit bindings can disable Telegram auto-binding; must explicitly include main bot binding *(2026-02-22)*
 - Known failure class: file messages with missing inbound path; must fail loud to user, not hallucinate
@@ -74,7 +79,7 @@
 - Status: config done, Telegram delivery unconfirmed at session end
 
 ## Standing Protocols
-- **Rei Clone Reset** *(since 2026-02-19)*: If Nick sends the Rei Ayanami clones image (End of Evangelion Dummy Plug System), it means: save all critical project state to memory files, update daily log, commit to git, then start a fresh context session. Image saved at `protocols/rei-clone-reset.jpg`. THIS IS A CORE PROTOCOL — NEVER DELETE.
+- **Rei Clone Reset** *(since 2026-02-19)*: Core protocol — see `protocols/REI-CLONE-RESET.md`. NEVER DELETE.
 - Monitor context usage — warn Nick at 75%, recommend fresh session at 85%
 - Auto-abort wasteful loops — stop after 2-3 attempts max and ask Nick
 - 7 PM evening task list — Recurring cron (weekdays). Compile pending home tasks and send.
