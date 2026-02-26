@@ -135,6 +135,22 @@
 - Full analysis: `NERV-DOCS/API-COST-ANALYSIS.md`
 - Calculator tool: `nerv-deploy/tools/cost-calculator.py`
 
+## Enterprise Readiness Checklist *(2026-02-25)*
+- Source: mini-Moby independent audit
+- Full doc: `NERV-DOCS/ENTERPRISE-READINESS-CHECKLIST.md`
+- **P0 (before first pilot):** Multi-tenant isolation proof, MSA + legal, billing flow
+- **P1 (30 days post-pilot):** DR drills, MFA + webhook signatures, SLOs, onboarding wizard, approval queue
+- **P2 (90+ days, scale):** Vault/KMS, full compliance (DPA, incident response), per-client dashboards, support SLA
+- Strategic note: First client needs P0 only. Don't let enterprise polish delay revenue.
+
+## NERV Stack Status *(2026-02-25 evening)*
+- **13 services** in docker-compose, all containerized
+- **31 database tables**, 5 migrations
+- **Services built 2026-02-25:** Token Guardian, EVA Sentry, Smartsheet Adapter, Portal Auth, Watchdog, Portal UI
+- **Tested:** 42 automated tests, live Procore sandbox, live Smartsheet (Poinciana Crossing), independent audit A-
+- **Key commits:** ef6a13a, 02a584a, 4db1b1b, d8e467d, 6224613, 53e772b, 959a354
+- Remaining: Docker full-stack test, onboarding wizard, branding, demo package
+
 ## Lessons to Retain
 - Diagnose with minimal reproducible tests before speculative fixes
 - Prefer deterministic state files over chat-context assumptions

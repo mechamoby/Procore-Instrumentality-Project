@@ -1,0 +1,1125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NERV — Portal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0a0a;
+            --bg-panel: #0d0d0d;
+            --bg-input: #111111;
+            --bg-sidebar: #080808;
+            --border: rgba(80, 200, 200, 0.12);
+            --border-bright: rgba(80, 200, 200, 0.3);
+            --text-primary: #c8c8c8;
+            --text-secondary: #778899;
+            --text-muted: #445566;
+            --nerv-red: #cc0000;
+            --nerv-teal: #50c8c8;
+            --nerv-green: #50c8a0;
+            --nerv-blue: #40a0cc;
+            --nerv-orange: #cc8840;
+            --glow-teal: 0 0 20px rgba(80, 200, 200, 0.15);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-image:
+                linear-gradient(rgba(80,200,200,0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(80,200,200,0.02) 1px, transparent 1px);
+            background-size: 50px 50px;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* ── Sidebar ── */
+        .sidebar {
+            width: 220px;
+            background: var(--bg-sidebar);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            top: 0; left: 0; bottom: 0;
+            z-index: 100;
+            transition: transform 0.3s;
+        }
+
+        .sidebar-header {
+            padding: 20px 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .sidebar-logo {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 22px;
+            color: var(--nerv-red);
+            letter-spacing: 6px;
+            text-shadow: 0 0 20px rgba(204, 0, 0, 0.3);
+        }
+
+        .sidebar-company {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 10px;
+            color: var(--text-muted);
+            letter-spacing: 1px;
+            margin-top: 4px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .sidebar-nav {
+            flex: 1;
+            padding: 12px 0;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 20px;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 12px;
+            letter-spacing: 1px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s;
+            border-left: 2px solid transparent;
+        }
+
+        .nav-item:hover { background: rgba(80, 200, 200, 0.04); color: var(--text-primary); }
+        .nav-item.active { color: var(--nerv-teal); border-left-color: var(--nerv-teal); background: rgba(80, 200, 200, 0.06); }
+
+        .nav-icon { font-size: 16px; width: 20px; text-align: center; }
+
+        .sidebar-footer {
+            padding: 16px;
+            border-top: 1px solid var(--border);
+        }
+
+        .user-info {
+            display: flex; align-items: center; gap: 10px;
+        }
+
+        .user-avatar {
+            width: 32px; height: 32px; border-radius: 50%;
+            background: rgba(80, 200, 200, 0.15);
+            display: flex; align-items: center; justify-content: center;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 12px; color: var(--nerv-teal);
+        }
+
+        .user-name {
+            font-size: 13px; color: var(--text-primary);
+            overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+
+        .user-role {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 9px; color: var(--text-muted); letter-spacing: 1px;
+        }
+
+        .logout-btn {
+            margin-top: 12px; width: 100%; padding: 8px;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 10px; letter-spacing: 1px;
+            border: 1px solid var(--border); color: var(--text-muted);
+            background: transparent; cursor: pointer; transition: all 0.2s;
+        }
+        .logout-btn:hover { border-color: var(--nerv-red); color: var(--nerv-red); }
+
+        /* ── Main Content ── */
+        .main {
+            flex: 1;
+            margin-left: 220px;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ── Top Bar ── */
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 24px;
+            border-bottom: 1px solid var(--border);
+            background: rgba(10, 10, 10, 0.95);
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+
+        .topbar-left {
+            display: flex; align-items: center; gap: 16px;
+        }
+
+        .hamburger {
+            display: none;
+            background: none; border: none;
+            color: var(--text-secondary); font-size: 22px; cursor: pointer;
+            padding: 4px 8px;
+        }
+
+        .project-selector {
+            position: relative;
+        }
+
+        .project-btn {
+            display: flex; align-items: center; gap: 8px;
+            padding: 8px 14px;
+            background: var(--bg-input); border: 1px solid var(--border);
+            color: var(--text-primary);
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 12px; letter-spacing: 0.5px;
+            cursor: pointer; transition: all 0.2s;
+        }
+        .project-btn:hover { border-color: var(--nerv-teal); }
+        .project-btn .arrow { color: var(--text-muted); font-size: 10px; }
+
+        .project-dropdown {
+            display: none;
+            position: absolute; top: 100%; left: 0; margin-top: 4px;
+            background: var(--bg-panel); border: 1px solid var(--border);
+            min-width: 260px; z-index: 200;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+        }
+        .project-dropdown.open { display: block; }
+
+        .project-option {
+            padding: 12px 16px;
+            font-family: 'Share Tech Mono', monospace; font-size: 12px;
+            color: var(--text-secondary); cursor: pointer; transition: all 0.15s;
+            border-bottom: 1px solid var(--border);
+        }
+        .project-option:last-child { border-bottom: none; }
+        .project-option:hover { background: rgba(80, 200, 200, 0.06); color: var(--text-primary); }
+        .project-option.active { color: var(--nerv-teal); }
+        .project-option .project-code { font-size: 9px; color: var(--text-muted); letter-spacing: 1px; }
+
+        .topbar-right {
+            display: flex; align-items: center; gap: 12px;
+        }
+
+        .topbar-status {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 10px; color: var(--nerv-green); letter-spacing: 1px;
+            display: flex; align-items: center; gap: 6px;
+        }
+        .status-dot {
+            width: 6px; height: 6px; border-radius: 50%;
+            background: var(--nerv-green);
+            box-shadow: 0 0 6px var(--nerv-green);
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* ── Content Area ── */
+        .content {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
+
+        .dashboard {
+            flex: 1;
+            padding: 24px;
+            overflow-y: auto;
+        }
+
+        /* ── Stats Row ── */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: var(--bg-panel);
+            border: 1px solid var(--border);
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 2px;
+            background: linear-gradient(90deg, transparent, var(--nerv-teal), transparent);
+        }
+
+        .stat-number {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 32px;
+            color: var(--nerv-teal);
+            line-height: 1;
+        }
+        .stat-card.warning .stat-number { color: var(--nerv-orange); }
+        .stat-card.warning::before { background: linear-gradient(90deg, transparent, var(--nerv-orange), transparent); }
+
+        .stat-label {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 9px;
+            color: var(--text-muted);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-top: 8px;
+        }
+
+        .stat-sub {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        /* ── Cards Grid ── */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+
+        .card {
+            background: var(--bg-panel);
+            border: 1px solid var(--border);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 2px;
+            background: linear-gradient(90deg, transparent, var(--nerv-teal), transparent);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 20px 12px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .card-title {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 11px;
+            color: var(--nerv-teal);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .card-action {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 9px;
+            color: var(--text-muted);
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        .card-action:hover { color: var(--nerv-teal); }
+
+        .card-body {
+            padding: 16px 20px;
+            flex: 1;
+        }
+
+        /* ── Project Summary ── */
+        .project-summary-row {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 8px 0;
+        }
+
+        .project-name-large {
+            font-size: 18px; font-weight: 600; color: var(--text-primary);
+        }
+
+        .project-status {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 10px; letter-spacing: 1px;
+            padding: 4px 10px;
+            border: 1px solid var(--nerv-green);
+            color: var(--nerv-green);
+        }
+
+        .progress-row {
+            margin: 16px 0;
+        }
+
+        .progress-label {
+            display: flex; justify-content: space-between;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 10px; color: var(--text-muted); letter-spacing: 1px;
+            margin-bottom: 6px;
+        }
+
+        .progress-bar-track {
+            width: 100%; height: 4px;
+            background: var(--border); overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--nerv-teal), var(--nerv-green));
+            transition: width 0.5s;
+        }
+
+        .project-dates {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px;
+        }
+
+        .date-item {
+            font-family: 'Share Tech Mono', monospace; font-size: 10px;
+        }
+        .date-label { color: var(--text-muted); letter-spacing: 1px; }
+        .date-value { color: var(--text-secondary); margin-top: 2px; font-size: 12px; }
+
+        /* ── Activity Feed ── */
+        .activity-item {
+            display: flex; gap: 12px;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(80, 200, 200, 0.06);
+        }
+        .activity-item:last-child { border-bottom: none; }
+
+        .activity-icon {
+            width: 28px; height: 28px;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 12px;
+            flex-shrink: 0;
+        }
+        .activity-icon.rfi { background: rgba(80, 200, 200, 0.12); }
+        .activity-icon.submittal { background: rgba(80, 200, 160, 0.12); }
+        .activity-icon.change { background: rgba(204, 136, 64, 0.12); }
+        .activity-icon.sync { background: rgba(64, 160, 204, 0.12); }
+        .activity-icon.doc { background: rgba(200, 200, 200, 0.08); }
+
+        .activity-text {
+            flex: 1; min-width: 0;
+        }
+        .activity-desc {
+            font-size: 13px; color: var(--text-secondary);
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .activity-time {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 9px; color: var(--text-muted); letter-spacing: 0.5px;
+            margin-top: 2px;
+        }
+
+        /* ── Document Search ── */
+        .search-bar {
+            display: flex; gap: 8px; margin-bottom: 16px;
+        }
+        .search-input {
+            flex: 1; padding: 10px 14px;
+            background: var(--bg-input); border: 1px solid var(--border);
+            color: var(--text-primary);
+            font-family: 'Share Tech Mono', monospace; font-size: 12px;
+            outline: none; transition: border-color 0.2s;
+        }
+        .search-input:focus { border-color: var(--nerv-teal); }
+        .search-input::placeholder { color: var(--text-muted); }
+
+        .doc-stat {
+            display: flex; justify-content: space-between;
+            padding: 8px 0;
+            font-family: 'Share Tech Mono', monospace; font-size: 11px;
+            border-bottom: 1px solid rgba(80, 200, 200, 0.06);
+        }
+        .doc-stat:last-child { border-bottom: none; }
+        .doc-stat-name { color: var(--text-secondary); }
+        .doc-stat-count { color: var(--nerv-teal); }
+
+        /* ── EVA Chat Panel ── */
+        .chat-panel {
+            width: 380px;
+            background: var(--bg-sidebar);
+            border-left: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: space-between;
+        }
+
+        .chat-title {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 14px; color: var(--nerv-teal); letter-spacing: 3px;
+        }
+
+        .chat-title-sub {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 9px; color: var(--text-muted); letter-spacing: 1px;
+        }
+
+        .chat-toggle-btn {
+            display: none;
+            background: none; border: none; color: var(--text-muted);
+            font-size: 18px; cursor: pointer;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .chat-msg {
+            max-width: 90%;
+            padding: 10px 14px;
+            font-size: 13px;
+            line-height: 1.5;
+            word-wrap: break-word;
+        }
+
+        .chat-msg.eva {
+            align-self: flex-start;
+            background: rgba(80, 200, 200, 0.08);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            border-radius: 0 8px 8px 8px;
+        }
+
+        .chat-msg.user {
+            align-self: flex-end;
+            background: rgba(80, 200, 200, 0.15);
+            border: 1px solid var(--border-bright);
+            color: var(--text-primary);
+            border-radius: 8px 0 8px 8px;
+        }
+
+        .chat-msg.system {
+            align-self: center;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 10px; color: var(--text-muted);
+            letter-spacing: 0.5px;
+        }
+
+        .chat-msg .msg-time {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 9px; color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .chat-typing {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 10px; color: var(--text-muted);
+            padding: 0 16px 8px;
+            letter-spacing: 0.5px;
+            display: none;
+        }
+        .chat-typing.visible { display: block; }
+
+        .chat-input-row {
+            padding: 12px 16px;
+            border-top: 1px solid var(--border);
+            display: flex; gap: 8px;
+        }
+
+        .chat-input {
+            flex: 1; padding: 12px 14px;
+            background: var(--bg-input); border: 1px solid var(--border);
+            color: var(--text-primary);
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 14px; outline: none;
+            transition: border-color 0.2s;
+            min-height: 44px;
+        }
+        .chat-input:focus { border-color: var(--nerv-teal); }
+        .chat-input::placeholder { color: var(--text-muted); }
+
+        .chat-send {
+            padding: 0 18px;
+            background: transparent;
+            border: 1px solid var(--nerv-teal);
+            color: var(--nerv-teal);
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 12px; letter-spacing: 1px;
+            cursor: pointer; transition: all 0.2s;
+            white-space: nowrap;
+        }
+        .chat-send:hover { background: rgba(80, 200, 200, 0.1); box-shadow: var(--glow-teal); }
+        .chat-send:disabled { opacity: 0.3; cursor: not-allowed; }
+
+        /* ── Mobile FAB for chat ── */
+        .chat-fab {
+            display: none;
+            position: fixed; bottom: 24px; right: 24px;
+            width: 56px; height: 56px; border-radius: 50%;
+            background: var(--nerv-teal); border: none;
+            color: var(--bg-primary); font-size: 24px;
+            cursor: pointer; z-index: 200;
+            box-shadow: 0 4px 20px rgba(80, 200, 200, 0.4);
+            transition: transform 0.2s;
+        }
+        .chat-fab:active { transform: scale(0.92); }
+
+        /* ── Mobile overlay ── */
+        .overlay {
+            display: none; position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.6); z-index: 90;
+        }
+        .overlay.open { display: block; }
+
+        /* ── Responsive ── */
+        @media (max-width: 1100px) {
+            .chat-panel { width: 320px; }
+        }
+
+        @media (max-width: 900px) {
+            .sidebar { transform: translateX(-100%); }
+            .sidebar.open { transform: translateX(0); }
+            .main { margin-left: 0; }
+            .hamburger { display: block; }
+            .stats-row { grid-template-columns: repeat(2, 1fr); }
+            .cards-grid { grid-template-columns: 1fr; }
+
+            .chat-panel {
+                position: fixed; top: 0; right: 0; bottom: 0;
+                width: 100%; max-width: 400px;
+                transform: translateX(100%);
+                transition: transform 0.3s;
+                z-index: 110;
+            }
+            .chat-panel.open { transform: translateX(0); }
+            .chat-toggle-btn { display: block; }
+            .chat-fab { display: flex; align-items: center; justify-content: center; }
+        }
+
+        @media (max-width: 520px) {
+            .stats-row { grid-template-columns: 1fr 1fr; gap: 10px; }
+            .stat-card { padding: 14px; }
+            .stat-number { font-size: 24px; }
+            .dashboard { padding: 16px; }
+            .topbar { padding: 10px 16px; }
+            .project-btn { font-size: 11px; padding: 6px 10px; }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">NERV</div>
+            <div class="sidebar-company" id="sidebarCompany">ACME Construction</div>
+        </div>
+        <div class="sidebar-nav">
+            <div class="nav-item active" data-page="dashboard">
+                <span class="nav-icon">📊</span> Dashboard
+            </div>
+            <div class="nav-item" data-page="documents">
+                <span class="nav-icon">📄</span> Documents
+            </div>
+            <div class="nav-item" data-page="drawings">
+                <span class="nav-icon">📐</span> Drawings
+            </div>
+            <div class="nav-item" data-page="team">
+                <span class="nav-icon">👥</span> Team
+            </div>
+            <div class="nav-item" data-page="settings">
+                <span class="nav-icon">⚙️</span> Settings
+            </div>
+        </div>
+        <div class="sidebar-footer">
+            <div class="user-info">
+                <div class="user-avatar" id="userAvatar">JS</div>
+                <div>
+                    <div class="user-name" id="userName">John Smith</div>
+                    <div class="user-role">VP OPERATIONS</div>
+                </div>
+            </div>
+            <button class="logout-btn" onclick="logout()">Logout</button>
+        </div>
+    </nav>
+
+    <!-- Mobile overlay -->
+    <div class="overlay" id="overlay" onclick="closeSidebar()"></div>
+
+    <!-- Main content -->
+    <div class="main">
+        <!-- Top bar -->
+        <div class="topbar">
+            <div class="topbar-left">
+                <button class="hamburger" id="hamburgerBtn" onclick="toggleSidebar()">☰</button>
+                <div class="project-selector">
+                    <button class="project-btn" onclick="toggleProjectDropdown()">
+                        <span id="currentProject">Brickell Tower Phase II</span>
+                        <span class="arrow">▾</span>
+                    </button>
+                    <div class="project-dropdown" id="projectDropdown">
+                        <div class="project-option active" onclick="selectProject(this, 'Brickell Tower Phase II')">
+                            Brickell Tower Phase II
+                            <div class="project-code">PRJ-2024-001 · ACTIVE</div>
+                        </div>
+                        <div class="project-option" onclick="selectProject(this, 'Wynwood Mixed-Use')">
+                            Wynwood Mixed-Use
+                            <div class="project-code">PRJ-2024-002 · ACTIVE</div>
+                        </div>
+                        <div class="project-option" onclick="selectProject(this, 'Coral Gables Residences')">
+                            Coral Gables Residences
+                            <div class="project-code">PRJ-2023-018 · CLOSEOUT</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="topbar-right">
+                <div class="topbar-status">
+                    <span class="status-dot"></span> EVA ONLINE
+                </div>
+            </div>
+        </div>
+
+        <!-- Content area -->
+        <div class="content">
+            <!-- Dashboard -->
+            <div class="dashboard" id="dashboardContent">
+                <!-- Stats Row -->
+                <div class="stats-row">
+                    <div class="stat-card">
+                        <div class="stat-number">7</div>
+                        <div class="stat-label">Open RFIs</div>
+                        <div class="stat-sub">3 overdue</div>
+                    </div>
+                    <div class="stat-card warning">
+                        <div class="stat-number">12</div>
+                        <div class="stat-label">Pending Submittals</div>
+                        <div class="stat-sub">5 need review</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">3</div>
+                        <div class="stat-label">Active COs</div>
+                        <div class="stat-sub">$284K total</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">847</div>
+                        <div class="stat-label">Documents</div>
+                        <div class="stat-sub">Last sync 2m ago</div>
+                    </div>
+                </div>
+
+                <!-- Cards Grid -->
+                <div class="cards-grid">
+                    <!-- Project Summary -->
+                    <div class="card">
+                        <div class="card-header">
+                            <span class="card-title">Project Summary</span>
+                            <span class="card-action">View Details →</span>
+                        </div>
+                        <div class="card-body">
+                            <div class="project-summary-row">
+                                <div class="project-name-large">Brickell Tower II</div>
+                                <div class="project-status">ON TRACK</div>
+                            </div>
+                            <div class="progress-row">
+                                <div class="progress-label">
+                                    <span>COMPLETION</span>
+                                    <span>68%</span>
+                                </div>
+                                <div class="progress-bar-track">
+                                    <div class="progress-bar-fill" style="width: 68%;"></div>
+                                </div>
+                            </div>
+                            <div class="project-dates">
+                                <div class="date-item">
+                                    <div class="date-label">START DATE</div>
+                                    <div class="date-value">Jan 15, 2025</div>
+                                </div>
+                                <div class="date-item">
+                                    <div class="date-label">EST. COMPLETION</div>
+                                    <div class="date-value">Nov 30, 2026</div>
+                                </div>
+                                <div class="date-item">
+                                    <div class="date-label">CONTRACT VALUE</div>
+                                    <div class="date-value">$48.2M</div>
+                                </div>
+                                <div class="date-item">
+                                    <div class="date-label">GC</div>
+                                    <div class="date-value">ACME Construction</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Activity -->
+                    <div class="card">
+                        <div class="card-header">
+                            <span class="card-title">Recent Activity</span>
+                            <span class="card-action">View All →</span>
+                        </div>
+                        <div class="card-body" style="overflow-y:auto; max-height:300px;">
+                            <div class="activity-item">
+                                <div class="activity-icon rfi">📋</div>
+                                <div class="activity-text">
+                                    <div class="activity-desc">RFI #047 — Structural steel connection detail at L5</div>
+                                    <div class="activity-time">2 hours ago · Awaiting response</div>
+                                </div>
+                            </div>
+                            <div class="activity-item">
+                                <div class="activity-icon submittal">📦</div>
+                                <div class="activity-text">
+                                    <div class="activity-desc">Submittal #112 approved — Waterproofing membrane spec</div>
+                                    <div class="activity-time">4 hours ago · Approved</div>
+                                </div>
+                            </div>
+                            <div class="activity-item">
+                                <div class="activity-icon change">💰</div>
+                                <div class="activity-text">
+                                    <div class="activity-desc">CO #008 — Additional elevator shaft reinforcement (+$42K)</div>
+                                    <div class="activity-time">Yesterday · Pending owner approval</div>
+                                </div>
+                            </div>
+                            <div class="activity-item">
+                                <div class="activity-icon sync">🔄</div>
+                                <div class="activity-text">
+                                    <div class="activity-desc">Procore sync completed — 23 documents updated</div>
+                                    <div class="activity-time">Yesterday · Auto-sync</div>
+                                </div>
+                            </div>
+                            <div class="activity-item">
+                                <div class="activity-icon rfi">📋</div>
+                                <div class="activity-text">
+                                    <div class="activity-desc">RFI #046 closed — MEP coordination at parking L2</div>
+                                    <div class="activity-time">2 days ago · Resolved</div>
+                                </div>
+                            </div>
+                            <div class="activity-item">
+                                <div class="activity-icon doc">📄</div>
+                                <div class="activity-text">
+                                    <div class="activity-desc">Daily report uploaded — Feb 24, 2026</div>
+                                    <div class="activity-time">2 days ago · Field upload</div>
+                                </div>
+                            </div>
+                            <div class="activity-item">
+                                <div class="activity-icon submittal">📦</div>
+                                <div class="activity-text">
+                                    <div class="activity-desc">Submittal #111 returned — Window system (revise & resubmit)</div>
+                                    <div class="activity-time">3 days ago · Action needed</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Document Search -->
+                    <div class="card">
+                        <div class="card-header">
+                            <span class="card-title">Documents</span>
+                            <span class="card-action">Browse All →</span>
+                        </div>
+                        <div class="card-body">
+                            <div class="search-bar">
+                                <input class="search-input" placeholder="Search documents..." id="docSearch" onkeydown="if(event.key==='Enter')searchDocs()">
+                            </div>
+                            <div class="doc-stat">
+                                <span class="doc-stat-name">Drawings</span>
+                                <span class="doc-stat-count">234</span>
+                            </div>
+                            <div class="doc-stat">
+                                <span class="doc-stat-name">Specifications</span>
+                                <span class="doc-stat-count">89</span>
+                            </div>
+                            <div class="doc-stat">
+                                <span class="doc-stat-name">Submittals</span>
+                                <span class="doc-stat-count">112</span>
+                            </div>
+                            <div class="doc-stat">
+                                <span class="doc-stat-name">RFIs</span>
+                                <span class="doc-stat-count">47</span>
+                            </div>
+                            <div class="doc-stat">
+                                <span class="doc-stat-name">Daily Reports</span>
+                                <span class="doc-stat-count">198</span>
+                            </div>
+                            <div class="doc-stat">
+                                <span class="doc-stat-name">Change Orders</span>
+                                <span class="doc-stat-count">8</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions -->
+                    <div class="card">
+                        <div class="card-header">
+                            <span class="card-title">Quick Actions</span>
+                        </div>
+                        <div class="card-body" style="display:flex;flex-direction:column;gap:8px;">
+                            <button class="quick-action-btn" onclick="askEva('Give me a summary of all overdue RFIs')">
+                                📋 Review Overdue RFIs
+                            </button>
+                            <button class="quick-action-btn" onclick="askEva('What submittals need my review?')">
+                                📦 Pending Submittals
+                            </button>
+                            <button class="quick-action-btn" onclick="askEva('Show me the status of all active change orders')">
+                                💰 Change Order Status
+                            </button>
+                            <button class="quick-action-btn" onclick="askEva('Generate a weekly progress report')">
+                                📊 Weekly Report
+                            </button>
+                            <button class="quick-action-btn" onclick="askEva('What happened on the project this week?')">
+                                🕐 This Week Summary
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- EVA Chat Panel -->
+            <div class="chat-panel" id="chatPanel">
+                <div class="chat-header">
+                    <div>
+                        <div class="chat-title">EVA</div>
+                        <div class="chat-title-sub">Construction AI Assistant</div>
+                    </div>
+                    <button class="chat-toggle-btn" onclick="toggleChat()">✕</button>
+                </div>
+                <div class="chat-messages" id="chatMessages">
+                    <div class="chat-msg eva">
+                        Good morning. I'm EVA, your construction AI assistant. I have access to all your project data — ask me anything about RFIs, submittals, schedules, or documents.
+                        <div class="msg-time">System</div>
+                    </div>
+                </div>
+                <div class="chat-typing" id="chatTyping">EVA is thinking...</div>
+                <div class="chat-input-row">
+                    <input class="chat-input" id="chatInput" placeholder="Ask EVA anything..."
+                           onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChat();}">
+                    <button class="chat-send" id="chatSendBtn" onclick="sendChat()">SEND</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile chat FAB -->
+    <button class="chat-fab" id="chatFab" onclick="toggleChat()">💬</button>
+
+    <style>
+        .quick-action-btn {
+            display: flex; align-items: center; gap: 10px;
+            width: 100%; padding: 12px 14px;
+            background: var(--bg-input); border: 1px solid var(--border);
+            color: var(--text-secondary);
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 11px; letter-spacing: 0.5px;
+            cursor: pointer; transition: all 0.2s;
+            text-align: left;
+        }
+        .quick-action-btn:hover {
+            border-color: var(--nerv-teal); color: var(--text-primary);
+            background: rgba(80, 200, 200, 0.04);
+        }
+    </style>
+
+    <script>
+        // ── State ──
+        let ws = null;
+        let currentResponse = '';
+        let isReceiving = false;
+
+        // ── Sidebar ──
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
+            document.getElementById('overlay').classList.toggle('open');
+        }
+        function closeSidebar() {
+            document.getElementById('sidebar').classList.remove('open');
+            document.getElementById('overlay').classList.remove('open');
+        }
+
+        // Nav
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', () => {
+                document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+                item.classList.add('active');
+                closeSidebar();
+            });
+        });
+
+        // ── Project Selector ──
+        function toggleProjectDropdown() {
+            document.getElementById('projectDropdown').classList.toggle('open');
+        }
+        function selectProject(el, name) {
+            document.getElementById('currentProject').textContent = name;
+            document.querySelectorAll('.project-option').forEach(o => o.classList.remove('active'));
+            el.classList.add('active');
+            document.getElementById('projectDropdown').classList.remove('open');
+        }
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.project-selector')) {
+                document.getElementById('projectDropdown').classList.remove('open');
+            }
+        });
+
+        // ── Chat ──
+        function toggleChat() {
+            const panel = document.getElementById('chatPanel');
+            const fab = document.getElementById('chatFab');
+            panel.classList.toggle('open');
+            fab.style.display = panel.classList.contains('open') ? 'none' : '';
+        }
+
+        function connectWS() {
+            const host = window.location.hostname;
+            const port = window.location.port || (window.location.protocol === 'https:' ? '443' : '80');
+            const proto = window.location.protocol === 'https:' ? 'wss' : 'ws';
+            ws = new WebSocket(`${proto}://${host}:${port}/ws/chat`);
+
+            ws.onopen = () => {
+                console.log('WebSocket connected');
+            };
+
+            ws.onmessage = (event) => {
+                const msg = JSON.parse(event.data);
+                handleWSMessage(msg);
+            };
+
+            ws.onclose = () => {
+                console.log('WebSocket closed, reconnecting...');
+                setTimeout(connectWS, 3000);
+            };
+
+            ws.onerror = () => {};
+        }
+
+        function handleWSMessage(msg) {
+            const messages = document.getElementById('chatMessages');
+            const typing = document.getElementById('chatTyping');
+
+            if (msg.type === 'chunk') {
+                if (!isReceiving) {
+                    isReceiving = true;
+                    currentResponse = '';
+                    const div = document.createElement('div');
+                    div.className = 'chat-msg eva';
+                    div.id = 'currentEvaMsg';
+                    messages.appendChild(div);
+                }
+                currentResponse += msg.content;
+                const el = document.getElementById('currentEvaMsg');
+                if (el) el.innerHTML = formatMessage(currentResponse);
+                messages.scrollTop = messages.scrollHeight;
+                typing.classList.add('visible');
+            } else if (msg.type === 'done') {
+                isReceiving = false;
+                const el = document.getElementById('currentEvaMsg');
+                if (el) {
+                    el.removeAttribute('id');
+                    const time = document.createElement('div');
+                    time.className = 'msg-time';
+                    time.textContent = new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+                    el.appendChild(time);
+                }
+                typing.classList.remove('visible');
+                document.getElementById('chatSendBtn').disabled = false;
+            } else if (msg.type === 'tool_start') {
+                typing.textContent = `EVA is using ${msg.tool}...`;
+                typing.classList.add('visible');
+            } else if (msg.type === 'tool_end') {
+                typing.textContent = 'EVA is thinking...';
+            } else if (msg.type === 'error') {
+                const div = document.createElement('div');
+                div.className = 'chat-msg system';
+                div.textContent = '⚠ ' + msg.content;
+                messages.appendChild(div);
+                messages.scrollTop = messages.scrollHeight;
+                typing.classList.remove('visible');
+                document.getElementById('chatSendBtn').disabled = false;
+                isReceiving = false;
+            } else if (msg.type === 'system') {
+                // Connected message — silent
+            }
+        }
+
+        function formatMessage(text) {
+            // Basic markdown-ish formatting
+            return text
+                .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\n/g, '<br>');
+        }
+
+        function sendChat() {
+            const input = document.getElementById('chatInput');
+            const text = input.value.trim();
+            if (!text || !ws || ws.readyState !== WebSocket.OPEN) return;
+
+            // Add user message
+            const messages = document.getElementById('chatMessages');
+            const div = document.createElement('div');
+            div.className = 'chat-msg user';
+            div.textContent = text;
+            const time = document.createElement('div');
+            time.className = 'msg-time';
+            time.textContent = new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+            div.appendChild(time);
+            messages.appendChild(div);
+            messages.scrollTop = messages.scrollHeight;
+
+            // Send
+            ws.send(JSON.stringify({ content: text }));
+            input.value = '';
+            document.getElementById('chatSendBtn').disabled = true;
+            document.getElementById('chatTyping').textContent = 'EVA is thinking...';
+            document.getElementById('chatTyping').classList.add('visible');
+        }
+
+        function askEva(question) {
+            // Open chat on mobile
+            const panel = document.getElementById('chatPanel');
+            if (!panel.classList.contains('open') && window.innerWidth <= 900) {
+                toggleChat();
+            }
+            document.getElementById('chatInput').value = question;
+            sendChat();
+        }
+
+        function searchDocs() {
+            const q = document.getElementById('docSearch').value.trim();
+            if (q) askEva(`Search for documents matching: ${q}`);
+        }
+
+        function logout() {
+            localStorage.removeItem('nerv_token');
+            window.location.href = '/login';
+        }
+
+        // ── Init ──
+        connectWS();
+    </script>
+</body>
+</html>

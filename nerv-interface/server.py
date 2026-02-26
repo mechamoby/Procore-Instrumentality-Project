@@ -38,6 +38,16 @@ app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 # Serve index.html with no-cache headers to prevent stale versions
 from fastapi.responses import HTMLResponse
 
+@app.get("/portal")
+async def portal_page():
+    return FileResponse(str(STATIC_DIR / "portal.html"))
+
+
+@app.get("/onboarding")
+async def onboarding_page():
+    return FileResponse(str(STATIC_DIR / "onboarding.html"))
+
+
 @app.get("/")
 async def serve_index():
     index_path = STATIC_DIR / "index.html"
