@@ -1,164 +1,67 @@
-# Session Handoff
-> Last updated: 2026-02-26 00:10 EST from Midnight Cron (autonomous)
+# Handoff — Last updated 2026-02-26 23:33 EST
 
-## Latest Session: 2026-02-25 Morning/Afternoon (Telegram)
+## What Happened Today (2026-02-26) — MASSIVE DAY
 
-### API Cost Ceiling Analysis — LOCKED
-- Built `nerv-deploy/tools/cost-calculator.py` (standalone, no deps)
-- Full analysis doc: `NERV-DOCS/API-COST-ANALYSIS.md`
-- Modeled 1x through 100x usage across all provider tiers + smart routing
-- mini-Moby fact-checked, raised 6 caveats — all analyzed and addressed
-- **Drawing analysis** identified as #1 cost driver (Nick's input from field experience)
-- Modeled up to 1,000 drawings/day: $706/proj/mo on Sonnet 4 = 80% margin
-- **Conclusion: pricing model is bulletproof at $3,500/mo**
+### Morning (4 AM - 9 AM)
+- Rei Clone Reset at 4:16 AM (light session, no carryover)
+- **7 Docker audit fixes committed + pushed** (GitHub: d813387 → 5b747f5)
+  - .dockerignore, Python 3.12, watchdog shared HTTP client, backup cron, Smartsheet import, subnet removal, log rotation
+  - Remaining audit: ~10 medium/low items
+- **Cloudflare Access enabled** on nerv-command.com — Zero Trust "NERV Check" policy
+  - Only stula.nick@gmail.com + mecha.moby@gmail.com can access
+  - Confirmed working in incognito
 
-### Client Communication Architecture — LOCKED
-- Three lanes: **Email** (stateless/formal), **Telegram** (real-time/field), **NERV Web Portal** (dashboard)
-- All three hit the same NERV database — channel is just delivery mechanism
-- Security ranking: Portal > Telegram > Email
+### Midday (Commute)
+- **Drawing Intelligence breakthrough** — tested 3-prong pipeline on real BTV5 drawings:
+  - Prong 1 (PDF text): ✅ Nailed elevation schedule (free)
+  - Prong 2 (DXF): ✅ Found data but needs spatial reasoning
+  - Prong 3 (Vision AI): ❌ Read 3'-0" when answer was 2'-0" — missed centerline symbol
+  - **Core insight (Nick):** Vision AI doesn't understand construction symbology — reads drawings like a photo, not like a PM
+  - **Solution:** Build symbol recognition pre-processing layer
+  - Confirmed Procore API provides `png_url` + `pdf_url` for every drawing
+- Emailed Nick: A-7.00 PDF + DXF inventory (160 files)
+- Full research doc: `NERV-DOCS/drawing-intelligence/SYMBOL-RECOGNITION-RESEARCH.md`
 
-### Cloudflare Tunnel — LIVE ✅
-- Domain purchased: **nerv-command.com** (~$10/year)
-- cloudflared installed, authed, tunnel created
-- **https://nerv-command.com is live** — confirmed working from Nick's phone
-- Running as systemd service: `cloudflared-nerv.service` (auto-start, auto-restart)
-- 4 QUIC connections through Miami Cloudflare nodes
+### Evening
+- **Symbol Dictionary Operation launched:**
+  - MAGI: delivered 854-line symbol catalog (`SYMBOL-DICTIONARY-RAW.md`)
+  - mini-Moby: delivered tooling research (`TOOLING-RESEARCH.md`) — YOLOv8, datasets, ODA converter
+  - Moby: built v1 dictionary (25+ symbols, 5 categories) + drawing_reader.py pipeline
+- **Pico agent deployed** — Almudena's business assistant for Nico Pico Kids
+  - Bot: @Almudenanicopicobot, model: GPT-5 via her ChatGPT Plus
+  - FIRST external agent deployment — non-technical user, fully working
+  - Key lesson: bindings[] entry required for telegram account → agent routing
+- **drawing_reader.py** built at `nerv-deploy/services/drawing-intel/drawing_reader.py`
+  - Symbol-aware query builder, 3-prong analysis, spatial search
+  - Fixed false positive matching (CL in CLEARANCE)
+  - Tested: symbol-aware prompts improve but don't fully solve vision AI accuracy
 
-### Client Deployment Walkthrough (DRAFT — not locked)
-- Discussed full contract-to-operational pipeline
-- Realistic timeline: ~2 weeks (not 4)
-- Nick flagged: will need employee/contractor for physical installs + training
-- Recommendation: Nick does first 3 clients himself, then hires
-- Install labor cost: ~$500-750 per deployment, barely dents margin
+## Active Priorities
+1. **Drawing Intelligence** — merge MAGI + mini-Moby research into master dictionary, build detection pipeline
+2. **Remaining Docker audit items** — ~10 medium/low findings
+3. **NERV stack** — Smartsheet functional testing, e2e Procore integration, portal real API calls
+4. **Business** — demo package, branding decision, MSA template
 
-### Branding Discussion (OPEN)
-- mini-Moby raised legit IP concerns about using "NERV" officially (Evangelion)
-- Moby proposed alternatives (AXON, CORTEX, FORGE, CITADEL, NEXUS) — Nick rejected all
-- **NERV stays as internal codename** until the right name hits
-- Name swap is just find-and-replace when ready — no technical impact
+## Key Files
+- `NERV-DOCS/drawing-intelligence/SYMBOL-DICTIONARY-V1.md` — structured dictionary
+- `NERV-DOCS/drawing-intelligence/SYMBOL-DICTIONARY-RAW.md` — MAGI's raw research
+- `NERV-DOCS/drawing-intelligence/TOOLING-RESEARCH.md` — mini-Moby's tooling research
+- `NERV-DOCS/drawing-intelligence/SYMBOL-RECOGNITION-RESEARCH.md` — master research doc
+- `nerv-deploy/services/drawing-intel/drawing_reader.py` — pipeline code
 
-## Previous Session Context (2026-02-24 night)
-- Company = NERV (internal codename), agents = EVAs
-- Core positioning: "This isn't Procore AI. This is ABC Contractors AI."
-- 100% focus on NERV database + managed service
-- Pricing: $15K setup + $3,500/mo per project
-- Hardware: Ryzen 9 7950X, 64GB DDR5, 2TB NVMe + 8TB HDD, RTX 4060 Ti 16GB (~$1,720)
+### Evening (9 PM - 11 PM)
+- **Pico agent deployed** for Elena (Nick's wife) — @Almudenanicopicobot
+  - Multiple debugging rounds: wrong model string, missing binding, wrong token type, cached sessions
+  - All resolved — working on GPT-5 via Elena's ChatGPT Plus
+  - **Agent Deployment Protocol written:** `protocols/AGENT-DEPLOYMENT.md` — every mistake documented with fix
+- Nick mentioned using his PC as first full NERV deployment test (future)
+- No NAP tonight — Nick exhausted, called it a night ~11 PM
 
-## What Was Done 2026-02-25 Morning Session (Telegram)
-
-### API Cost Ceiling Analysis — LOCKED
-- Built cost calculator (`nerv-deploy/tools/cost-calculator.py`)
-- Modeled 1x through 100x usage, all provider tiers, smart routing scenarios
-- mini-Moby fact-checked, 6 caveats analyzed and addressed
-- Drawing analysis modeled as #1 cost driver (Nick's input) — up to 1,000/day
-- Even worst case (1,000 drawings/day, Sonnet 4): 80% margin at $3,500/mo
-- Full doc: `NERV-DOCS/API-COST-ANALYSIS.md`
-
-### Client Communication Architecture — LOCKED
-- Three lanes: Email (stateless), Telegram (real-time), NERV Web Portal (dashboard)
-- All hit same NERV database
-
-### Cloudflare Tunnel — LIVE
-- Installed cloudflared, authed with Nick's Cloudflare account
-- Domain purchased: **nerv-command.com** ($10/year)
-- Tunnel created + DNS routed + systemd service enabled
-- **https://nerv-command.com is live and working from mobile**
-- Service: `cloudflared-nerv.service` (auto-start, auto-restart)
-
-### Token Guardian — BUILT & PUSHED ✅ (webchat evening session)
-- `services/token-guardian/` — FastAPI on port 8091
-- AES-256-GCM encrypted token storage, proactive refresh at 75% lifetime
-- 5-min cron sweep, atomic refresh locks, Telegram alerting
-- Webhook receiver updated to fetch tokens from Token Guardian
-- DB migration 003: `oauth_tokens` + `oauth_refresh_log`
-- Commit: `ef6a13a`
-
-### EVA Sentry v1 — BUILT & PUSHED ✅ (webchat evening session)
-- `services/eva-sentry/` — FastAPI on port 8092
-- Core scanner: text (prompt injection, malware), files (ext, MIME, hash, content), commands (risk classification)
-- Email ingest (IMAP polling) + Procore ingest (via Token Guardian)
-- Hot-reloadable policy, verdict caching, scan stats
-- Webhook receiver now screens ALL inbound data through Sentry before DB write
-- Fail-open: Sentry down = data flows but logged. Deny/quarantine = blocked.
-- Commit: `02a584a`
-
-### Smartsheet Adapter — BUILT & PUSHED ✅ (webchat evening session)
-- `services/smartsheet-adapter/` — FastAPI on port 8093
-- Async Smartsheet REST client (no SDK dep), bidirectional sync engine
-- Flexible column mapping (JSON config per client), 5 sheet types supported
-- Background polling sync + Smartsheet webhook support for real-time
-- Row-level version tracking, conflict detection, sync audit log
-- DB migration 004: smartsheet_mappings, smartsheet_row_map, smartsheet_sync_log
-- Commit: `4db1b1b`
-
-### Portal Auth — BUILT & PUSHED ✅ (webchat evening session)
-- `services/portal-auth/` — FastAPI on port 8094
-- bcrypt passwords, SHA-256 session tokens, 72h sessions
-- 5 roles: admin, owner, pm, field, viewer + per-project access control
-- Rate limiting (5 attempts / 15 min lockout), audit trail
-- Admin bootstrap from env vars, inter-service token validation endpoint
-- DB migration 005: portal_users, portal_sessions, portal_auth_log
-- Commit: `d8e467d`
-
-### Portal UI Updates — BUILT & PUSHED ✅ (webchat evening session)
-- Login page (login.html) — NERV-themed, auth proxy routes in server.py
-- Mobile responsive: enhanced breakpoints, touch-friendly, iOS zoom prevention
-- New APIs: /api/webhook-stats, /api/search, /api/services (health dashboard)
-- Auth-aware main UI: user info in header, logout, configurable AUTH_ENABLED
-- Commit: `6224613`
-
-### Smartsheet Live API Test — VERIFIED ✅ (webchat evening)
-- Connected to real Smartsheet Business account (Poinciana Crossing project)
-- Read 13 sheets, 1,330 rows, all column types
-- Write test: created sheet, added rows, verified, cleaned up
-- Sentry: 31 rows scanned, 0 false positives on real construction data  
-- Webhook: verification challenge via nerv-command.com confirmed
-- Token saved to `.credentials/smartsheet.env`
-- Added `shop_drawing` to document_type enum
-
-### mini-Moby Audit Fixes — ALL RESOLVED ✅
-- Auth ON by default
-- Watchdog service (health monitor + Telegram alerts)
-- Self-service password reset + change-own-password endpoints
-- Secrets management docs
-- Commit: 959a354
-
-## Midnight 2026-02-26 — Docker Stack Validated ✅
-- All 8 custom services build + start + pass health checks
-- Fixed 3 bugs: missing python-multipart, missing /health endpoint, seed.sql ordering
-- Fixed stale migration 002 (document_chunks schema mismatch)
-- Commit: `fbef676` pushed to GitHub
-- Only blocker: `openclaw` container image doesn't exist yet (placeholder)
-
-## NAP 02.25 — ALL 5 TASKS COMPLETE ✅
-1. OpenClaw updated to 2026.2.25
-2. mini-Moby delegated for audit + security fixes
-3. Docker full-stack test — report PDF emailed to Nick
-4. Client portal (1,125 lines) + onboarding wizard live at nerv-command.com
-5. 8 audit findings fixed (all Critical + High) — grade C+ → ~B+
-
-## Live URLs
-- https://nerv-command.com/portal — Client Portal prototype
-- https://nerv-command.com/onboarding — Client Onboarding Wizard
-
-## Pending
-- ~~Docker compose full stack test~~ ✅
-- ~~Client onboarding wizard~~ ✅
-- ~~Client portal design~~ ✅
-- ~~Security audit remediation (Critical/High)~~ ✅
-- Smartsheet adapter functional testing
-- End-to-end integration test with real Procore sandbox
-- Client portal: replace mock data with real API calls
-- Mobile UI polish (field-guy testing)
-- Remaining audit items (18 MEDIUM/LOW findings)
-- Branding decision (NERV = internal codename, final name TBD)
-- Client deployment playbook formalization
-- Demo package for sales meetings
-
-## Market Intel — SAVE THIS
-- Lunch with Shell concrete VP + Miller precon VP + estimators
-- Miller has CRM, doesn't use it. Relies on "excel on steroids" (Smartsheet now)
-- Shell VP had Outlook plugin sales pitch — rules-based, no AI, heard AI coming
-- Shell VP said "the future is agentic AI" + "would work with the excel on steroids"
-- **These are our exact target customers describing exactly what we're building**
-- Miller Smartsheet = potential internal pilot opportunity
+## Infrastructure State
+- Gateway running
+- 4 agents: main (Moby), katsuragi, mini-moby, pico
+- 4 telegram bindings (all working)
+- nerv-command.com: live, Cloudflare Access protected
+- Latest nerv-deploy commit: 5aeecbb (pushed)
+- Docker stack: 13 services, all healthy (as of NAP 02.25 test)
+- Pico OAuth token expires ~10 days (needs refresh mechanism)

@@ -99,7 +99,7 @@
 ## Business Model — NERV *(updated 2026-02-24)*
 - **Company**: NERV
 - **Product**: Locally deployed AI data platform + managed EVA agents for construction
-- **Pricing**: $15K setup (one-time) + $3,500/month all-in per project
+- **Pricing**: $15K setup (one-time) + $3,500/month flat (covers ALL projects, not per-project)
 - **Core offering**: Intelligent local data architecture + 24/7 AI employee + managed service
 - **Signature feature**: "Your projects make progress while you sleep"
 - **Target**: South Florida GCs, mid-size ($20-100M annual volume)
@@ -123,6 +123,7 @@
 - Web portal via Cloudflare Tunnel: free, encrypted, outbound-only, no ports exposed
 - Domain: ~$10/year per client (`.com`), tunnel is free forever
 - **nerv-command.com** — live proof of concept, tunnel running as systemd service on moby-1
+- **Cloudflare Access** enabled (2026-02-26) — Zero Trust "NERV Check" policy, email-gated to Nick + Moby only
 - Mobile UI needs work (built as desktop internal tool) — client version needs responsive design
 - Security: Portal > Telegram > Email (portal = encrypted + data stays on client box)
 
@@ -150,6 +151,27 @@
 - **Tested:** 42 automated tests, live Procore sandbox, live Smartsheet (Poinciana Crossing), independent audit A-
 - **Key commits:** ef6a13a, 02a584a, 4db1b1b, d8e467d, 6224613, 53e772b, 959a354
 - Remaining: Docker full-stack test, onboarding wizard, branding, demo package
+
+## Drawing Intelligence — Symbol Recognition *(2026-02-26, CRITICAL)*
+- **Core insight (Nick):** Vision AI fails on drawings because it doesn't understand construction symbology — reads drawings like a photo, not like a PM
+- **Tested:** AI read 3'-0" when answer was 2'-0" — missed the centerline symbol entirely
+- **Solution:** Build a symbol recognition pre-processing layer using standardized NCS/AIA symbol dictionary
+- **3-prong pipeline confirmed:** PDF text (free) + DXF structure (free) + Vision AI on PNG (smart queries)
+- **Procore confirmed:** `png_url` and `pdf_url` available on every drawing via API — no manual upload needed
+- **Open source exists:** YOLOv8 floor plan detection, ArchNetv2 — can fine-tune for construction symbols
+- **DWG→DXF automation:** ODA File Converter (free CLI) — eliminates manual conversion step
+- **Competitive landscape:** mbue.ai (drawing review), Businessware Tech (custom), but nobody doing symbol-literate data extraction
+- **Full research doc:** `NERV-DOCS/drawing-intelligence/SYMBOL-RECOGNITION-RESEARCH.md`
+- **This is the product differentiator.** Without this, we're just another chatbot. With this, we're the only AI that reads drawings like a PM.
+
+## Pico Agent — Almudena's Business Assistant *(2026-02-26)*
+- **Agent ID:** pico | **Bot:** @Almudenanicopicobot | **Model:** openai-codex:pico/gpt-5 (her ChatGPT Plus subscription)
+- **User:** Almudena (Nick's wife) | **Chat ID:** 8363165554 | **Email:** Almudena.nicopicospain@gmail.com
+- **Business:** Nico Pico Kids (nicopicokids.com) — handmade children's clothes from Spain, sold online + Miami vendor markets
+- **Personality:** Warm, patient, bilingual (Spanish/English), zero jargon, brand-aware
+- **Workspace:** /home/moby/.openclaw/workspace-pico
+- **Key lesson:** Telegram account → agent routing requires explicit `bindings[]` entry, not just matching account name
+- **First external agent deployment** — proof of concept for delivering agents to non-technical users
 
 ## Lessons to Retain
 - Diagnose with minimal reproducible tests before speculative fixes
