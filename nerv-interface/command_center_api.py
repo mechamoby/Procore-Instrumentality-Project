@@ -1,0 +1,774 @@
+"""SteelSync Command Center API — CC-1.2 + CC-1.3
+
+REST API endpoints for the Command Center frontend:
+- CC-1.2: Procore data (projects, RFIs, submittals, daily logs, schedule, change orders)
+- CC-1.3: Intelligence data (signals, intelligence items, synthesis cycles)
+
+All endpoints return consistent JSON with pagination support.
+"""
+
+import logging
+from datetime import datetime, timedelta, date
+from typing import Optional
+from uuid import UUID
+
+from fastapi import APIRouter, HTTPException, Query
+from steelsync_db import get_cursor, serialize_row, serialize_rows
+
+logger = logging.getLogger("steelsync.api")
+
+router = APIRouter(prefix="/api", tags=["command-center"])
+
+
+# =============================================================================
+# UTILITY
+# =============================================================================
+
+def paginated_response(rows, total_count: int, limit: int, offset: int):
+    """Wrap rows in a standard paginated response."""
+    return {
+        "data": rows,
+        "total_count": total_count,
+        "limit": limit,
+        "offset": offset,
+        "has_more": (offset + limit) < total_count,
+    }
+
+
+# =============================================================================
+# CC-1.2: PROCORE DATA ENDPOINTS
+# =============================================================================
+
+@router.get("/projects")
+def list_projects(
+    status: Optional[str] = Query(None, description="Filter by status: active, completed, archived"),
+    limit: int = Query(50, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+):
+    """List all projects with basic stats."""
+    with get_cursor() as cur:
+        # Count
+        where = "WHERE p.is_deleted = FALSE"
+        params = []
+        if status:
+            where += " AND p.status = %s"
+            params.append(status)
+
+        cur.execute(f"SELECT COUNT(*) as cnt FROM projects p {where}", params)
+        total = cur.fetchone()["cnt"]
+
+        # Fetch projects with stats
+        cur.execute(f"""
+            SELECT p.id, p.name, p.number, p.description, p.address, p.status,
+                   p.project_type, p.start_date, p.estimated_completion,
+                   p.contract_value, p.square_footage, p.procore_id,
+                   p.last_synced_at, p.created_at, p.updated_at,
+                   (SELECT COUNT(*) FROM rfis r WHERE r.project_id = p.id AND r.is_deleted = FALSE) as rfi_count,
+                   (SELECT COUNT(*) FROM submittals s WHERE s.project_id = p.id AND s.is_deleted = FALSE) as submittal_count,
+                   (SELECT COUNT(*) FROM daily_reports d WHERE d.project_id = p.id AND d.is_deleted = FALSE) as daily_report_count,
+                   (SELECT COUNT(*) FROM change_orders co WHERE co.project_id = p.id AND co.is_deleted = FALSE) as change_order_count,
+                   (SELECT COUNT(*) FROM drawings dw WHERE dw.project_id = p.id AND dw.is_deleted = FALSE) as drawing_count
+            FROM projects p
+            {where}
+            ORDER BY p.updated_at DESC NULLS LAST, p.name
+            LIMIT %s OFFSET %s
+        """, params + [limit, offset])
+
+        rows = serialize_rows(cur.fetchall())
+        return paginated_response(rows, total, limit, offset)
+
+
+@router.get("/projects/{project_id}")
+def get_project(project_id: str):
+    """Get detailed project info."""
+    with get_cursor() as cur:
+        cur.execute("""
+            SELECT p.*,
+                   (SELECT COUNT(*) FROM rfis r WHERE r.project_id = p.id AND r.is_deleted = FALSE) as rfi_count,
+                   (SELECT COUNT(*) FROM submittals s WHERE s.project_id = p.id AND s.is_deleted = FALSE) as submittal_count,
+                   (SELECT COUNT(*) FROM daily_reports d WHERE d.project_id = p.id AND d.is_deleted = FALSE) as daily_report_count,
+                   (SELECT COUNT(*) FROM change_orders co WHERE co.project_id = p.id AND co.is_deleted = FALSE) as change_order_count,
+                   (SELECT COUNT(*) FROM drawings dw WHERE dw.project_id = p.id AND dw.is_deleted = FALSE) as drawing_count,
+                   (SELECT COUNT(*) FROM meetings m WHERE m.project_id = p.id AND m.is_deleted = FALSE) as meeting_count
+            FROM projects p
+            WHERE p.id = %s AND p.is_deleted = FALSE
+        """, (project_id,))
+
+        row = cur.fetchone()
+        if not row:
+            raise HTTPException(status_code=404, detail="Project not found")
+        return {"data": serialize_row(row)}
+
+
+@router.get("/projects/{project_id}/rfis")
+def list_project_rfis(
+    project_id: str,
+    status: Optional[str] = Query(None),
+    limit: int = Query(50, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+    sort: str = Query("due_date", description="Sort by: due_date, date_initiated, number"),
+):
+    """List RFIs for a project with aging and overdue status."""
+    with get_cursor() as cur:
+        # Verify project exists
+        cur.execute("SELECT id FROM projects WHERE id = %s AND is_deleted = FALSE", (project_id,))
+        if not cur.fetchone():
+            raise HTTPException(status_code=404, detail="Project not found")
+
+        where = "WHERE r.project_id = %s AND r.is_deleted = FALSE"
+        params = [project_id]
+        if status:
+            where += " AND r.status = %s::rfi_status"
+            params.append(status)
+
+        cur.execute(f"SELECT COUNT(*) as cnt FROM rfis r {where}", params)
+        total = cur.fetchone()["cnt"]
+
+        sort_col = {"due_date": "r.due_date", "date_initiated": "r.date_initiated", "number": "r.number"}.get(sort, "r.due_date")
+
+        cur.execute(f"""
+            SELECT r.id, r.number, r.subject, r.question, r.status,
+                   r.date_initiated, r.due_date, r.date_answered, r.date_closed,
+                   r.cost_impact, r.cost_amount, r.schedule_impact, r.schedule_impact_days,
+                   r.location, r.official_answer, r.procore_id,
+                   r.created_at, r.updated_at,
+                   CASE
+                       WHEN r.status IN ('closed', 'answered', 'void') THEN NULL
+                       WHEN r.date_initiated IS NOT NULL THEN (CURRENT_DATE - r.date_initiated)
+                       ELSE NULL
+                   END as days_open,
+                   CASE
+                       WHEN r.status IN ('closed', 'answered', 'void') THEN FALSE
+                       WHEN r.due_date IS NOT NULL AND r.due_date < CURRENT_DATE THEN TRUE
+                       ELSE FALSE
+                   END as is_overdue
+            FROM rfis r
+            {where}
+            ORDER BY {sort_col} ASC NULLS LAST
+            LIMIT %s OFFSET %s
+        """, params + [limit, offset])
+
+        rows = serialize_rows(cur.fetchall())
+        return paginated_response(rows, total, limit, offset)
+
+
+@router.get("/projects/{project_id}/submittals")
+def list_project_submittals(
+    project_id: str,
+    status: Optional[str] = Query(None),
+    limit: int = Query(50, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+):
+    """List submittals for a project with turnaround tracking."""
+    with get_cursor() as cur:
+        cur.execute("SELECT id FROM projects WHERE id = %s AND is_deleted = FALSE", (project_id,))
+        if not cur.fetchone():
+            raise HTTPException(status_code=404, detail="Project not found")
+
+        where = "WHERE s.project_id = %s AND s.is_deleted = FALSE"
+        params = [project_id]
+        if status:
+            where += " AND s.status = %s::submittal_status"
+            params.append(status)
+
+        cur.execute(f"SELECT COUNT(*) as cnt FROM submittals s {where}", params)
+        total = cur.fetchone()["cnt"]
+
+        cur.execute(f"""
+            SELECT s.id, s.number, s.title, s.description, s.status,
+                   s.submittal_type, s.spec_section_number,
+                   s.submitted_date, s.required_date, s.received_date, s.returned_date,
+                   s.cost_impact, s.cost_amount, s.schedule_impact, s.lead_time_days,
+                   s.revision, s.procore_id, s.created_at, s.updated_at,
+                   CASE
+                       WHEN s.status IN ('approved', 'approved_as_noted', 'closed', 'void') THEN NULL
+                       WHEN s.submitted_date IS NOT NULL THEN (CURRENT_DATE - s.submitted_date)
+                       ELSE NULL
+                   END as days_in_review,
+                   CASE
+                       WHEN s.status IN ('approved', 'approved_as_noted', 'closed', 'void') THEN FALSE
+                       WHEN s.required_date IS NOT NULL AND s.required_date < CURRENT_DATE THEN TRUE
+                       ELSE FALSE
+                   END as is_overdue
+            FROM submittals s
+            {where}
+            ORDER BY
+                CASE WHEN s.status IN ('approved', 'approved_as_noted', 'closed', 'void') THEN 1 ELSE 0 END,
+                s.required_date ASC NULLS LAST
+            LIMIT %s OFFSET %s
+        """, params + [limit, offset])
+
+        rows = serialize_rows(cur.fetchall())
+        return paginated_response(rows, total, limit, offset)
+
+
+@router.get("/projects/{project_id}/daily-logs")
+def list_project_daily_logs(
+    project_id: str,
+    limit: int = Query(30, ge=1, le=100),
+    offset: int = Query(0, ge=0),
+):
+    """List daily logs for a project with compliance status."""
+    with get_cursor() as cur:
+        cur.execute("SELECT id FROM projects WHERE id = %s AND is_deleted = FALSE", (project_id,))
+        if not cur.fetchone():
+            raise HTTPException(status_code=404, detail="Project not found")
+
+        cur.execute("SELECT COUNT(*) as cnt FROM daily_reports WHERE project_id = %s AND is_deleted = FALSE", (project_id,))
+        total = cur.fetchone()["cnt"]
+
+        cur.execute("""
+            SELECT d.id, d.report_date, d.weather, d.work_performed, d.delays,
+                   d.safety_notes, d.general_notes, d.total_workers,
+                   d.workforce, d.equipment, d.deliveries,
+                   d.procore_id, d.created_at, d.updated_at,
+                   CASE
+                       WHEN d.created_at::date <= d.report_date + INTERVAL '1 day' THEN 'on_time'
+                       WHEN d.created_at::date <= d.report_date + INTERVAL '2 days' THEN 'late'
+                       ELSE 'very_late'
+                   END as compliance_status
+            FROM daily_reports d
+            WHERE d.project_id = %s AND d.is_deleted = FALSE
+            ORDER BY d.report_date DESC
+            LIMIT %s OFFSET %s
+        """, (project_id, limit, offset))
+
+        rows = serialize_rows(cur.fetchall())
+        return paginated_response(rows, total, limit, offset)
+
+
+@router.get("/projects/{project_id}/schedule")
+def list_project_schedule(
+    project_id: str,
+    milestones_only: bool = Query(False),
+    limit: int = Query(100, ge=1, le=500),
+    offset: int = Query(0, ge=0),
+):
+    """List schedule activities for a project."""
+    with get_cursor() as cur:
+        cur.execute("SELECT id FROM projects WHERE id = %s AND is_deleted = FALSE", (project_id,))
+        if not cur.fetchone():
+            raise HTTPException(status_code=404, detail="Project not found")
+
+        milestone_filter = "AND sa.is_milestone = TRUE" if milestones_only else ""
+
+        cur.execute(f"""
+            SELECT COUNT(*) as cnt
+            FROM schedule_activities sa
+            JOIN schedules sch ON sch.id = sa.schedule_id
+            WHERE sch.project_id = %s AND sch.is_current = TRUE AND sch.is_deleted = FALSE
+            {milestone_filter}
+        """, (project_id,))
+        total = cur.fetchone()["cnt"]
+
+        cur.execute(f"""
+            SELECT sa.id, sa.activity_id, sa.name, sa.start_date, sa.finish_date,
+                   sa.actual_start, sa.actual_finish, sa.duration_days,
+                   sa.percent_complete, sa.is_critical, sa.is_milestone,
+                   sch.name as schedule_name,
+                   CASE
+                       WHEN sa.actual_finish IS NOT NULL THEN 'complete'
+                       WHEN sa.finish_date < CURRENT_DATE AND sa.actual_finish IS NULL THEN 'overdue'
+                       WHEN sa.finish_date <= CURRENT_DATE + INTERVAL '14 days' THEN 'approaching'
+                       ELSE 'on_track'
+                   END as schedule_status
+            FROM schedule_activities sa
+            JOIN schedules sch ON sch.id = sa.schedule_id
+            WHERE sch.project_id = %s AND sch.is_current = TRUE AND sch.is_deleted = FALSE
+            {milestone_filter}
+            ORDER BY sa.start_date ASC NULLS LAST
+            LIMIT %s OFFSET %s
+        """, (project_id, limit, offset))
+
+        rows = serialize_rows(cur.fetchall())
+        return paginated_response(rows, total, limit, offset)
+
+
+@router.get("/projects/{project_id}/change-orders")
+def list_project_change_orders(
+    project_id: str,
+    status: Optional[str] = Query(None),
+    limit: int = Query(50, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+):
+    """List change orders for a project with financial summary."""
+    with get_cursor() as cur:
+        cur.execute("SELECT id FROM projects WHERE id = %s AND is_deleted = FALSE", (project_id,))
+        if not cur.fetchone():
+            raise HTTPException(status_code=404, detail="Project not found")
+
+        where = "WHERE co.project_id = %s AND co.is_deleted = FALSE"
+        params = [project_id]
+        if status:
+            where += " AND co.status = %s::change_order_status"
+            params.append(status)
+
+        cur.execute(f"SELECT COUNT(*) as cnt FROM change_orders co {where}", params)
+        total = cur.fetchone()["cnt"]
+
+        # Financial summary
+        cur.execute(f"""
+            SELECT COALESCE(SUM(co.amount), 0) as total_amount,
+                   COALESCE(SUM(CASE WHEN co.status = 'approved' THEN co.amount ELSE 0 END), 0) as approved_amount,
+                   COALESCE(SUM(CASE WHEN co.status = 'pending' THEN co.amount ELSE 0 END), 0) as pending_amount
+            FROM change_orders co
+            {where}
+        """, params)
+        financial = serialize_row(cur.fetchone())
+
+        cur.execute(f"""
+            SELECT co.id, co.number, co.title, co.description, co.status,
+                   co.change_reason, co.amount, co.schedule_impact_days,
+                   co.date_initiated, co.date_approved,
+                   co.procore_id, co.created_at, co.updated_at
+            FROM change_orders co
+            {where}
+            ORDER BY co.date_initiated DESC NULLS LAST
+            LIMIT %s OFFSET %s
+        """, params + [limit, offset])
+
+        rows = serialize_rows(cur.fetchall())
+        response = paginated_response(rows, total, limit, offset)
+        response["financial_summary"] = financial
+        return response
+
+
+# =============================================================================
+# CC-1.3: INTELLIGENCE DATA ENDPOINTS
+# =============================================================================
+
+def _check_intel_tables_exist(cur) -> bool:
+    """Check if intelligence layer tables have been created."""
+    cur.execute("""
+        SELECT EXISTS (
+            SELECT FROM information_schema.tables
+            WHERE table_name = 'signals'
+        ) as exists
+    """)
+    return cur.fetchone()["exists"]
+
+
+@router.get("/projects/{project_id}/signals")
+def list_project_signals(
+    project_id: str,
+    signal_category: Optional[str] = Query(None),
+    signal_type: Optional[str] = Query(None),
+    hours: int = Query(72, ge=1, le=720, description="Look back N hours"),
+    limit: int = Query(50, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+):
+    """List recent signals for a project. Default: last 72 hours, not archived."""
+    with get_cursor() as cur:
+        if not _check_intel_tables_exist(cur):
+            return paginated_response([], 0, limit, offset)
+
+        cur.execute("SELECT id FROM projects WHERE id = %s AND is_deleted = FALSE", (project_id,))
+        if not cur.fetchone():
+            raise HTTPException(status_code=404, detail="Project not found")
+
+        where = "WHERE s.project_id = %s AND s.archived_at IS NULL AND s.created_at > NOW() - INTERVAL '%s hours'"
+        params = [project_id, hours]
+
+        if signal_category:
+            where += " AND s.signal_category = %s::signal_category"
+            params.append(signal_category)
+        if signal_type:
+            where += " AND s.signal_type = %s"
+            params.append(signal_type)
+
+        cur.execute(f"SELECT COUNT(*) as cnt FROM signals s {where}", params)
+        total = cur.fetchone()["cnt"]
+
+        cur.execute(f"""
+            SELECT s.id, s.project_id, s.source_type, s.source_document_id,
+                   s.signal_type, s.signal_category, s.summary,
+                   s.confidence, s.strength, s.effective_weight,
+                   s.decay_profile, s.entity_type, s.entity_value,
+                   s.supporting_context_json, s.last_reinforced_at,
+                   s.created_at, s.resolved_at
+            FROM signals s
+            {where}
+            ORDER BY s.effective_weight DESC, s.created_at DESC
+            LIMIT %s OFFSET %s
+        """, params + [limit, offset])
+
+        rows = serialize_rows(cur.fetchall())
+        return paginated_response(rows, total, limit, offset)
+
+
+@router.get("/projects/{project_id}/intelligence-items")
+def list_intelligence_items(
+    project_id: str,
+    item_type: Optional[str] = Query(None),
+    severity: Optional[str] = Query(None),
+    status: Optional[str] = Query(None, description="Filter: new, active, watch, resolved, archived"),
+    include: Optional[str] = Query(None, description="Set to 'evidence' to include evidence chain"),
+    limit: int = Query(50, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+):
+    """List intelligence items for a project. Default: active + watch items."""
+    with get_cursor() as cur:
+        if not _check_intel_tables_exist(cur):
+            return paginated_response([], 0, limit, offset)
+
+        cur.execute("SELECT id FROM projects WHERE id = %s AND is_deleted = FALSE", (project_id,))
+        if not cur.fetchone():
+            raise HTTPException(status_code=404, detail="Project not found")
+
+        where = "WHERE i.project_id = %s"
+        params = [project_id]
+
+        if status:
+            where += " AND i.status = %s::intelligence_status"
+            params.append(status)
+        else:
+            where += " AND i.status IN ('new', 'active', 'watch')"
+
+        if item_type:
+            where += " AND i.item_type = %s::intelligence_item_type"
+            params.append(item_type)
+        if severity:
+            where += " AND i.severity = %s::intelligence_severity"
+            params.append(severity)
+
+        cur.execute(f"SELECT COUNT(*) as cnt FROM intelligence_items i {where}", params)
+        total = cur.fetchone()["cnt"]
+
+        cur.execute(f"""
+            SELECT i.id, i.project_id, i.item_type, i.title, i.summary,
+                   i.severity, i.confidence, i.status,
+                   i.first_created_at, i.last_updated_at, i.last_reinforced_at,
+                   i.resolved_at, i.synthesis_cycle_id,
+                   i.source_evidence_count, i.recommended_attention_level,
+                   i.delivery_channels_json
+            FROM intelligence_items i
+            {where}
+            ORDER BY
+                CASE i.severity
+                    WHEN 'critical' THEN 0
+                    WHEN 'high' THEN 1
+                    WHEN 'medium' THEN 2
+                    WHEN 'low' THEN 3
+                END,
+                i.last_updated_at DESC
+            LIMIT %s OFFSET %s
+        """, params + [limit, offset])
+
+        rows = serialize_rows(cur.fetchall())
+
+        # Optionally include evidence chain
+        if include == "evidence" and rows:
+            item_ids = [r["id"] for r in rows]
+            placeholders = ",".join(["%s"] * len(item_ids))
+            cur.execute(f"""
+                SELECT e.intelligence_item_id, e.id as evidence_id,
+                       e.evidence_weight_level, e.added_at, e.notes,
+                       s.id as signal_id, s.signal_type, s.signal_category,
+                       s.summary as signal_summary, s.source_type,
+                       s.confidence as signal_confidence, s.created_at as signal_created_at
+                FROM intelligence_item_evidence e
+                JOIN signals s ON s.id = e.signal_id
+                WHERE e.intelligence_item_id IN ({placeholders})
+                ORDER BY e.added_at DESC
+            """, item_ids)
+
+            evidence_map = {}
+            for ev in serialize_rows(cur.fetchall()):
+                item_id = ev.pop("intelligence_item_id")
+                evidence_map.setdefault(item_id, []).append(ev)
+
+            for row in rows:
+                row["evidence"] = evidence_map.get(row["id"], [])
+
+        return paginated_response(rows, total, limit, offset)
+
+
+@router.get("/projects/{project_id}/intelligence-items/{item_id}")
+def get_intelligence_item(project_id: str, item_id: str):
+    """Get a single intelligence item with full evidence chain."""
+    with get_cursor() as cur:
+        if not _check_intel_tables_exist(cur):
+            raise HTTPException(status_code=404, detail="Intelligence layer not initialized")
+
+        cur.execute("""
+            SELECT i.*
+            FROM intelligence_items i
+            WHERE i.id = %s AND i.project_id = %s
+        """, (item_id, project_id))
+
+        item = cur.fetchone()
+        if not item:
+            raise HTTPException(status_code=404, detail="Intelligence item not found")
+
+        item = serialize_row(item)
+
+        # Get evidence chain
+        cur.execute("""
+            SELECT e.id as evidence_id, e.evidence_weight_level, e.added_at, e.notes,
+                   s.id as signal_id, s.signal_type, s.signal_category,
+                   s.summary as signal_summary, s.source_type, s.entity_type,
+                   s.entity_value, s.confidence as signal_confidence,
+                   s.supporting_context_json, s.created_at as signal_created_at
+            FROM intelligence_item_evidence e
+            JOIN signals s ON s.id = e.signal_id
+            WHERE e.intelligence_item_id = %s
+            ORDER BY e.added_at DESC
+        """, (item_id,))
+
+        item["evidence"] = serialize_rows(cur.fetchall())
+        return {"data": item}
+
+
+@router.get("/synthesis/cycles")
+def list_synthesis_cycles(
+    project_id: Optional[str] = Query(None),
+    cycle_type: Optional[str] = Query(None),
+    limit: int = Query(20, ge=1, le=100),
+    offset: int = Query(0, ge=0),
+):
+    """List recent synthesis cycles."""
+    with get_cursor() as cur:
+        if not _check_intel_tables_exist(cur):
+            return paginated_response([], 0, limit, offset)
+
+        where_parts = []
+        params = []
+
+        if project_id:
+            where_parts.append("sc.project_id = %s")
+            params.append(project_id)
+        if cycle_type:
+            where_parts.append("sc.cycle_type = %s::synthesis_cycle_type")
+            params.append(cycle_type)
+
+        where = "WHERE " + " AND ".join(where_parts) if where_parts else ""
+
+        cur.execute(f"SELECT COUNT(*) as cnt FROM synthesis_cycles sc {where}", params)
+        total = cur.fetchone()["cnt"]
+
+        cur.execute(f"""
+            SELECT sc.id, sc.project_id, sc.cycle_type,
+                   sc.started_at, sc.completed_at,
+                   sc.signals_processed, sc.items_created, sc.items_updated, sc.items_resolved,
+                   sc.cycle_summary, sc.overall_health,
+                   sc.model_used, sc.input_tokens, sc.output_tokens,
+                   sc.error_log,
+                   p.name as project_name
+            FROM synthesis_cycles sc
+            JOIN projects p ON p.id = sc.project_id
+            {where}
+            ORDER BY sc.started_at DESC
+            LIMIT %s OFFSET %s
+        """, params + [limit, offset])
+
+        rows = serialize_rows(cur.fetchall())
+        return paginated_response(rows, total, limit, offset)
+
+
+@router.get("/dashboard/overview")
+def dashboard_overview():
+    """Aggregated view across all projects for the multi-project dashboard.
+
+    Returns project count, active intelligence items by severity,
+    last synthesis cycle time per project, overall health per project.
+    """
+    with get_cursor() as cur:
+        # Get all active projects with basic counts
+        cur.execute("""
+            SELECT p.id, p.name, p.number, p.status, p.project_type,
+                   p.start_date, p.estimated_completion, p.contract_value,
+                   p.updated_at,
+                   (SELECT COUNT(*) FROM rfis r WHERE r.project_id = p.id AND r.is_deleted = FALSE AND r.status NOT IN ('closed', 'answered', 'void')) as open_rfis,
+                   (SELECT COUNT(*) FROM submittals s WHERE s.project_id = p.id AND s.is_deleted = FALSE AND s.status NOT IN ('approved', 'approved_as_noted', 'closed', 'void')) as open_submittals,
+                   (SELECT COUNT(*) FROM change_orders co WHERE co.project_id = p.id AND co.is_deleted = FALSE AND co.status = 'pending') as pending_change_orders,
+                   (SELECT COUNT(*) FROM rfis r WHERE r.project_id = p.id AND r.is_deleted = FALSE AND r.status NOT IN ('closed', 'answered', 'void') AND r.due_date < CURRENT_DATE) as overdue_rfis
+            FROM projects p
+            WHERE p.is_deleted = FALSE AND p.status = 'active'
+            ORDER BY p.name
+        """)
+        projects = serialize_rows(cur.fetchall())
+
+        # If intelligence tables exist, add intelligence data
+        intel_available = _check_intel_tables_exist(cur)
+        if intel_available:
+            for proj in projects:
+                pid = proj["id"]
+
+                # Intelligence items by severity
+                cur.execute("""
+                    SELECT severity, COUNT(*) as cnt
+                    FROM intelligence_items
+                    WHERE project_id = %s AND status IN ('new', 'active')
+                    GROUP BY severity
+                """, (pid,))
+                severity_counts = {r["severity"]: r["cnt"] for r in cur.fetchall()}
+                proj["intelligence"] = {
+                    "critical": severity_counts.get("critical", 0),
+                    "high": severity_counts.get("high", 0),
+                    "medium": severity_counts.get("medium", 0),
+                    "low": severity_counts.get("low", 0),
+                    "total_active": sum(severity_counts.values()),
+                }
+
+                # Last synthesis cycle
+                cur.execute("""
+                    SELECT id, cycle_type, completed_at, overall_health
+                    FROM synthesis_cycles
+                    WHERE project_id = %s AND completed_at IS NOT NULL
+                    ORDER BY completed_at DESC
+                    LIMIT 1
+                """, (pid,))
+                last_cycle = cur.fetchone()
+                proj["last_synthesis"] = serialize_row(last_cycle)
+        else:
+            for proj in projects:
+                proj["intelligence"] = {
+                    "critical": 0, "high": 0, "medium": 0, "low": 0, "total_active": 0
+                }
+                proj["last_synthesis"] = None
+
+        # Aggregate stats
+        total_open_rfis = sum(p.get("open_rfis", 0) for p in projects)
+        total_overdue_rfis = sum(p.get("overdue_rfis", 0) for p in projects)
+        total_open_submittals = sum(p.get("open_submittals", 0) for p in projects)
+        total_pending_cos = sum(p.get("pending_change_orders", 0) for p in projects)
+
+        return {
+            "data": {
+                "project_count": len(projects),
+                "projects": projects,
+                "aggregates": {
+                    "open_rfis": total_open_rfis,
+                    "overdue_rfis": total_overdue_rfis,
+                    "open_submittals": total_open_submittals,
+                    "pending_change_orders": total_pending_cos,
+                },
+                "intelligence_available": intel_available,
+            }
+        }
+
+
+# =============================================================================
+# SYNTHESIS TRIGGER ENDPOINTS
+# =============================================================================
+
+# In-memory job tracking (prototype; use Redis in production)
+_synthesis_jobs: dict = {}
+
+
+@router.post("/synthesis/trigger")
+def trigger_synthesis(
+    project_id: str = Query(...),
+    cycle_type: str = Query("morning_briefing"),
+):
+    """Trigger a manual synthesis cycle. Returns immediately with job_id."""
+    import threading
+
+    job_id = str(__import__("uuid").uuid4())
+    _synthesis_jobs[job_id] = {"status": "running", "project_id": project_id, "cycle_type": cycle_type}
+
+    def _run():
+        try:
+            from synthesis_engine import SynthesisEngine
+            cycle_id = SynthesisEngine.run_cycle(project_id, cycle_type)
+            _synthesis_jobs[job_id] = {
+                "status": "completed",
+                "cycle_id": cycle_id,
+                "project_id": project_id,
+                "cycle_type": cycle_type,
+            }
+        except Exception as e:
+            _synthesis_jobs[job_id] = {
+                "status": "failed",
+                "error": str(e),
+                "project_id": project_id,
+            }
+            logger.error(f"Synthesis job {job_id} failed: {e}")
+
+    thread = threading.Thread(target=_run, daemon=True)
+    thread.start()
+
+    return {"job_id": job_id, "status": "running"}
+
+
+@router.get("/synthesis/status/{job_id}")
+def synthesis_status(job_id: str):
+    """Poll synthesis job status."""
+    job = _synthesis_jobs.get(job_id)
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+    return job
+
+
+@router.post("/synthesis/sweep")
+def trigger_signal_sweep(project_id: str = Query(...)):
+    """Trigger a deterministic signal sweep for a project."""
+    try:
+        from signal_generation import run_deterministic_sweep
+        results = run_deterministic_sweep(project_id)
+        return {"status": "completed", "results": results}
+    except Exception as e:
+        logger.error(f"Signal sweep failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/signals/stats")
+def signal_stats(project_id: Optional[str] = Query(None)):
+    """Signal generation statistics."""
+    with get_cursor() as cur:
+        if not _check_intel_tables_exist(cur):
+            return {"data": {"total_today": 0, "by_category": {}, "by_source": {}}}
+
+        where = ""
+        params = []
+        if project_id:
+            where = "AND project_id = %s"
+            params.append(project_id)
+
+        cur.execute(f"""
+            SELECT COUNT(*) as total
+            FROM signals
+            WHERE created_at > CURRENT_DATE {where}
+        """, params)
+        total = cur.fetchone()["cnt"] if False else cur.fetchone()["total"]
+
+        cur.execute(f"""
+            SELECT signal_category::text as cat, COUNT(*) as cnt
+            FROM signals
+            WHERE created_at > CURRENT_DATE {where}
+            GROUP BY signal_category
+        """, params)
+        by_category = {r["cat"]: r["cnt"] for r in cur.fetchall()}
+
+        cur.execute(f"""
+            SELECT source_type::text as src, COUNT(*) as cnt
+            FROM signals
+            WHERE created_at > CURRENT_DATE {where}
+            GROUP BY source_type
+        """, params)
+        by_source = {r["src"]: r["cnt"] for r in cur.fetchall()}
+
+        return {
+            "data": {
+                "total_today": total,
+                "by_category": by_category,
+                "by_source": by_source,
+            }
+        }
+
+
+@router.get("/health")
+def health_check():
+    """Health check endpoint."""
+    try:
+        with get_cursor() as cur:
+            cur.execute("SELECT 1")
+            intel_ready = _check_intel_tables_exist(cur)
+            return {
+                "status": "healthy",
+                "database": "connected",
+                "intelligence_layer": "ready" if intel_ready else "pending",
+                "service": "steelsync-command-center",
+            }
+    except Exception as e:
+        return {"status": "unhealthy", "database": "disconnected", "error": str(e)}

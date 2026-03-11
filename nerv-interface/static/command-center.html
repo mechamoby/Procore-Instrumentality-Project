@@ -1,0 +1,1182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SteelSync Command Center</title>
+    <style>
+        :root {
+            --navy: #1B2A4A;
+            --navy-light: #243558;
+            --navy-dark: #131f38;
+            --steel-blue: #3B6B8A;
+            --steel-blue-light: #4a8ab0;
+            --steel-blue-dark: #2d5570;
+            --accent-green: #4ade80;
+            --accent-yellow: #facc15;
+            --accent-red: #f87171;
+            --accent-orange: #fb923c;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --border: #334155;
+            --card-bg: #1e293b;
+            --panel-bg: #0f172a;
+            --hover: rgba(59, 107, 138, 0.15);
+            --font: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+            --font-mono: 'Cascadia Code', 'Fira Code', monospace;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: var(--font);
+            background: var(--panel-bg);
+            color: var(--text-primary);
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* TOP BAR */
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 56px;
+            background: var(--navy);
+            border-bottom: 1px solid var(--border);
+            padding: 0 20px;
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            z-index: 100;
+        }
+
+        .topbar-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        .topbar-brand .logo {
+            width: 28px;
+            height: 28px;
+            background: linear-gradient(135deg, var(--steel-blue), var(--steel-blue-light));
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 800;
+        }
+
+        .topbar-nav {
+            display: flex;
+            gap: 4px;
+        }
+
+        .topbar-nav button {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            padding: 8px 16px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.15s;
+        }
+
+        .topbar-nav button:hover { background: var(--hover); color: var(--text-primary); }
+        .topbar-nav button.active { background: var(--steel-blue-dark); color: var(--text-primary); }
+
+        .topbar-meta {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .topbar-meta .sync-dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: var(--accent-green);
+            display: inline-block;
+            margin-right: 4px;
+        }
+
+        /* LAYOUT */
+        .layout {
+            display: flex;
+            height: calc(100vh - 56px);
+            margin-top: 56px;
+        }
+
+        /* SIDEBAR */
+        .sidebar {
+            width: 280px;
+            min-width: 280px;
+            background: var(--navy-dark);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .sidebar-header {
+            padding: 16px;
+            border-bottom: 1px solid var(--border);
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .sidebar-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 8px;
+        }
+
+        .project-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.15s;
+            margin-bottom: 2px;
+        }
+
+        .project-item:hover { background: var(--hover); }
+        .project-item.active { background: var(--steel-blue-dark); }
+
+        .project-dot {
+            width: 10px; height: 10px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .project-dot.green { background: var(--accent-green); }
+        .project-dot.yellow { background: var(--accent-yellow); }
+        .project-dot.red { background: var(--accent-red); }
+        .project-dot.neutral { background: var(--text-muted); }
+
+        .project-info { flex: 1; min-width: 0; }
+        .project-name { font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .project-number { font-size: 11px; color: var(--text-muted); }
+
+        .project-badge {
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 10px;
+            background: var(--steel-blue-dark);
+            color: var(--text-secondary);
+            flex-shrink: 0;
+        }
+
+        /* MAIN CONTENT */
+        .main-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px;
+        }
+
+        /* DASHBOARD VIEW */
+        .dashboard-header {
+            margin-bottom: 24px;
+        }
+
+        .dashboard-header h1 {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .dashboard-header p {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 16px;
+        }
+
+        .stat-card .label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+
+        .stat-card .value {
+            font-size: 28px;
+            font-weight: 700;
+        }
+
+        .stat-card .sub {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        /* PROJECT CARDS GRID */
+        .project-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+            gap: 16px;
+        }
+
+        .health-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .health-card:hover {
+            border-color: var(--steel-blue);
+            transform: translateY(-1px);
+        }
+
+        .health-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 16px;
+        }
+
+        .health-card-title {
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        .health-card-number {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .health-indicator {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .health-indicator.green { background: rgba(74, 222, 128, 0.15); color: var(--accent-green); }
+        .health-indicator.yellow { background: rgba(250, 204, 21, 0.15); color: var(--accent-yellow); }
+        .health-indicator.red { background: rgba(248, 113, 113, 0.15); color: var(--accent-red); }
+        .health-indicator.unknown { background: rgba(100, 116, 139, 0.15); color: var(--text-muted); }
+
+        .health-card-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 12px;
+        }
+
+        .health-card-stat .num { font-size: 18px; font-weight: 600; }
+        .health-card-stat .lbl { font-size: 11px; color: var(--text-muted); }
+
+        .health-card-stat .num.warn { color: var(--accent-yellow); }
+        .health-card-stat .num.danger { color: var(--accent-red); }
+
+        /* PROJECT DETAIL VIEW */
+        .project-detail-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 24px;
+        }
+
+        .project-detail-header h1 {
+            font-size: 22px;
+            font-weight: 700;
+        }
+
+        .project-detail-header .meta {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        .detail-tabs {
+            display: flex;
+            gap: 2px;
+            background: var(--navy-dark);
+            border-radius: 8px;
+            padding: 3px;
+            margin-bottom: 24px;
+        }
+
+        .detail-tabs button {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            padding: 8px 16px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.15s;
+        }
+
+        .detail-tabs button:hover { color: var(--text-primary); }
+        .detail-tabs button.active { background: var(--steel-blue-dark); color: var(--text-primary); }
+
+        /* PANELS */
+        .panel {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            margin-bottom: 16px;
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 18px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .panel-title {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .panel-badge {
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 10px;
+            background: var(--steel-blue-dark);
+            color: var(--text-secondary);
+        }
+
+        .panel-body {
+            padding: 18px;
+        }
+
+        .panel-empty {
+            text-align: center;
+            padding: 32px;
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+
+        .panel-empty .icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+            opacity: 0.5;
+        }
+
+        /* INTELLIGENCE FEED */
+        .intel-item {
+            display: flex;
+            gap: 12px;
+            padding: 14px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .intel-item:last-child { border-bottom: none; }
+
+        .intel-severity {
+            width: 4px;
+            border-radius: 2px;
+            flex-shrink: 0;
+        }
+
+        .intel-severity.critical { background: var(--accent-red); }
+        .intel-severity.high { background: var(--accent-orange); }
+        .intel-severity.medium { background: var(--accent-yellow); }
+        .intel-severity.low { background: var(--steel-blue); }
+
+        .intel-content { flex: 1; }
+        .intel-title { font-size: 13px; font-weight: 500; margin-bottom: 4px; }
+        .intel-summary { font-size: 12px; color: var(--text-secondary); line-height: 1.5; }
+        .intel-meta { font-size: 11px; color: var(--text-muted); margin-top: 6px; display: flex; gap: 12px; }
+
+        /* RFI/SUBMITTAL TABLE */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .data-table th {
+            text-align: left;
+            padding: 10px 12px;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            font-weight: 600;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .data-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid rgba(51, 65, 85, 0.5);
+            color: var(--text-secondary);
+        }
+
+        .data-table tr:hover td { background: var(--hover); }
+
+        .status-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        .status-badge.open { background: rgba(59, 107, 138, 0.2); color: var(--steel-blue-light); }
+        .status-badge.overdue { background: rgba(248, 113, 113, 0.15); color: var(--accent-red); }
+        .status-badge.closed { background: rgba(100, 116, 139, 0.15); color: var(--text-muted); }
+        .status-badge.approved { background: rgba(74, 222, 128, 0.15); color: var(--accent-green); }
+        .status-badge.rejected { background: rgba(248, 113, 113, 0.15); color: var(--accent-red); }
+        .status-badge.pending { background: rgba(250, 204, 21, 0.15); color: var(--accent-yellow); }
+        .status-badge.submitted, .status-badge.under_review { background: rgba(59, 107, 138, 0.2); color: var(--steel-blue-light); }
+
+        /* RADAR VIEW */
+        .radar-header {
+            margin-bottom: 24px;
+        }
+
+        .radar-header h1 { font-size: 24px; font-weight: 700; }
+        .radar-header p { font-size: 13px; color: var(--text-secondary); margin-top: 4px; }
+
+        /* LOADING */
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            color: var(--text-muted);
+        }
+
+        .spinner {
+            width: 20px; height: 20px;
+            border: 2px solid var(--border);
+            border-top-color: var(--steel-blue);
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* SCROLLBAR */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+        /* TWO-COLUMN DETAIL LAYOUT */
+        .detail-grid {
+            display: grid;
+            grid-template-columns: 1fr 360px;
+            gap: 16px;
+        }
+
+        @media (max-width: 1200px) {
+            .detail-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+    <div class="topbar-brand">
+        <div class="logo">SS</div>
+        <span>SteelSync</span>
+    </div>
+    <div class="topbar-nav">
+        <button id="nav-dashboard" class="active" onclick="navigate('dashboard')">Dashboard</button>
+        <button id="nav-radar" onclick="navigate('radar')">Radar</button>
+    </div>
+    <div class="topbar-meta">
+        <span><span class="sync-dot" id="sync-dot"></span> <span id="last-sync">Loading...</span></span>
+    </div>
+</div>
+
+<!-- LAYOUT -->
+<div class="layout">
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+        <div class="sidebar-header">Projects</div>
+        <div class="sidebar-list" id="project-list">
+            <div class="loading"><div class="spinner"></div> Loading projects...</div>
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="main-content" id="main-content">
+        <!-- Content injected by JS -->
+    </div>
+</div>
+
+<script>
+// =============================================================================
+// STATE
+// =============================================================================
+const state = {
+    view: 'dashboard',       // dashboard | project | radar
+    projects: [],
+    selectedProjectId: null,
+    selectedProject: null,
+    detailTab: 'intelligence',
+    dashboardData: null,
+};
+
+const API_BASE = '/api';
+
+// =============================================================================
+// API
+// =============================================================================
+async function api(path) {
+    try {
+        const res = await fetch(API_BASE + path);
+        if (!res.ok) {
+            if (res.status === 404) return null;
+            throw new Error(`API ${res.status}: ${res.statusText}`);
+        }
+        return await res.json();
+    } catch (err) {
+        console.error('API error:', path, err);
+        return null;
+    }
+}
+
+// =============================================================================
+// NAVIGATION
+// =============================================================================
+function navigate(view, projectId) {
+    state.view = view;
+    if (projectId) state.selectedProjectId = projectId;
+
+    // Update nav buttons
+    document.querySelectorAll('.topbar-nav button').forEach(b => b.classList.remove('active'));
+    const navBtn = document.getElementById('nav-' + view);
+    if (navBtn) navBtn.classList.add('active');
+
+    // Update sidebar selection
+    document.querySelectorAll('.project-item').forEach(el => {
+        el.classList.toggle('active', el.dataset.id === state.selectedProjectId);
+    });
+
+    render();
+}
+
+function selectProject(projectId) {
+    state.selectedProjectId = projectId;
+    navigate('project', projectId);
+}
+
+// =============================================================================
+// RENDER
+// =============================================================================
+async function render() {
+    const main = document.getElementById('main-content');
+
+    switch (state.view) {
+        case 'dashboard':
+            await renderDashboard(main);
+            break;
+        case 'project':
+            await renderProjectDetail(main);
+            break;
+        case 'radar':
+            renderRadar(main);
+            break;
+    }
+}
+
+// =============================================================================
+// DASHBOARD
+// =============================================================================
+async function renderDashboard(container) {
+    container.innerHTML = '<div class="loading"><div class="spinner"></div> Loading dashboard...</div>';
+
+    const data = await api('/dashboard/overview');
+    if (!data) {
+        container.innerHTML = '<div class="panel-empty">Failed to load dashboard data. Check database connection.</div>';
+        return;
+    }
+
+    const d = data.data;
+    state.dashboardData = d;
+
+    container.innerHTML = `
+        <div class="dashboard-header">
+            <h1>Command Center</h1>
+            <p>${d.project_count} active project${d.project_count !== 1 ? 's' : ''} ${d.intelligence_available ? '' : '| Intelligence layer pending initialization'}</p>
+        </div>
+
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="label">Active Projects</div>
+                <div class="value">${d.project_count}</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">Open RFIs</div>
+                <div class="value" style="color: ${d.aggregates.overdue_rfis > 0 ? 'var(--accent-red)' : 'var(--text-primary)'}">${d.aggregates.open_rfis}</div>
+                ${d.aggregates.overdue_rfis > 0 ? `<div class="sub" style="color: var(--accent-red)">${d.aggregates.overdue_rfis} overdue</div>` : ''}
+            </div>
+            <div class="stat-card">
+                <div class="label">Open Submittals</div>
+                <div class="value">${d.aggregates.open_submittals}</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">Pending COs</div>
+                <div class="value" style="color: ${d.aggregates.pending_change_orders > 0 ? 'var(--accent-yellow)' : 'var(--text-primary)'}">${d.aggregates.pending_change_orders}</div>
+            </div>
+        </div>
+
+        <div class="project-grid" id="project-grid">
+            ${d.projects.map(p => renderHealthCard(p)).join('')}
+        </div>
+    `;
+}
+
+function renderHealthCard(p) {
+    const health = p.last_synthesis?.overall_health || 'unknown';
+    const healthLabel = health === 'unknown' ? 'Pending' : health.charAt(0).toUpperCase() + health.slice(1);
+
+    return `
+        <div class="health-card" onclick="selectProject('${p.id}')">
+            <div class="health-card-header">
+                <div>
+                    <div class="health-card-title">${esc(p.name)}</div>
+                    <div class="health-card-number">${esc(p.number || '')}</div>
+                </div>
+                <div class="health-indicator ${health}">${healthLabel}</div>
+            </div>
+            <div class="health-card-stats">
+                <div class="health-card-stat">
+                    <div class="num ${p.overdue_rfis > 0 ? 'danger' : ''}">${p.open_rfis}</div>
+                    <div class="lbl">Open RFIs</div>
+                </div>
+                <div class="health-card-stat">
+                    <div class="num">${p.open_submittals}</div>
+                    <div class="lbl">Submittals</div>
+                </div>
+                <div class="health-card-stat">
+                    <div class="num ${p.pending_change_orders > 0 ? 'warn' : ''}">${p.pending_change_orders}</div>
+                    <div class="lbl">Pending COs</div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+// =============================================================================
+// PROJECT DETAIL
+// =============================================================================
+async function renderProjectDetail(container) {
+    container.innerHTML = '<div class="loading"><div class="spinner"></div> Loading project...</div>';
+
+    const projRes = await api(`/projects/${state.selectedProjectId}`);
+    if (!projRes) {
+        container.innerHTML = '<div class="panel-empty">Project not found.</div>';
+        return;
+    }
+
+    state.selectedProject = projRes.data;
+    const p = state.selectedProject;
+
+    container.innerHTML = `
+        <div class="project-detail-header">
+            <div>
+                <h1>${esc(p.name)}</h1>
+                <div class="meta">${esc(p.number || '')} ${p.project_type ? '| ' + esc(p.project_type) : ''} ${p.contract_value ? '| $' + Number(p.contract_value).toLocaleString() : ''}</div>
+            </div>
+        </div>
+
+        <div class="detail-tabs">
+            <button class="${state.detailTab === 'intelligence' ? 'active' : ''}" onclick="switchTab('intelligence')">Intelligence Feed</button>
+            <button class="${state.detailTab === 'rfis' ? 'active' : ''}" onclick="switchTab('rfis')">RFIs</button>
+            <button class="${state.detailTab === 'submittals' ? 'active' : ''}" onclick="switchTab('submittals')">Submittals</button>
+            <button class="${state.detailTab === 'schedule' ? 'active' : ''}" onclick="switchTab('schedule')">Schedule</button>
+            <button class="${state.detailTab === 'dailylogs' ? 'active' : ''}" onclick="switchTab('dailylogs')">Daily Logs</button>
+            <button class="${state.detailTab === 'changeorders' ? 'active' : ''}" onclick="switchTab('changeorders')">Change Orders</button>
+        </div>
+
+        <div id="detail-content">
+            <div class="loading"><div class="spinner"></div> Loading...</div>
+        </div>
+    `;
+
+    await renderDetailTab();
+}
+
+function switchTab(tab) {
+    state.detailTab = tab;
+    document.querySelectorAll('.detail-tabs button').forEach(b => b.classList.remove('active'));
+    event.target.classList.add('active');
+    renderDetailTab();
+}
+
+async function renderDetailTab() {
+    const content = document.getElementById('detail-content');
+    if (!content) return;
+    content.innerHTML = '<div class="loading"><div class="spinner"></div> Loading...</div>';
+
+    const pid = state.selectedProjectId;
+
+    switch (state.detailTab) {
+        case 'intelligence':
+            await renderIntelligenceTab(content, pid);
+            break;
+        case 'rfis':
+            await renderRFITab(content, pid);
+            break;
+        case 'submittals':
+            await renderSubmittalTab(content, pid);
+            break;
+        case 'schedule':
+            await renderScheduleTab(content, pid);
+            break;
+        case 'dailylogs':
+            await renderDailyLogTab(content, pid);
+            break;
+        case 'changeorders':
+            await renderChangeOrderTab(content, pid);
+            break;
+    }
+}
+
+async function renderIntelligenceTab(container, pid) {
+    const [itemsRes, signalsRes] = await Promise.all([
+        api(`/projects/${pid}/intelligence-items?include=evidence&limit=20`),
+        api(`/projects/${pid}/signals?limit=10`),
+    ]);
+
+    const items = itemsRes?.data || [];
+    const signals = signalsRes?.data || [];
+
+    if (items.length === 0 && signals.length === 0) {
+        container.innerHTML = `
+            <div class="detail-grid">
+                <div class="panel">
+                    <div class="panel-header">
+                        <span class="panel-title">Intelligence Feed</span>
+                    </div>
+                    <div class="panel-empty">
+                        <div class="icon">&#9881;</div>
+                        <div>No intelligence items yet.</div>
+                        <div style="margin-top:8px; font-size:12px">Data will appear after the first synthesis cycle runs.</div>
+                    </div>
+                </div>
+                <div class="panel">
+                    <div class="panel-header">
+                        <span class="panel-title">Recent Signals</span>
+                    </div>
+                    <div class="panel-empty">
+                        <div class="icon">&#9889;</div>
+                        <div>No signals detected yet.</div>
+                        <div style="margin-top:8px; font-size:12px">Signals are generated from project data changes.</div>
+                    </div>
+                </div>
+            </div>
+        `;
+        return;
+    }
+
+    container.innerHTML = `
+        <div class="detail-grid">
+            <div class="panel">
+                <div class="panel-header">
+                    <span class="panel-title">Intelligence Feed</span>
+                    <span class="panel-badge">${items.length} item${items.length !== 1 ? 's' : ''}</span>
+                </div>
+                <div class="panel-body">
+                    ${items.length === 0 ? '<div class="panel-empty">No active intelligence items.</div>' :
+                      items.map(i => `
+                        <div class="intel-item">
+                            <div class="intel-severity ${i.severity}"></div>
+                            <div class="intel-content">
+                                <div class="intel-title">${esc(i.title)}</div>
+                                <div class="intel-summary">${esc(i.summary)}</div>
+                                <div class="intel-meta">
+                                    <span>${i.item_type.replace(/_/g, ' ')}</span>
+                                    <span>${i.severity}</span>
+                                    <span>${i.confidence ? Math.round(i.confidence * 100) + '% confidence' : ''}</span>
+                                    <span>${timeAgo(i.last_updated_at)}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+            <div>
+                <div class="panel">
+                    <div class="panel-header">
+                        <span class="panel-title">Recent Signals</span>
+                        <span class="panel-badge">${signals.length}</span>
+                    </div>
+                    <div class="panel-body">
+                        ${signals.length === 0 ? '<div class="panel-empty">No recent signals.</div>' :
+                          signals.map(s => `
+                            <div style="padding:8px 0; border-bottom:1px solid var(--border); font-size:12px;">
+                                <div style="color:var(--text-primary); margin-bottom:2px;">${esc(s.summary)}</div>
+                                <div style="color:var(--text-muted); font-size:11px;">
+                                    ${s.signal_category.replace(/_/g, ' ')} | ${s.signal_type} | ${Math.round(s.effective_weight * 100)}% weight | ${timeAgo(s.created_at)}
+                                </div>
+                            </div>
+                          `).join('')}
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+async function renderRFITab(container, pid) {
+    const res = await api(`/projects/${pid}/rfis?limit=50`);
+    const rfis = res?.data || [];
+
+    container.innerHTML = `
+        <div class="panel">
+            <div class="panel-header">
+                <span class="panel-title">RFIs</span>
+                <span class="panel-badge">${res?.total_count || 0} total</span>
+            </div>
+            ${rfis.length === 0 ?
+                '<div class="panel-empty"><div class="icon">&#128221;</div>No RFIs found for this project.</div>' :
+                `<div style="overflow-x:auto;">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Subject</th>
+                                <th>Status</th>
+                                <th>Due Date</th>
+                                <th>Days Open</th>
+                                <th>Cost Impact</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${rfis.map(r => `
+                                <tr>
+                                    <td>${esc(r.number)}</td>
+                                    <td style="max-width:300px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${esc(r.subject)}</td>
+                                    <td><span class="status-badge ${r.is_overdue ? 'overdue' : r.status}">${r.is_overdue ? 'OVERDUE' : r.status}</span></td>
+                                    <td>${r.due_date || '-'}</td>
+                                    <td>${r.days_open != null ? r.days_open + 'd' : '-'}</td>
+                                    <td>${r.cost_impact ? '$' + Number(r.cost_amount || 0).toLocaleString() : '-'}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>`
+            }
+        </div>
+    `;
+}
+
+async function renderSubmittalTab(container, pid) {
+    const res = await api(`/projects/${pid}/submittals?limit=50`);
+    const subs = res?.data || [];
+
+    container.innerHTML = `
+        <div class="panel">
+            <div class="panel-header">
+                <span class="panel-title">Submittals</span>
+                <span class="panel-badge">${res?.total_count || 0} total</span>
+            </div>
+            ${subs.length === 0 ?
+                '<div class="panel-empty"><div class="icon">&#128196;</div>No submittals found for this project.</div>' :
+                `<div style="overflow-x:auto;">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Title</th>
+                                <th>Status</th>
+                                <th>Required</th>
+                                <th>In Review</th>
+                                <th>Spec</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${subs.map(s => `
+                                <tr>
+                                    <td>${esc(s.number)}</td>
+                                    <td style="max-width:300px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${esc(s.title)}</td>
+                                    <td><span class="status-badge ${s.is_overdue ? 'overdue' : s.status}">${s.is_overdue ? 'OVERDUE' : s.status.replace(/_/g, ' ')}</span></td>
+                                    <td>${s.required_date || '-'}</td>
+                                    <td>${s.days_in_review != null ? s.days_in_review + 'd' : '-'}</td>
+                                    <td>${esc(s.spec_section_number || '-')}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>`
+            }
+        </div>
+    `;
+}
+
+async function renderScheduleTab(container, pid) {
+    const res = await api(`/projects/${pid}/schedule?limit=50`);
+    const activities = res?.data || [];
+
+    container.innerHTML = `
+        <div class="panel">
+            <div class="panel-header">
+                <span class="panel-title">Schedule</span>
+                <span class="panel-badge">${res?.total_count || 0} activities</span>
+            </div>
+            ${activities.length === 0 ?
+                '<div class="panel-empty"><div class="icon">&#128197;</div>No schedule data found for this project.</div>' :
+                `<div style="overflow-x:auto;">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Activity</th>
+                                <th>Start</th>
+                                <th>Finish</th>
+                                <th>% Complete</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${activities.map(a => `
+                                <tr>
+                                    <td>${a.is_milestone ? '&#9670; ' : ''}${esc(a.name)}${a.is_critical ? ' <span style="color:var(--accent-red); font-size:10px;">CRITICAL</span>' : ''}</td>
+                                    <td>${a.start_date || '-'}</td>
+                                    <td>${a.finish_date || '-'}</td>
+                                    <td>${a.percent_complete != null ? a.percent_complete + '%' : '-'}</td>
+                                    <td><span class="status-badge ${a.schedule_status === 'overdue' ? 'overdue' : a.schedule_status === 'approaching' ? 'pending' : 'open'}">${a.schedule_status}</span></td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>`
+            }
+        </div>
+    `;
+}
+
+async function renderDailyLogTab(container, pid) {
+    const res = await api(`/projects/${pid}/daily-logs?limit=30`);
+    const logs = res?.data || [];
+
+    container.innerHTML = `
+        <div class="panel">
+            <div class="panel-header">
+                <span class="panel-title">Daily Logs</span>
+                <span class="panel-badge">${res?.total_count || 0} total</span>
+            </div>
+            ${logs.length === 0 ?
+                '<div class="panel-empty"><div class="icon">&#128203;</div>No daily logs found for this project.</div>' :
+                `<div style="overflow-x:auto;">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Workers</th>
+                                <th>Compliance</th>
+                                <th>Work Performed</th>
+                                <th>Delays</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${logs.map(l => `
+                                <tr>
+                                    <td>${l.report_date}</td>
+                                    <td>${l.total_workers || '-'}</td>
+                                    <td><span class="status-badge ${l.compliance_status === 'on_time' ? 'approved' : l.compliance_status === 'late' ? 'pending' : 'overdue'}">${l.compliance_status}</span></td>
+                                    <td style="max-width:300px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${esc(l.work_performed || '-')}</td>
+                                    <td style="max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; ${l.delays ? 'color:var(--accent-yellow)' : ''}">${esc(l.delays || 'None')}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>`
+            }
+        </div>
+    `;
+}
+
+async function renderChangeOrderTab(container, pid) {
+    const res = await api(`/projects/${pid}/change-orders?limit=50`);
+    const cos = res?.data || [];
+    const fin = res?.financial_summary;
+
+    container.innerHTML = `
+        ${fin ? `
+        <div class="stats-row" style="margin-bottom:16px;">
+            <div class="stat-card">
+                <div class="label">Total CO Value</div>
+                <div class="value">$${Number(fin.total_amount).toLocaleString()}</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">Approved</div>
+                <div class="value" style="color:var(--accent-green)">$${Number(fin.approved_amount).toLocaleString()}</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">Pending</div>
+                <div class="value" style="color:var(--accent-yellow)">$${Number(fin.pending_amount).toLocaleString()}</div>
+            </div>
+        </div>` : ''}
+        <div class="panel">
+            <div class="panel-header">
+                <span class="panel-title">Change Orders</span>
+                <span class="panel-badge">${res?.total_count || 0} total</span>
+            </div>
+            ${cos.length === 0 ?
+                '<div class="panel-empty"><div class="icon">&#128181;</div>No change orders found for this project.</div>' :
+                `<div style="overflow-x:auto;">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Title</th>
+                                <th>Status</th>
+                                <th>Amount</th>
+                                <th>Schedule Impact</th>
+                                <th>Initiated</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${cos.map(c => `
+                                <tr>
+                                    <td>${esc(c.number)}</td>
+                                    <td style="max-width:300px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${esc(c.title)}</td>
+                                    <td><span class="status-badge ${c.status}">${c.status}</span></td>
+                                    <td>${c.amount != null ? '$' + Number(c.amount).toLocaleString() : '-'}</td>
+                                    <td>${c.schedule_impact_days ? c.schedule_impact_days + ' days' : '-'}</td>
+                                    <td>${c.date_initiated || '-'}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>`
+            }
+        </div>
+    `;
+}
+
+// =============================================================================
+// RADAR VIEW
+// =============================================================================
+function renderRadar(container) {
+    container.innerHTML = `
+        <div class="radar-header">
+            <h1>Radar</h1>
+            <p>Automated monitoring system for high-priority concerns across active projects.</p>
+        </div>
+        <div class="panel">
+            <div class="panel-header">
+                <span class="panel-title">Active Watch Items</span>
+            </div>
+            <div class="panel-empty">
+                <div class="icon">&#128225;</div>
+                <div>Radar monitoring not yet active.</div>
+                <div style="margin-top:8px; font-size:12px">Radar items will appear once the signal pipeline and synthesis cycles are running.</div>
+            </div>
+        </div>
+    `;
+}
+
+// =============================================================================
+// SIDEBAR
+// =============================================================================
+async function loadSidebar() {
+    const res = await api('/projects?limit=100');
+    if (!res) return;
+
+    state.projects = res.data;
+    const list = document.getElementById('project-list');
+
+    if (state.projects.length === 0) {
+        list.innerHTML = '<div class="panel-empty">No projects found.<br>Sync data from Procore first.</div>';
+        return;
+    }
+
+    list.innerHTML = state.projects.map(p => {
+        const health = 'neutral'; // will be intelligence-driven later
+        const itemCount = (p.rfi_count || 0) + (p.submittal_count || 0);
+        return `
+            <div class="project-item ${p.id === state.selectedProjectId ? 'active' : ''}"
+                 data-id="${p.id}"
+                 onclick="selectProject('${p.id}')">
+                <div class="project-dot ${health}"></div>
+                <div class="project-info">
+                    <div class="project-name">${esc(p.name)}</div>
+                    <div class="project-number">${esc(p.number || '')}</div>
+                </div>
+                ${itemCount > 0 ? `<div class="project-badge">${itemCount}</div>` : ''}
+            </div>
+        `;
+    }).join('');
+}
+
+// =============================================================================
+// UTILITIES
+// =============================================================================
+function esc(str) {
+    if (!str) return '';
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+}
+
+function timeAgo(iso) {
+    if (!iso) return '';
+    const diff = Date.now() - new Date(iso).getTime();
+    const mins = Math.floor(diff / 60000);
+    if (mins < 1) return 'just now';
+    if (mins < 60) return mins + 'm ago';
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24) return hrs + 'h ago';
+    const days = Math.floor(hrs / 24);
+    return days + 'd ago';
+}
+
+// =============================================================================
+// INIT
+// =============================================================================
+async function init() {
+    await loadSidebar();
+    await render();
+
+    // Update sync indicator
+    const healthRes = await api('/health');
+    const syncDot = document.getElementById('sync-dot');
+    const lastSync = document.getElementById('last-sync');
+    if (healthRes?.status === 'healthy') {
+        syncDot.style.background = 'var(--accent-green)';
+        lastSync.textContent = 'Connected';
+    } else {
+        syncDot.style.background = 'var(--accent-red)';
+        lastSync.textContent = 'Disconnected';
+    }
+}
+
+init();
+</script>
+</body>
+</html>

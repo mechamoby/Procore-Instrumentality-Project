@@ -32,6 +32,14 @@ NERV_SESSION_KEY = "agent:main:nerv"
 
 app = FastAPI(title="NERV Interface")
 
+# Mount SteelSync Command Center API
+try:
+    from command_center_api import router as cc_router
+    app.include_router(cc_router)
+    logging.getLogger("steelsync").info("Command Center API mounted")
+except ImportError as e:
+    logging.getLogger("steelsync").warning(f"Command Center API not available: {e}")
+
 STATIC_DIR = Path(__file__).parent / "static"
 app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
@@ -41,6 +49,16 @@ from fastapi.responses import HTMLResponse
 @app.get("/portal")
 async def portal_page():
     return FileResponse(str(STATIC_DIR / "portal.html"))
+
+
+@app.get("/command-center")
+@app.get("/command-center/{path:path}")
+async def command_center_page(path: str = ""):
+    """Serve the Command Center SPA. All routes handled client-side."""
+    cc_path = STATIC_DIR / "command-center.html"
+    if cc_path.exists():
+        return FileResponse(str(cc_path))
+    return HTMLResponse(content="<h1>Command Center not built yet</h1>", status_code=200)
 
 
 @app.get("/onboarding")
