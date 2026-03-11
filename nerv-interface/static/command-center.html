@@ -413,7 +413,59 @@
         .intel-content { flex: 1; }
         .intel-title { font-size: 13px; font-weight: 500; margin-bottom: 4px; }
         .intel-summary { font-size: 12px; color: var(--text-secondary); line-height: 1.5; }
-        .intel-meta { font-size: 11px; color: var(--text-muted); margin-top: 6px; display: flex; gap: 12px; }
+        .intel-meta { font-size: 11px; color: var(--text-muted); margin-top: 6px; display: flex; gap: 12px; flex-wrap: wrap; }
+
+        .attention-badge {
+            display: inline-block;
+            padding: 1px 6px;
+            border-radius: 3px;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .attention-badge.immediate { background: var(--accent-red); color: #1a1a1a; }
+        .attention-badge.today { background: var(--accent-orange); color: #1a1a1a; }
+        .attention-badge.tomorrow_morning { background: var(--accent-yellow); color: #1a1a1a; }
+        .attention-badge.this_week { background: var(--steel-blue); color: white; }
+        .attention-badge.monitor { background: var(--navy-light); color: var(--text-secondary); }
+
+        .intel-type-badge {
+            display: inline-block;
+            padding: 1px 6px;
+            border-radius: 3px;
+            font-size: 10px;
+            background: var(--navy-light);
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+        }
+
+        .cycle-summary {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin-bottom: 16px;
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+        .cycle-summary .cycle-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+        .cycle-summary .cycle-health {
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .cycle-summary .cycle-health.red { color: var(--accent-red); }
+        .cycle-summary .cycle-health.yellow { color: var(--accent-yellow); }
+        .cycle-summary .cycle-health.green { color: var(--accent-green); }
 
         /* RFI/SUBMITTAL TABLE */
         .data-table {
@@ -691,7 +743,16 @@ function renderHealthCard(p) {
                     <div class="num ${p.pending_change_orders > 0 ? 'warn' : ''}">${p.pending_change_orders}</div>
                     <div class="lbl">Pending COs</div>
                 </div>
+                ${p.intelligence?.total_active > 0 ? `
+                <div class="health-card-stat">
+                    <div class="num ${p.intelligence.high > 0 ? 'danger' : ''}">${p.intelligence.total_active}</div>
+                    <div class="lbl">Intel Items</div>
+                </div>` : ''}
             </div>
+            ${p.last_synthesis ? `
+            <div style="font-size:10px; color:var(--text-muted); margin-top:8px; padding-top:8px; border-top:1px solid var(--border);">
+                Last analysis: ${timeAgo(p.last_synthesis.completed_at)} | ${p.last_synthesis.cycle_type.replace(/_/g, ' ')}
+            </div>` : ''}
         </div>
     `;
 }
@@ -809,7 +870,19 @@ async function renderIntelligenceTab(container, pid) {
         return;
     }
 
+    // Fetch latest synthesis cycle for summary
+    const cyclesRes = await api(`/synthesis/cycles?project_id=${pid}&limit=1`);
+    const latestCycle = cyclesRes?.data?.[0];
+
     container.innerHTML = `
+        ${latestCycle ? `
+        <div class="cycle-summary">
+            <div class="cycle-header">
+                <span>${latestCycle.cycle_type.replace(/_/g, ' ').toUpperCase()} | ${latestCycle.model_used || 'unknown'} | ${timeAgo(latestCycle.completed_at)}</span>
+                <span class="cycle-health ${latestCycle.overall_health || ''}">${(latestCycle.overall_health || 'unknown').toUpperCase()}</span>
+            </div>
+            <div>${esc(latestCycle.cycle_summary || 'No summary available.')}</div>
+        </div>` : ''}
         <div class="detail-grid">
             <div class="panel">
                 <div class="panel-header">
@@ -825,9 +898,10 @@ async function renderIntelligenceTab(container, pid) {
                                 <div class="intel-title">${esc(i.title)}</div>
                                 <div class="intel-summary">${esc(i.summary)}</div>
                                 <div class="intel-meta">
-                                    <span>${i.item_type.replace(/_/g, ' ')}</span>
-                                    <span>${i.severity}</span>
+                                    <span class="intel-type-badge">${i.item_type.replace(/_/g, ' ')}</span>
+                                    <span class="attention-badge ${i.recommended_attention_level || ''}">${(i.recommended_attention_level || 'monitor').replace(/_/g, ' ')}</span>
                                     <span>${i.confidence ? Math.round(i.confidence * 100) + '% confidence' : ''}</span>
+                                    <span>${i.source_evidence_count || 0} evidence</span>
                                     <span>${timeAgo(i.last_updated_at)}</span>
                                 </div>
                             </div>
@@ -841,13 +915,14 @@ async function renderIntelligenceTab(container, pid) {
                         <span class="panel-title">Recent Signals</span>
                         <span class="panel-badge">${signals.length}</span>
                     </div>
-                    <div class="panel-body">
+                    <div class="panel-body" style="max-height:500px; overflow-y:auto;">
                         ${signals.length === 0 ? '<div class="panel-empty">No recent signals.</div>' :
                           signals.map(s => `
                             <div style="padding:8px 0; border-bottom:1px solid var(--border); font-size:12px;">
-                                <div style="color:var(--text-primary); margin-bottom:2px;">${esc(s.summary)}</div>
+                                <div style="color:var(--text-primary); margin-bottom:2px;">${esc(s.summary).substring(0, 120)}${s.summary.length > 120 ? '...' : ''}</div>
                                 <div style="color:var(--text-muted); font-size:11px;">
-                                    ${s.signal_category.replace(/_/g, ' ')} | ${s.signal_type} | ${Math.round(s.effective_weight * 100)}% weight | ${timeAgo(s.created_at)}
+                                    <span class="intel-type-badge">${s.signal_category.replace(/_/g, ' ')}</span>
+                                    ${Math.round(s.effective_weight * 100)}% weight | ${timeAgo(s.created_at)}
                                 </div>
                             </div>
                           `).join('')}

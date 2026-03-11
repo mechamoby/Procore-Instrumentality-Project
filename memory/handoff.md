@@ -1,51 +1,49 @@
-# Handoff — Last updated 2026-03-11 (session ended ~midnight)
+# Handoff — Last updated 2026-03-11 (afternoon session)
 
 ## PICKUP POINT — EXACTLY WHERE TO RESUME
 
 ### What's Done
-The full Command Center + Intelligence Pipeline is **built and partially validated**:
+The full Command Center + Intelligence Pipeline is **built, validated, and producing intelligence**:
 - All code written (Phases 1-6 of the ticketized build plan)
 - Schema applied to live database (9 tables, 15 enum types, 35 indexes — ALL verified OK)
-- Deterministic signal sweep ran successfully: **168 signals in database** (154 from real Procore data + 14 test scenarios)
-- All database queries verified working against live data
-- Project snapshot builder tested (works, returns correct data)
-- 4 commits pushed to master
+- **324+ signals in database** (accumulated from deterministic sweeps)
+- **Local algorithmic synthesis engine built** — works without ANTHROPIC_API_KEY
+- **2 synthesis cycles completed**: 12+ intelligence items generated
+- All 4 detectable test scenarios working: contradiction, convergence, pattern_match, emerging_risk
+- **Full API stack validated** — 30+ endpoints returning correct data
+- **Command Center SPA** serving at `/command-center` (58KB)
+- Server configurable via PORT env var (Docker uses 8080, local dev uses 8888)
+
+### Gap Closure (2026-03-11 afternoon session)
+Comprehensive audit of all 32 tickets in the build plan — closed major backend gaps:
+- **CC-2.4** — Source multiplier now applies to document pipeline signals based on project_match_confidence
+- **CC-3.4** — Decay threshold aligned to 0.1 (per spec), calibration-aware (skips during historical_ingest/calibration), watch→archive after 15 days added
+- **CC-5.6** — Radar↔Intelligence bidirectional linking: intelligence items list includes `radar_linked` + `linked_radar_items`, Radar detail shows linked intelligence items, post-resolution flagging marks linked items for re-evaluation
+- **CC-6.2** — Go-live endpoint with exit criteria validation (`POST /api/admin/go-live`), calibration signal tagging during sweeps
+- **CC-2.4** — PM review re-fire: `refire_signals_for_document()` + `POST /api/documents/refire-signals` archives old low-confidence signals and re-evaluates with confirmed project
+- **CC-3.4** — Working memory snapshot now includes `health_trend` (declining/stable/improving) computed from previous snapshot
+- **_run_local_synthesis bug fixed** — caller now passes `project_id`, Radar code inside uses parameter
 
 ### What's NOT Done — Pick Up Here
-1. **ANTHROPIC_API_KEY is missing** — the `.env` at `/home/moby/.openclaw/workspace/nerv-deploy-repo/.env` has `ANTHROPIC_API_KEY=` (empty). This blocks the synthesis engine from calling Claude. **First task tomorrow: get the key set.**
-2. **Synthesis validation (CC-3.5)** — Once the API key is set, run:
-   ```
-   cd nerv-interface && ANTHROPIC_API_KEY=sk-ant-xxx python3 -c "
-   from synthesis_engine import SynthesisEngine
-   cycle_id = SynthesisEngine.run_cycle('0827cef6-4a29-4b9b-9c51-b77c8ec88908', 'morning_briefing')
-   print(f'Cycle ID: {cycle_id}')
-   "
-   ```
-   Then check: `GET /api/projects/0827cef6-4a29-4b9b-9c51-b77c8ec88908/intelligence-items?include=evidence`
-3. **Quality gate (CC-3.5)** — Evaluate synthesis output against the 5 test scenarios:
-   - Scenario 1: Should detect contradiction (declining manpower vs email assurance)
-   - Scenario 2: Should detect convergence (3 trades, same ceiling area)
-   - Scenario 3: Should detect pattern (submittal resubmitted without revision)
-   - Scenario 4: Should produce minimal/empty output (quiet day)
-   - Scenario 5: Should detect emerging risk (CO chain from unforeseen conditions)
-4. **Start the server and test the UI** — `cd nerv-interface && python3 server.py`, visit `/command-center`
-5. **CC-3.4 (Working Memory Lifecycle)** — signal decay computation and item lifecycle rules (not yet implemented)
-6. **CC-5.4-5.6 (Radar Monitoring Pipeline)** — passive monitoring and active analysis (backend exists, monitoring logic not yet wired)
-7. **CC-6.1-6.2 (False Positive Management, Baseline Mode)** — not yet started
-8. **CC-6.4 (Visual Polish)** — not yet started
-9. **Consider a local synthesis fallback** — generate intelligence items algorithmically from signals when no API key available, for demo purposes
+1. **ANTHROPIC_API_KEY still missing** — local synthesis works as fallback
+2. **CC-6.4 (Visual Polish)** — saved for later per user request
+3. **CC-6.3 (E2E Validation Scenario)** — all backend systems exist, needs documented test walkthrough
+4. **Docker container update** — nerv-interface Docker container is running old code from March 9
+5. **Radar semantic matching (Stage 2 upgrade)** — currently uses keyword matching
+6. **Radar Opus judgment (Stage 3 upgrade)** — currently algorithmic
+7. **Full two-repo audit** — next session should audit both repos for dead code, schema drift, missing integrations
 
 ### Live Database State
 - **DB:** nerv_eva00, localhost:5432, user: moby
 - **Projects:** 2 active (Sandbox Test Project, Standard Project Template), 1 archived
 - **Real data:** 146 RFIs (139 overdue!), 151 submittals (14 overdue, 3 rejected), 230 drawings, 0 daily logs, 0 change orders, 0 schedule activities
-- **Signals:** 168 total in signals table (154 real + 14 test scenarios)
-- **Intelligence items:** 0 (synthesis hasn't run yet)
-- **Synthesis cycles:** 0
-- **Radar items:** 0
+- **Signals:** 324+ total in signals table
+- **Intelligence items:** 12+ (from 2 synthesis cycles)
+- **Synthesis cycles:** 2 (both local_algorithmic)
+- **Radar items:** 2 (test items)
 
 ### Remaining Blocker
-- **ANTHROPIC_API_KEY** — only remaining blocker. Schema is applied, psycopg2 works, all code compiles, all queries tested. Just need the key.
+- **ANTHROPIC_API_KEY** — only remaining blocker for Claude-powered synthesis
 
 ## What Happened (2026-03-10/11) — COMMAND CENTER BUILD
 

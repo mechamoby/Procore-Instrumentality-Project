@@ -456,9 +456,37 @@ def list_intelligence_items(
 
         rows = serialize_rows(cur.fetchall())
 
+        # Check which items are Radar-linked (have radar_match evidence signals)
+        if rows:
+            item_ids = [r["id"] for r in rows]
+            placeholders = ",".join(["%s"] * len(item_ids))
+
+            # Find items linked to Radar via evidence signals
+            cur.execute(f"""
+                SELECT DISTINCT e.intelligence_item_id,
+                       s.supporting_context_json->>'radar_item_id' as radar_item_id,
+                       s.supporting_context_json->>'radar_title' as radar_title
+                FROM intelligence_item_evidence e
+                JOIN signals s ON s.id = e.signal_id
+                WHERE e.intelligence_item_id IN ({placeholders})
+                  AND s.signal_category = 'radar_match'
+            """, item_ids)
+
+            radar_link_map = {}
+            for rl in serialize_rows(cur.fetchall()):
+                iid = rl["intelligence_item_id"]
+                radar_link_map.setdefault(iid, []).append({
+                    "radar_item_id": rl["radar_item_id"],
+                    "radar_title": rl["radar_title"],
+                })
+
+            for row in rows:
+                linked = radar_link_map.get(row["id"], [])
+                row["radar_linked"] = len(linked) > 0
+                row["linked_radar_items"] = linked
+
         # Optionally include evidence chain
         if include == "evidence" and rows:
-            item_ids = [r["id"] for r in rows]
             placeholders = ",".join(["%s"] * len(item_ids))
             cur.execute(f"""
                 SELECT e.intelligence_item_id, e.id as evidence_id,
@@ -712,6 +740,46 @@ def trigger_signal_sweep(project_id: str = Query(...)):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@router.post("/synthesis/decay")
+def trigger_decay_cycle(project_id: str = Query(...)):
+    """Run working memory lifecycle: decay signals and manage item states."""
+    try:
+        from synthesis_engine import SynthesisEngine
+        results = SynthesisEngine.run_decay_cycle(project_id)
+        return {"status": "completed", "results": results}
+    except Exception as e:
+        logger.error(f"Decay cycle failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/documents/refire-signals")
+def refire_document_signals(body: dict = Body(...)):
+    """CC-2.4: Re-fire signal generation after PM confirms project assignment.
+
+    Body: {document_id, confirmed_project_id, classification_data, extraction_data?}
+    """
+    document_id = body.get("document_id")
+    confirmed_project_id = body.get("confirmed_project_id")
+    classification_data = body.get("classification_data", {})
+    extraction_data = body.get("extraction_data")
+
+    if not document_id or not confirmed_project_id:
+        raise HTTPException(status_code=400, detail="document_id and confirmed_project_id required")
+
+    try:
+        from signal_generation import refire_signals_for_document
+        result = refire_signals_for_document(
+            document_id=document_id,
+            confirmed_project_id=confirmed_project_id,
+            classification_data=classification_data,
+            extraction_data=extraction_data,
+        )
+        return {"data": result}
+    except Exception as e:
+        logger.error(f"Document signal refire failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @router.get("/signals/stats")
 def signal_stats(project_id: Optional[str] = Query(None)):
     """Signal generation statistics."""
@@ -755,6 +823,108 @@ def signal_stats(project_id: Optional[str] = Query(None)):
                 "by_source": by_source,
             }
         }
+
+
+# =============================================================================
+# CC-2.5: REINFORCEMENT CANDIDATE PIPELINE
+# =============================================================================
+
+@router.get("/projects/{project_id}/reinforcement-candidates")
+def list_reinforcement_candidates(
+    project_id: str,
+    status: Optional[str] = Query("pending", description="Filter: pending, promoted, discarded"),
+    limit: int = Query(50, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+):
+    """List reinforcement candidates for a project's signals."""
+    with get_cursor() as cur:
+        where = """
+            WHERE s.project_id = %s
+        """
+        params = [project_id]
+
+        if status:
+            where += " AND rc.status = %s::reinforcement_status"
+            params.append(status)
+
+        cur.execute(f"""
+            SELECT COUNT(*) as cnt
+            FROM reinforcement_candidates rc
+            JOIN signals s ON s.id = rc.target_signal_id
+            {where}
+        """, params)
+        total = cur.fetchone()["cnt"]
+
+        cur.execute(f"""
+            SELECT rc.id, rc.target_signal_id, rc.source_signal_id,
+                   rc.reason, rc.confidence, rc.status,
+                   rc.created_at, rc.evaluated_at,
+                   ts.signal_type as target_signal_type,
+                   ts.summary as target_signal_summary,
+                   ss.signal_type as source_signal_type,
+                   ss.summary as source_signal_summary
+            FROM reinforcement_candidates rc
+            JOIN signals ts ON ts.id = rc.target_signal_id
+            JOIN signals ss ON ss.id = rc.source_signal_id
+            JOIN signals s ON s.id = rc.target_signal_id
+            {where}
+            ORDER BY rc.confidence DESC, rc.created_at DESC
+            LIMIT %s OFFSET %s
+        """, params + [limit, offset])
+        rows = serialize_rows(cur.fetchall())
+
+    return paginated_response(rows, total, limit, offset)
+
+
+@router.patch("/reinforcement-candidates/{candidate_id}")
+def update_reinforcement_candidate(candidate_id: str, body: dict = Body(...)):
+    """Update a reinforcement candidate status (promote or discard).
+
+    Body: {status: "promoted"|"discarded"}
+    When promoted, updates the target signal's last_reinforced_at.
+    """
+    new_status = body.get("status")
+    if new_status not in ("promoted", "discarded"):
+        raise HTTPException(status_code=400, detail="status must be 'promoted' or 'discarded'")
+
+    with get_cursor() as cur:
+        cur.execute("""
+            SELECT id, target_signal_id, source_signal_id, status
+            FROM reinforcement_candidates WHERE id = %s
+        """, (candidate_id,))
+        candidate = cur.fetchone()
+        if not candidate:
+            raise HTTPException(status_code=404, detail="Candidate not found")
+
+        if candidate["status"] != "pending":
+            raise HTTPException(status_code=400, detail=f"Candidate already {candidate['status']}")
+
+        cur.execute("""
+            UPDATE reinforcement_candidates SET
+                status = %s::reinforcement_status,
+                evaluated_at = NOW()
+            WHERE id = %s
+        """, (new_status, candidate_id))
+
+        # If promoted, reinforce the target signal
+        if new_status == "promoted":
+            cur.execute("""
+                UPDATE signals SET last_reinforced_at = NOW()
+                WHERE id = %s
+            """, (str(candidate["target_signal_id"]),))
+
+            # Also update any intelligence items linked to this signal
+            cur.execute("""
+                UPDATE intelligence_items SET
+                    last_reinforced_at = NOW(),
+                    source_evidence_count = source_evidence_count + 1
+                WHERE id IN (
+                    SELECT intelligence_item_id FROM intelligence_item_evidence
+                    WHERE signal_id = %s
+                )
+            """, (str(candidate["target_signal_id"]),))
+
+    return {"data": {"id": candidate_id, "status": new_status}}
 
 
 # =============================================================================
@@ -891,6 +1061,20 @@ def get_radar_item(item_id: str):
         """, (item_id,))
         item["document_links"] = serialize_rows(cur.fetchall())
 
+        # Linked intelligence items (via radar_match evidence signals)
+        cur.execute("""
+            SELECT DISTINCT i.id, i.item_type, i.title, i.severity, i.status,
+                   i.confidence, i.first_created_at
+            FROM intelligence_items i
+            JOIN intelligence_item_evidence e ON e.intelligence_item_id = i.id
+            JOIN signals s ON s.id = e.signal_id
+            WHERE s.signal_category = 'radar_match'
+              AND s.supporting_context_json->>'radar_item_id' = %s
+              AND i.status NOT IN ('archived', 'dismissed')
+            ORDER BY i.first_created_at DESC
+        """, (item_id,))
+        item["linked_intelligence_items"] = serialize_rows(cur.fetchall())
+
         return {"data": item}
 
 
@@ -939,6 +1123,28 @@ def update_radar_item(item_id: str, body: dict = Body(...)):
                 VALUES (%s, %s, 'status_change'::radar_activity_type, %s)
             """, (str(__import__("uuid").uuid4()), item_id, f"Updated: {changes}"))
 
+            # CC-5.6: Post-resolution flagging — when Radar item resolved,
+            # flag linked intelligence items for re-evaluation in next synthesis
+            if body.get("status") == "resolved":
+                cur.execute("""
+                    UPDATE intelligence_items SET
+                        recommended_attention_level = 'review_needed'
+                    WHERE id IN (
+                        SELECT DISTINCT e.intelligence_item_id
+                        FROM intelligence_item_evidence e
+                        JOIN signals s ON s.id = e.signal_id
+                        WHERE s.signal_category = 'radar_match'
+                          AND s.supporting_context_json->>'radar_item_id' = %s
+                    )
+                    AND status IN ('new', 'active', 'watch')
+                """, (item_id,))
+                flagged = cur.rowcount
+                if flagged:
+                    logger.info(
+                        f"Radar resolution: flagged {flagged} intelligence items "
+                        f"for re-evaluation (radar_item={item_id})"
+                    )
+
         return {"status": "updated"}
 
 
@@ -960,6 +1166,281 @@ def add_radar_activity(item_id: str, body: dict = Body(...)):
         """, (activity_id, item_id, body.get("content", ""), body.get("severity", "medium")))
 
         return {"data": {"id": activity_id}, "status": "created"}
+
+
+@router.post("/radar/items/{item_id}/watchers")
+def add_radar_watcher(item_id: str, body: dict = Body(...)):
+    """Add a watcher to a Radar item."""
+    user_id = body.get("user_id")
+    if not user_id:
+        raise HTTPException(status_code=400, detail="user_id required")
+
+    with get_cursor() as cur:
+        cur.execute("SELECT id FROM radar_items WHERE id = %s", (item_id,))
+        if not cur.fetchone():
+            raise HTTPException(status_code=404, detail="Radar item not found")
+
+        watcher_id = str(__import__("uuid").uuid4())
+        try:
+            cur.execute("""
+                INSERT INTO radar_watchers (id, radar_item_id, user_id, notification_preference)
+                VALUES (%s, %s, %s, %s)
+            """, (watcher_id, item_id, user_id, body.get("notification_preference", "all")))
+        except Exception:
+            raise HTTPException(status_code=409, detail="User is already watching this item")
+
+    return {"data": {"id": watcher_id}, "status": "created"}
+
+
+@router.delete("/radar/items/{item_id}/watchers/{user_id}")
+def remove_radar_watcher(item_id: str, user_id: str):
+    """Remove a watcher from a Radar item."""
+    with get_cursor() as cur:
+        cur.execute("""
+            DELETE FROM radar_watchers
+            WHERE radar_item_id = %s AND user_id = %s
+        """, (item_id, user_id))
+        if cur.rowcount == 0:
+            raise HTTPException(status_code=404, detail="Watcher not found")
+
+    return {"status": "deleted"}
+
+
+@router.post("/intelligence-items/{item_id}/feedback")
+def submit_feedback(item_id: str, body: dict = Body(...)):
+    """Submit user feedback on an intelligence item (confirm or dismiss).
+
+    Body: {feedback_type: "confirmed"|"dismissed", dismiss_reason?: string, dismiss_comment?: string}
+    """
+    feedback_type = body.get("feedback_type")
+    if feedback_type not in ("confirmed", "dismissed"):
+        raise HTTPException(status_code=400, detail="feedback_type must be 'confirmed' or 'dismissed'")
+
+    with get_cursor() as cur:
+        # Verify item exists
+        cur.execute("SELECT id, status FROM intelligence_items WHERE id = %s", (item_id,))
+        item = cur.fetchone()
+        if not item:
+            raise HTTPException(status_code=404, detail="Intelligence item not found")
+
+        # Record feedback
+        feedback_id = str(__import__("uuid").uuid4())
+        cur.execute("""
+            INSERT INTO intelligence_item_feedback
+                (id, intelligence_item_id, feedback_type, dismiss_reason, dismiss_comment)
+            VALUES (%s, %s, %s, %s, %s)
+        """, (
+            feedback_id, item_id, feedback_type,
+            body.get("dismiss_reason"),
+            body.get("dismiss_comment"),
+        ))
+
+        # Update item status
+        if feedback_type == "confirmed":
+            cur.execute("""
+                UPDATE intelligence_items SET
+                    status = CASE WHEN status = 'new' THEN 'active'::intelligence_status ELSE status END,
+                    confidence = LEAST(1.0, confidence + 0.1)
+                WHERE id = %s
+            """, (item_id,))
+        elif feedback_type == "dismissed":
+            cur.execute("""
+                UPDATE intelligence_items SET
+                    status = 'dismissed'::intelligence_status
+                WHERE id = %s
+            """, (item_id,))
+
+    return {"data": {"id": feedback_id, "feedback_type": feedback_type}, "status": "created"}
+
+
+@router.get("/intelligence-items/feedback-stats")
+def feedback_stats(project_id: Optional[str] = Query(None)):
+    """Get feedback statistics for intelligence items."""
+    with get_cursor() as cur:
+        where = ""
+        params = []
+        if project_id:
+            where = "AND ii.project_id = %s"
+            params.append(project_id)
+
+        cur.execute(f"""
+            SELECT
+                COUNT(*) as total_items,
+                SUM(CASE WHEN f.feedback_type = 'confirmed' THEN 1 ELSE 0 END) as confirmed,
+                SUM(CASE WHEN f.feedback_type = 'dismissed' THEN 1 ELSE 0 END) as dismissed,
+                COUNT(*) FILTER (WHERE f.id IS NULL) as no_feedback
+            FROM intelligence_items ii
+            LEFT JOIN intelligence_item_feedback f ON f.intelligence_item_id = ii.id
+            WHERE ii.status NOT IN ('archived') {where}
+        """, params)
+        stats = serialize_row(cur.fetchone())
+
+        # Dismissed reasons breakdown
+        cur.execute(f"""
+            SELECT f.dismiss_reason, COUNT(*) as cnt
+            FROM intelligence_item_feedback f
+            JOIN intelligence_items ii ON ii.id = f.intelligence_item_id
+            WHERE f.feedback_type = 'dismissed' {where}
+            GROUP BY f.dismiss_reason
+        """, params)
+        dismiss_breakdown = {r["dismiss_reason"] or "unspecified": r["cnt"] for r in cur.fetchall()}
+
+    return {"data": {**stats, "dismiss_reasons": dismiss_breakdown}}
+
+
+@router.get("/projects/{project_id}/onboarding")
+def get_onboarding_status(project_id: str):
+    """Get the onboarding phase and status for a project."""
+    with get_cursor() as cur:
+        cur.execute("""
+            SELECT p.id, p.name, p.onboarding_phase::text as phase,
+                   (SELECT COUNT(*) FROM signals WHERE project_id = p.id) as signal_count,
+                   (SELECT COUNT(*) FROM intelligence_items WHERE project_id = p.id
+                    AND status IN ('new', 'active')) as active_items,
+                   (SELECT COUNT(*) FROM synthesis_cycles WHERE project_id = p.id
+                    AND completed_at IS NOT NULL) as completed_cycles,
+                   (SELECT COUNT(*) FROM rfis WHERE project_id = p.id AND is_deleted = FALSE) as rfi_count,
+                   (SELECT COUNT(*) FROM submittals WHERE project_id = p.id AND is_deleted = FALSE) as submittal_count,
+                   (SELECT COUNT(*) FROM drawings WHERE project_id = p.id AND is_deleted = FALSE) as drawing_count
+            FROM projects p WHERE p.id = %s
+        """, (project_id,))
+        row = cur.fetchone()
+        if not row:
+            raise HTTPException(status_code=404, detail="Project not found")
+
+        phase = row["phase"]
+        data = serialize_row(row)
+
+        # Evaluate go-live readiness
+        data["go_live_criteria"] = {
+            "has_signals": row["signal_count"] > 0,
+            "has_active_items": row["active_items"] > 0,
+            "has_completed_cycles": row["completed_cycles"] >= 5,
+            "has_data": (row["rfi_count"] + row["submittal_count"] + row["drawing_count"]) > 0,
+        }
+        data["go_live_ready"] = all(data["go_live_criteria"].values())
+        return {"data": data}
+
+
+@router.post("/admin/set-onboarding-phase")
+def set_onboarding_phase(
+    project_id: str = Query(...),
+    phase: str = Query(..., description="historical_ingest, calibration, or live"),
+):
+    """Admin endpoint to transition a project's onboarding phase."""
+    valid_phases = ("historical_ingest", "calibration", "live")
+    if phase not in valid_phases:
+        raise HTTPException(status_code=400, detail=f"Phase must be one of: {valid_phases}")
+
+    with get_cursor() as cur:
+        cur.execute("SELECT id, onboarding_phase::text as current FROM projects WHERE id = %s", (project_id,))
+        row = cur.fetchone()
+        if not row:
+            raise HTTPException(status_code=404, detail="Project not found")
+
+        current = row["current"]
+        cur.execute("""
+            UPDATE projects SET onboarding_phase = %s::onboarding_phase
+            WHERE id = %s
+        """, (phase, project_id))
+
+    logger.info(f"Onboarding phase for {project_id}: {current} → {phase}")
+    return {"data": {"project_id": project_id, "previous_phase": current, "new_phase": phase}}
+
+
+@router.post("/admin/go-live")
+def go_live(
+    project_id: str = Query(...),
+    force: bool = Query(False, description="Skip criteria validation"),
+):
+    """Validate exit criteria and transition project from calibration → live.
+
+    Exit criteria (per CC-6.2 spec):
+    - Currently in calibration phase
+    - Has signals generated
+    - Has at least 1 intelligence item
+    - Has completed at least 5 synthesis cycles
+    - Has ingested Procore data (RFIs + submittals + drawings > 0)
+    """
+    with get_cursor() as cur:
+        cur.execute("""
+            SELECT p.id, p.onboarding_phase::text as phase,
+                   (SELECT COUNT(*) FROM signals WHERE project_id = p.id) as signal_count,
+                   (SELECT COUNT(*) FROM intelligence_items WHERE project_id = p.id
+                    AND status IN ('new', 'active')) as active_items,
+                   (SELECT COUNT(*) FROM synthesis_cycles WHERE project_id = p.id
+                    AND completed_at IS NOT NULL) as completed_cycles,
+                   (SELECT COUNT(*) FROM rfis WHERE project_id = p.id AND is_deleted = FALSE) as rfi_count,
+                   (SELECT COUNT(*) FROM submittals WHERE project_id = p.id AND is_deleted = FALSE) as submittal_count,
+                   (SELECT COUNT(*) FROM drawings WHERE project_id = p.id AND is_deleted = FALSE) as drawing_count
+            FROM projects p WHERE p.id = %s
+        """, (project_id,))
+        row = cur.fetchone()
+        if not row:
+            raise HTTPException(status_code=404, detail="Project not found")
+
+        if row["phase"] != "calibration":
+            raise HTTPException(
+                status_code=400,
+                detail=f"Project must be in calibration phase to go live (currently: {row['phase']})"
+            )
+
+        criteria = {
+            "has_signals": row["signal_count"] > 0,
+            "has_active_items": row["active_items"] > 0,
+            "has_completed_cycles": row["completed_cycles"] >= 5,
+            "has_data": (row["rfi_count"] + row["submittal_count"] + row["drawing_count"]) > 0,
+        }
+        all_met = all(criteria.values())
+
+        if not all_met and not force:
+            return {
+                "data": {
+                    "project_id": project_id,
+                    "go_live_approved": False,
+                    "criteria": criteria,
+                    "message": "Exit criteria not met. Use force=true to override.",
+                }
+            }
+
+        # Transition to live
+        cur.execute("""
+            UPDATE projects SET onboarding_phase = 'live'::onboarding_phase
+            WHERE id = %s
+        """, (project_id,))
+
+        logger.info(f"Project {project_id} transitioned to LIVE (force={force}, criteria={criteria})")
+        return {
+            "data": {
+                "project_id": project_id,
+                "go_live_approved": True,
+                "criteria": criteria,
+                "forced": force,
+            }
+        }
+
+
+@router.post("/radar/monitor")
+def trigger_radar_monitoring(project_id: str = Query(...)):
+    """Run the Radar passive monitoring pipeline against recent signals."""
+    try:
+        from radar_monitor import evaluate_signals_against_radar
+        from steelsync_db import get_cursor as gc, serialize_rows as sr
+        with gc() as cur:
+            cur.execute("""
+                SELECT id, project_id, signal_type, signal_category, summary,
+                       confidence, strength, effective_weight, entity_type,
+                       entity_value, supporting_context_json, source_document_id
+                FROM signals
+                WHERE project_id = %s AND archived_at IS NULL
+                ORDER BY created_at DESC LIMIT 50
+            """, (project_id,))
+            signals = sr(cur.fetchall())
+        results = evaluate_signals_against_radar(project_id, signals)
+        return {"status": "completed", "results": results}
+    except Exception as e:
+        logger.error(f"Radar monitoring failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.get("/health")

@@ -27,7 +27,7 @@ GATEWAY_PORT = 18789
 GATEWAY_TOKEN = os.environ.get("OPENCLAW_GATEWAY_TOKEN", "")
 TTYD_HOST = "192.168.8.124"
 TTYD_PORT = 7681
-NERV_PORT = 8080
+NERV_PORT = int(os.environ.get("PORT", "8080"))
 NERV_SESSION_KEY = "agent:main:nerv"
 
 app = FastAPI(title="NERV Interface")

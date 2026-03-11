@@ -53,8 +53,12 @@ class SignalWriter:
         entity_value: str = None,
         source_document_id: str = None,
         supporting_context: dict = None,
+        source_multiplier: float = 1.0,
     ) -> Optional[str]:
         """Write a signal to the database after validation and dedup check.
+
+        source_multiplier adjusts effective_weight for low-confidence document
+        pipeline matches (e.g., 0.5 for uncertain project assignment).
 
         Returns signal ID if written, None if skipped (duplicate or invalid).
         """
@@ -80,8 +84,9 @@ class SignalWriter:
             logger.error("Missing required signal fields: summary and signal_type")
             return None
 
-        # Compute effective_weight (source_multiplier=1.0, decay_factor=1.0 for now)
-        effective_weight = round(confidence * strength, 2)
+        # Compute effective_weight with source multiplier and initial decay_factor=1.0
+        source_multiplier = max(0.0, min(1.0, source_multiplier))
+        effective_weight = round(confidence * strength * source_multiplier, 2)
 
         with get_cursor() as cur:
             # Deduplication check: same source_document_id + signal_type within 1 hour
@@ -409,12 +414,28 @@ def detect_submittals_overdue(project_id: str) -> int:
     return count
 
 
+def _get_onboarding_phase(project_id: str) -> str:
+    """Get the onboarding phase for a project."""
+    with get_cursor() as cur:
+        cur.execute("SELECT onboarding_phase::text FROM projects WHERE id = %s", (project_id,))
+        row = cur.fetchone()
+        return row["onboarding_phase"] if row else "live"
+
+
 def run_deterministic_sweep(project_id: str) -> Dict[str, int]:
     """Run all deterministic detectors for a project.
 
     Returns dict of detector_name -> signal_count.
+    Respects onboarding phase: skips during historical_ingest.
     """
-    logger.info(f"Running deterministic signal sweep for project {project_id}")
+    # Check onboarding phase
+    phase = _get_onboarding_phase(project_id)
+    if phase == "historical_ingest":
+        logger.info(f"Skipping signal sweep for {project_id} — project in historical_ingest phase")
+        return {"skipped": True, "reason": "historical_ingest"}
+
+    is_calibration = (phase == "calibration")
+    logger.info(f"Running deterministic signal sweep for project {project_id} (phase={phase})")
     results = {}
 
     detectors = [
@@ -433,6 +454,21 @@ def run_deterministic_sweep(project_id: str) -> Dict[str, int]:
         except Exception as e:
             logger.error(f"Detector {name} failed: {e}", exc_info=True)
             results[name] = -1
+
+    # Tag signals as calibration signals during calibration phase
+    if is_calibration:
+        total_written = sum(v for v in results.values() if isinstance(v, int) and v > 0)
+        if total_written > 0:
+            with get_cursor() as cur:
+                cur.execute("""
+                    UPDATE signals SET
+                        supporting_context_json = COALESCE(supporting_context_json, '{}'::jsonb)
+                            || '{"is_calibration_signal": true}'::jsonb
+                    WHERE project_id = %s
+                      AND created_at > NOW() - INTERVAL '5 minutes'
+                      AND (supporting_context_json->>'is_calibration_signal') IS NULL
+                """, (project_id,))
+                logger.info(f"Tagged {cur.rowcount} signals as calibration signals")
 
     total = sum(v for v in results.values() if v > 0)
     logger.info(f"Sweep complete: {total} total signals generated. Details: {results}")
@@ -652,6 +688,11 @@ Return ONLY valid JSON in this format:
         """
         signal_ids = []
 
+        # Compute source_multiplier from project match confidence
+        # Low-confidence matches get reduced weight
+        project_match_confidence = float(classification_data.get("project_match_confidence", 1.0))
+        source_multiplier = 1.0 if project_match_confidence >= 0.8 else project_match_confidence
+
         # If signal_hints present, write directly (no LLM call needed)
         if signal_hints:
             for hint in signal_hints.get("signals", []):
@@ -672,6 +713,7 @@ Return ONLY valid JSON in this format:
                             "document_class": classification_data.get("document_class"),
                             "workflow_status": classification_data.get("workflow_status"),
                         },
+                        source_multiplier=source_multiplier,
                     )
                     if sid:
                         signal_ids.append(sid)
@@ -689,6 +731,47 @@ Return ONLY valid JSON in this format:
             },
         }
         return cls.evaluate_webhook_event(event_data, project_id)
+
+
+def refire_signals_for_document(
+    document_id: str,
+    confirmed_project_id: str,
+    classification_data: Dict,
+    extraction_data: Optional[Dict] = None,
+) -> Dict:
+    """CC-2.4: Re-fire signal generation after PM confirms project assignment.
+
+    1. Archive any prior signals for this document (they had low confidence)
+    2. Re-run evaluation with confirmed project_id and full source_multiplier
+    """
+    archived = 0
+    with get_cursor() as cur:
+        # Archive prior low-confidence signals for this document
+        cur.execute("""
+            UPDATE signals SET archived_at = NOW()
+            WHERE source_document_id = %s
+              AND archived_at IS NULL
+        """, (document_id,))
+        archived = cur.rowcount
+
+    # Re-run with confirmed project and full confidence
+    classification_data["project_match_confidence"] = 1.0
+    signal_ids = SignalGenerationService.evaluate_document(
+        classification_data=classification_data,
+        extraction_data=extraction_data or {},
+        project_id=confirmed_project_id,
+    )
+
+    logger.info(
+        f"Refire for document {document_id}: archived {archived} old signals, "
+        f"generated {len(signal_ids)} new signals for project {confirmed_project_id}"
+    )
+    return {
+        "document_id": document_id,
+        "project_id": confirmed_project_id,
+        "archived_old_signals": archived,
+        "new_signal_ids": signal_ids,
+    }
 
 
 def _write_reinforcement_candidate(
