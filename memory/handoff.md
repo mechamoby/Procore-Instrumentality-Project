@@ -1,6 +1,39 @@
-# Handoff — Last updated 2026-02-26 23:33 EST
+# Handoff — Last updated 2026-03-10
 
-## What Happened Today (2026-02-26) — MASSIVE DAY
+## What Happened (2026-03-10) — COMMAND CENTER BUILD
+
+### Full Pipeline Build (Phases 1-6)
+- **CC-1.1:** Intelligence layer schema created — 6 tables (signals, synthesis_cycles, intelligence_items, intelligence_item_evidence, working_memory_state, reinforcement_candidates) + 3 Radar tables, 11+ enum types, 26+ indexes
+- **CC-1.2 + CC-1.3:** Full REST API for Command Center — Procore data endpoints (projects, RFIs, submittals, daily logs, schedule, change orders) + intelligence data endpoints (signals, items, synthesis cycles, dashboard overview)
+- **CC-1.4 + CC-1.5:** Command Center SPA frontend at `/command-center` — dark navy/steel-blue theme, project sidebar, dashboard with health cards, tabbed project detail, responsive layout
+- **CC-2.1 + CC-2.2:** Signal generation service — 6 deterministic detectors (RFI overdue, submittal rejected/overdue, daily log missing, milestone approaching, CO status changed) + LLM-based detection via Ollama/DeepSeek with category enforcement and deduplication
+- **CC-3.1 + CC-3.2 + CC-3.3:** Synthesis engine — 4 prompt templates (Morning/Midday/EOD/Escalation), Anthropic API with prompt caching, ItemManager with full lifecycle (create/update/reinforce/downgrade/resolve/merge/archive), evidence chain management
+- **CC-4.4:** Synthesis trigger button + signal sweep in dashboard UI
+- **CC-5.1 + CC-5.2 + CC-5.3:** Radar backend (schema + full CRUD API) + Radar UI (list, create form, detail view with activity log)
+- **CC-6.3:** Validation tooling — schema init script, 5-scenario test data seeder
+
+### Commits (3 pushes to master)
+- `32051fe` — Phase 1-3: schema, API, signals, synthesis, frontend
+- `e007155` — Phase 4-5: Radar backend, synthesis trigger, UI enhancements
+- `99b119d` — Phase 6: validation scripts, blockers
+
+### Blockers (see BLOCKERS.md)
+1. Schema needs to be applied to live database: `python3 scripts/init-intelligence-layer.py`
+2. `ANTHROPIC_API_KEY` env var required for synthesis
+3. Ollama + DeepSeek needed for LLM-based signal generation (optional for prototype)
+4. `psycopg2-binary` needs to be installed in service environment
+
+### Key New Files
+- `eva-agent/eva-00-design/INTELLIGENCE-LAYER-SCHEMA.sql` — full intelligence + radar schema
+- `nerv-interface/steelsync_db.py` — database connection pool
+- `nerv-interface/command_center_api.py` — all REST API endpoints
+- `nerv-interface/signal_generation.py` — signal detectors + LLM service
+- `nerv-interface/synthesis_engine.py` — synthesis cycle + item manager
+- `nerv-interface/static/command-center.html` — Command Center SPA
+- `scripts/init-intelligence-layer.py` — schema initialization
+- `scripts/seed-test-signals.py` — test data for 5 scenarios
+
+## Previous Session (2026-02-26) — MASSIVE DAY
 
 ### Morning (4 AM - 9 AM)
 - Rei Clone Reset at 4:16 AM (light session, no carryover)
