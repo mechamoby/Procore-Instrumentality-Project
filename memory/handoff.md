@@ -1,37 +1,87 @@
-# Handoff — Last updated 2026-03-10
+# Handoff — Last updated 2026-03-11 (session ended ~midnight)
 
-## What Happened (2026-03-10) — COMMAND CENTER BUILD
+## PICKUP POINT — EXACTLY WHERE TO RESUME
+
+### What's Done
+The full Command Center + Intelligence Pipeline is **built and partially validated**:
+- All code written (Phases 1-6 of the ticketized build plan)
+- Schema applied to live database (9 tables, 15 enum types, 35 indexes — ALL verified OK)
+- Deterministic signal sweep ran successfully: **168 signals in database** (154 from real Procore data + 14 test scenarios)
+- All database queries verified working against live data
+- Project snapshot builder tested (works, returns correct data)
+- 4 commits pushed to master
+
+### What's NOT Done — Pick Up Here
+1. **ANTHROPIC_API_KEY is missing** — the `.env` at `/home/moby/.openclaw/workspace/nerv-deploy-repo/.env` has `ANTHROPIC_API_KEY=` (empty). This blocks the synthesis engine from calling Claude. **First task tomorrow: get the key set.**
+2. **Synthesis validation (CC-3.5)** — Once the API key is set, run:
+   ```
+   cd nerv-interface && ANTHROPIC_API_KEY=sk-ant-xxx python3 -c "
+   from synthesis_engine import SynthesisEngine
+   cycle_id = SynthesisEngine.run_cycle('0827cef6-4a29-4b9b-9c51-b77c8ec88908', 'morning_briefing')
+   print(f'Cycle ID: {cycle_id}')
+   "
+   ```
+   Then check: `GET /api/projects/0827cef6-4a29-4b9b-9c51-b77c8ec88908/intelligence-items?include=evidence`
+3. **Quality gate (CC-3.5)** — Evaluate synthesis output against the 5 test scenarios:
+   - Scenario 1: Should detect contradiction (declining manpower vs email assurance)
+   - Scenario 2: Should detect convergence (3 trades, same ceiling area)
+   - Scenario 3: Should detect pattern (submittal resubmitted without revision)
+   - Scenario 4: Should produce minimal/empty output (quiet day)
+   - Scenario 5: Should detect emerging risk (CO chain from unforeseen conditions)
+4. **Start the server and test the UI** — `cd nerv-interface && python3 server.py`, visit `/command-center`
+5. **CC-3.4 (Working Memory Lifecycle)** — signal decay computation and item lifecycle rules (not yet implemented)
+6. **CC-5.4-5.6 (Radar Monitoring Pipeline)** — passive monitoring and active analysis (backend exists, monitoring logic not yet wired)
+7. **CC-6.1-6.2 (False Positive Management, Baseline Mode)** — not yet started
+8. **CC-6.4 (Visual Polish)** — not yet started
+9. **Consider a local synthesis fallback** — generate intelligence items algorithmically from signals when no API key available, for demo purposes
+
+### Live Database State
+- **DB:** nerv_eva00, localhost:5432, user: moby
+- **Projects:** 2 active (Sandbox Test Project, Standard Project Template), 1 archived
+- **Real data:** 146 RFIs (139 overdue!), 151 submittals (14 overdue, 3 rejected), 230 drawings, 0 daily logs, 0 change orders, 0 schedule activities
+- **Signals:** 168 total in signals table (154 real + 14 test scenarios)
+- **Intelligence items:** 0 (synthesis hasn't run yet)
+- **Synthesis cycles:** 0
+- **Radar items:** 0
+
+### Remaining Blocker
+- **ANTHROPIC_API_KEY** — only remaining blocker. Schema is applied, psycopg2 works, all code compiles, all queries tested. Just need the key.
+
+## What Happened (2026-03-10/11) — COMMAND CENTER BUILD
 
 ### Full Pipeline Build (Phases 1-6)
-- **CC-1.1:** Intelligence layer schema created — 6 tables (signals, synthesis_cycles, intelligence_items, intelligence_item_evidence, working_memory_state, reinforcement_candidates) + 3 Radar tables, 11+ enum types, 26+ indexes
-- **CC-1.2 + CC-1.3:** Full REST API for Command Center — Procore data endpoints (projects, RFIs, submittals, daily logs, schedule, change orders) + intelligence data endpoints (signals, items, synthesis cycles, dashboard overview)
-- **CC-1.4 + CC-1.5:** Command Center SPA frontend at `/command-center` — dark navy/steel-blue theme, project sidebar, dashboard with health cards, tabbed project detail, responsive layout
-- **CC-2.1 + CC-2.2:** Signal generation service — 6 deterministic detectors (RFI overdue, submittal rejected/overdue, daily log missing, milestone approaching, CO status changed) + LLM-based detection via Ollama/DeepSeek with category enforcement and deduplication
-- **CC-3.1 + CC-3.2 + CC-3.3:** Synthesis engine — 4 prompt templates (Morning/Midday/EOD/Escalation), Anthropic API with prompt caching, ItemManager with full lifecycle (create/update/reinforce/downgrade/resolve/merge/archive), evidence chain management
-- **CC-4.4:** Synthesis trigger button + signal sweep in dashboard UI
-- **CC-5.1 + CC-5.2 + CC-5.3:** Radar backend (schema + full CRUD API) + Radar UI (list, create form, detail view with activity log)
-- **CC-6.3:** Validation tooling — schema init script, 5-scenario test data seeder
+- **CC-1.1:** Intelligence layer schema — 6 tables + 3 Radar tables, 15 enum types, 35 indexes
+- **CC-1.2 + CC-1.3:** Full REST API — Procore data endpoints + intelligence data endpoints + dashboard overview
+- **CC-1.4 + CC-1.5:** Command Center SPA at `/command-center` — dark navy/steel-blue theme
+- **CC-2.1 + CC-2.2:** Signal generation — 6 deterministic detectors + LLM service via Ollama
+- **CC-3.1 + CC-3.2 + CC-3.3:** Synthesis engine — 4 prompt templates, Anthropic API, ItemManager
+- **CC-4.4:** Synthesis trigger + signal sweep buttons in dashboard
+- **CC-5.1 + CC-5.2 + CC-5.3:** Radar backend + UI (schema, CRUD API, create/list/detail views)
+- **CC-6.3:** Validation tooling — schema init + test data seeder
 
-### Commits (3 pushes to master)
+### Validation Steps Completed
+- Schema init: ALL 9 tables, 15 types, 35 indexes verified OK
+- Signal sweep: 154 real signals generated from live Procore data
+- Test scenarios: 14 additional signals seeded (5 scenarios)
+- DB queries: all endpoint queries tested against live data
+- Snapshot builder: tested, returns correct structure
+
+### Commits (4 pushes to master)
 - `32051fe` — Phase 1-3: schema, API, signals, synthesis, frontend
 - `e007155` — Phase 4-5: Radar backend, synthesis trigger, UI enhancements
 - `99b119d` — Phase 6: validation scripts, blockers
+- `0ad164a` — Handoff update
 
-### Blockers (see BLOCKERS.md)
-1. Schema needs to be applied to live database: `python3 scripts/init-intelligence-layer.py`
-2. `ANTHROPIC_API_KEY` env var required for synthesis
-3. Ollama + DeepSeek needed for LLM-based signal generation (optional for prototype)
-4. `psycopg2-binary` needs to be installed in service environment
-
-### Key New Files
-- `eva-agent/eva-00-design/INTELLIGENCE-LAYER-SCHEMA.sql` — full intelligence + radar schema
+### Key File Map
+- `eva-agent/eva-00-design/INTELLIGENCE-LAYER-SCHEMA.sql` — schema (APPLIED)
 - `nerv-interface/steelsync_db.py` — database connection pool
 - `nerv-interface/command_center_api.py` — all REST API endpoints
 - `nerv-interface/signal_generation.py` — signal detectors + LLM service
 - `nerv-interface/synthesis_engine.py` — synthesis cycle + item manager
 - `nerv-interface/static/command-center.html` — Command Center SPA
-- `scripts/init-intelligence-layer.py` — schema initialization
-- `scripts/seed-test-signals.py` — test data for 5 scenarios
+- `scripts/init-intelligence-layer.py` — schema init (DONE)
+- `scripts/seed-test-signals.py` — test data (DONE)
+- `docs/Command_Center_Ticketized_Build_Breakdown_v1.md` — full build plan
 
 ## Previous Session (2026-02-26) — MASSIVE DAY
 
