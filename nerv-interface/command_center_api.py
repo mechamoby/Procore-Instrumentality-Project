@@ -12,7 +12,7 @@ from datetime import datetime, timedelta, date
 from typing import Optional
 from uuid import UUID
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Body
 from steelsync_db import get_cursor, serialize_row, serialize_rows
 
 logger = logging.getLogger("steelsync.api")
@@ -757,6 +757,211 @@ def signal_stats(project_id: Optional[str] = Query(None)):
         }
 
 
+# =============================================================================
+# CC-5.1: RADAR API ENDPOINTS
+# =============================================================================
+
+def _check_radar_tables_exist(cur) -> bool:
+    """Check if radar tables have been created."""
+    cur.execute("""
+        SELECT EXISTS (
+            SELECT FROM information_schema.tables WHERE table_name = 'radar_items'
+        ) as exists
+    """)
+    return cur.fetchone()["exists"]
+
+
+@router.post("/radar/items")
+def create_radar_item(body: dict = Body(...)):
+    """Create a new Radar item."""
+    with get_cursor() as cur:
+        if not _check_radar_tables_exist(cur):
+            raise HTTPException(status_code=503, detail="Radar tables not initialized")
+
+        item_id = str(__import__("uuid").uuid4())
+        cur.execute("""
+            INSERT INTO radar_items (id, project_id, title, description, priority, monitoring_scope_json, primary_target)
+            VALUES (%s, %s, %s, %s, %s::radar_priority, %s, %s)
+        """, (
+            item_id,
+            body.get("project_id"),
+            body.get("title"),
+            body.get("description"),
+            body.get("priority", "watch"),
+            __import__("json").dumps(body.get("monitoring_scope", {})),
+            body.get("primary_target"),
+        ))
+
+        # Create initial activity entry
+        cur.execute("""
+            INSERT INTO radar_activity (id, radar_item_id, activity_type, content)
+            VALUES (%s, %s, 'status_change'::radar_activity_type, %s)
+        """, (str(__import__("uuid").uuid4()), item_id, f"Radar item created: {body.get('title')}"))
+
+        return {"data": {"id": item_id}, "status": "created"}
+
+
+@router.get("/radar/items")
+def list_radar_items(
+    project_id: Optional[str] = Query(None),
+    status: Optional[str] = Query(None),
+    priority: Optional[str] = Query(None),
+    limit: int = Query(50, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+):
+    """List Radar items with filtering."""
+    with get_cursor() as cur:
+        if not _check_radar_tables_exist(cur):
+            return paginated_response([], 0, limit, offset)
+
+        where_parts = ["1=1"]
+        params = []
+
+        if project_id:
+            where_parts.append("r.project_id = %s")
+            params.append(project_id)
+        if status:
+            where_parts.append("r.status = %s::radar_status")
+            params.append(status)
+        else:
+            where_parts.append("r.status = 'active'")
+        if priority:
+            where_parts.append("r.priority = %s::radar_priority")
+            params.append(priority)
+
+        where = " AND ".join(where_parts)
+
+        cur.execute(f"SELECT COUNT(*) as cnt FROM radar_items r WHERE {where}", params)
+        total = cur.fetchone()["cnt"]
+
+        cur.execute(f"""
+            SELECT r.id, r.project_id, r.title, r.description, r.priority, r.status,
+                   r.monitoring_scope_json, r.primary_target,
+                   r.created_at, r.updated_at, r.resolved_at,
+                   p.name as project_name,
+                   (SELECT COUNT(*) FROM radar_activity ra WHERE ra.radar_item_id = r.id) as activity_count,
+                   (SELECT COUNT(*) FROM radar_document_links rl WHERE rl.radar_item_id = r.id) as link_count
+            FROM radar_items r
+            JOIN projects p ON p.id = r.project_id
+            WHERE {where}
+            ORDER BY
+                CASE r.priority WHEN 'critical' THEN 0 WHEN 'high' THEN 1 WHEN 'watch' THEN 2 END,
+                r.updated_at DESC
+            LIMIT %s OFFSET %s
+        """, params + [limit, offset])
+
+        return paginated_response(serialize_rows(cur.fetchall()), total, limit, offset)
+
+
+@router.get("/radar/items/{item_id}")
+def get_radar_item(item_id: str):
+    """Get Radar item detail with activity log and document links."""
+    with get_cursor() as cur:
+        if not _check_radar_tables_exist(cur):
+            raise HTTPException(status_code=503, detail="Radar tables not initialized")
+
+        cur.execute("""
+            SELECT r.*, p.name as project_name
+            FROM radar_items r
+            JOIN projects p ON p.id = r.project_id
+            WHERE r.id = %s
+        """, (item_id,))
+        item = cur.fetchone()
+        if not item:
+            raise HTTPException(status_code=404, detail="Radar item not found")
+
+        item = serialize_row(item)
+
+        # Activity log
+        cur.execute("""
+            SELECT id, activity_type, content, source_signal_id, severity, created_at
+            FROM radar_activity
+            WHERE radar_item_id = %s
+            ORDER BY created_at DESC
+            LIMIT 50
+        """, (item_id,))
+        item["activity"] = serialize_rows(cur.fetchall())
+
+        # Document links
+        cur.execute("""
+            SELECT id, document_type, document_id, relevance_score, linked_at, linked_by
+            FROM radar_document_links
+            WHERE radar_item_id = %s
+            ORDER BY relevance_score DESC
+        """, (item_id,))
+        item["document_links"] = serialize_rows(cur.fetchall())
+
+        return {"data": item}
+
+
+@router.patch("/radar/items/{item_id}")
+def update_radar_item(item_id: str, body: dict = Body(...)):
+    """Update Radar item status, priority, or description."""
+    with get_cursor() as cur:
+        if not _check_radar_tables_exist(cur):
+            raise HTTPException(status_code=503, detail="Radar tables not initialized")
+
+        cur.execute("SELECT id, status FROM radar_items WHERE id = %s", (item_id,))
+        if not cur.fetchone():
+            raise HTTPException(status_code=404, detail="Radar item not found")
+
+        updates = []
+        params = []
+
+        if "status" in body:
+            updates.append("status = %s::radar_status")
+            params.append(body["status"])
+            if body["status"] == "resolved":
+                updates.append("resolved_at = NOW()")
+            elif body["status"] == "archived":
+                updates.append("archived_at = NOW()")
+        if "priority" in body:
+            updates.append("priority = %s::radar_priority")
+            params.append(body["priority"])
+        if "description" in body:
+            updates.append("description = %s")
+            params.append(body["description"])
+        if "title" in body:
+            updates.append("title = %s")
+            params.append(body["title"])
+        if "monitoring_scope" in body:
+            updates.append("monitoring_scope_json = %s")
+            params.append(__import__("json").dumps(body["monitoring_scope"]))
+
+        if updates:
+            params.append(item_id)
+            cur.execute(f"UPDATE radar_items SET {', '.join(updates)} WHERE id = %s", params)
+
+            # Log activity
+            changes = ", ".join(body.keys())
+            cur.execute("""
+                INSERT INTO radar_activity (id, radar_item_id, activity_type, content)
+                VALUES (%s, %s, 'status_change'::radar_activity_type, %s)
+            """, (str(__import__("uuid").uuid4()), item_id, f"Updated: {changes}"))
+
+        return {"status": "updated"}
+
+
+@router.post("/radar/items/{item_id}/activity")
+def add_radar_activity(item_id: str, body: dict = Body(...)):
+    """Add a user annotation to a Radar item."""
+    with get_cursor() as cur:
+        if not _check_radar_tables_exist(cur):
+            raise HTTPException(status_code=503, detail="Radar tables not initialized")
+
+        cur.execute("SELECT id FROM radar_items WHERE id = %s", (item_id,))
+        if not cur.fetchone():
+            raise HTTPException(status_code=404, detail="Radar item not found")
+
+        activity_id = str(__import__("uuid").uuid4())
+        cur.execute("""
+            INSERT INTO radar_activity (id, radar_item_id, activity_type, content, severity)
+            VALUES (%s, %s, 'user_annotation'::radar_activity_type, %s, %s::intelligence_severity)
+        """, (activity_id, item_id, body.get("content", ""), body.get("severity", "medium")))
+
+        return {"data": {"id": activity_id}, "status": "created"}
+
+
 @router.get("/health")
 def health_check():
     """Health check endpoint."""
@@ -764,10 +969,12 @@ def health_check():
         with get_cursor() as cur:
             cur.execute("SELECT 1")
             intel_ready = _check_intel_tables_exist(cur)
+            radar_ready = _check_radar_tables_exist(cur)
             return {
                 "status": "healthy",
                 "database": "connected",
                 "intelligence_layer": "ready" if intel_ready else "pending",
+                "radar": "ready" if radar_ready else "pending",
                 "service": "steelsync-command-center",
             }
     except Exception as e:

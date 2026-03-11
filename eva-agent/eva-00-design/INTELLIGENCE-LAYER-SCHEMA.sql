@@ -208,8 +208,65 @@ CREATE TABLE reinforcement_candidates (
 );
 
 -- =============================================================================
+-- RADAR TABLES (CC-5.1)
+-- =============================================================================
+
+CREATE TYPE radar_priority AS ENUM ('critical', 'high', 'watch');
+CREATE TYPE radar_status AS ENUM ('active', 'resolved', 'archived');
+CREATE TYPE radar_activity_type AS ENUM ('system_detection', 'user_annotation', 'status_change', 'relevance_match');
+CREATE TYPE radar_link_source AS ENUM ('system', 'user');
+
+CREATE TABLE radar_items (
+    id                      UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    project_id              UUID NOT NULL REFERENCES projects(id),
+    title                   VARCHAR(300) NOT NULL,
+    description             TEXT,
+    priority                radar_priority NOT NULL DEFAULT 'watch',
+    status                  radar_status NOT NULL DEFAULT 'active',
+    monitoring_scope_json   JSONB,         -- {trades:[], entities:[], keywords:[], document_types:[]}
+    primary_target          TEXT,           -- plain-language description for semantic matching
+    created_at              TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at              TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    resolved_at             TIMESTAMPTZ,
+    archived_at             TIMESTAMPTZ
+);
+
+CREATE TABLE radar_activity (
+    id                      UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    radar_item_id           UUID NOT NULL REFERENCES radar_items(id) ON DELETE CASCADE,
+    activity_type           radar_activity_type NOT NULL,
+    content                 TEXT NOT NULL,
+    source_signal_id        UUID REFERENCES signals(id),
+    source_document_id      UUID,
+    severity                intelligence_severity DEFAULT 'medium',
+    created_at              TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE radar_document_links (
+    id                      UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    radar_item_id           UUID NOT NULL REFERENCES radar_items(id) ON DELETE CASCADE,
+    document_type           VARCHAR(50) NOT NULL,
+    document_id             UUID NOT NULL,
+    relevance_score         DECIMAL(3,2) DEFAULT 0.5,
+    linked_at               TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    linked_by               radar_link_source NOT NULL DEFAULT 'system'
+);
+
+-- Trigger for radar_items updated_at
+CREATE TRIGGER trg_radar_items_updated_at
+    BEFORE UPDATE ON radar_items
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+
+-- =============================================================================
 -- INDEXES
 -- =============================================================================
+
+-- Radar indexes
+CREATE INDEX idx_radar_items_project ON radar_items(project_id, status);
+CREATE INDEX idx_radar_items_priority ON radar_items(status, priority);
+CREATE INDEX idx_radar_activity_item ON radar_activity(radar_item_id, created_at DESC);
+CREATE INDEX idx_radar_doc_links_item ON radar_document_links(radar_item_id);
+CREATE INDEX idx_radar_scope_gin ON radar_items USING GIN (monitoring_scope_json);
 
 -- Signals: primary query patterns
 CREATE INDEX idx_signals_project_created ON signals(project_id, created_at DESC);

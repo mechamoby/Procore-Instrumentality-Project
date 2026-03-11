@@ -628,9 +628,15 @@ async function renderDashboard(container) {
     state.dashboardData = d;
 
     container.innerHTML = `
-        <div class="dashboard-header">
-            <h1>Command Center</h1>
-            <p>${d.project_count} active project${d.project_count !== 1 ? 's' : ''} ${d.intelligence_available ? '' : '| Intelligence layer pending initialization'}</p>
+        <div class="dashboard-header" style="display:flex; justify-content:space-between; align-items:flex-start;">
+            <div>
+                <h1>Command Center</h1>
+                <p>${d.project_count} active project${d.project_count !== 1 ? 's' : ''} ${d.intelligence_available ? '' : '| Intelligence layer pending initialization'}</p>
+            </div>
+            <div style="display:flex; gap:8px; align-items:center;">
+                <button id="sweep-btn" onclick="runSignalSweep()" style="background:var(--navy-light); border:1px solid var(--border); color:var(--text-secondary); padding:8px 14px; border-radius:6px; cursor:pointer; font-size:12px;">Sweep Signals</button>
+                <button id="synthesis-btn" onclick="runSynthesis()" style="background:var(--steel-blue); border:none; color:white; padding:8px 14px; border-radius:6px; cursor:pointer; font-size:13px; font-weight:500;">Run Analysis</button>
+            </div>
         </div>
 
         <div class="stats-row">
@@ -1082,20 +1088,199 @@ async function renderChangeOrderTab(container, pid) {
 // =============================================================================
 // RADAR VIEW
 // =============================================================================
-function renderRadar(container) {
+async function renderRadar(container) {
+    container.innerHTML = '<div class="loading"><div class="spinner"></div> Loading Radar...</div>';
+
+    const res = await api('/radar/items?limit=50');
+    const items = res?.data || [];
+
     container.innerHTML = `
         <div class="radar-header">
             <h1>Radar</h1>
             <p>Automated monitoring system for high-priority concerns across active projects.</p>
+            <button onclick="showCreateRadarForm()" style="margin-top:12px; background:var(--steel-blue); border:none; color:white; padding:8px 16px; border-radius:6px; cursor:pointer; font-size:13px;">+ New Radar Item</button>
         </div>
-        <div class="panel">
-            <div class="panel-header">
-                <span class="panel-title">Active Watch Items</span>
+        <div id="radar-create-form" style="display:none; margin-bottom:16px;"></div>
+        ${items.length === 0 ? `
+            <div class="panel">
+                <div class="panel-header"><span class="panel-title">Active Watch Items</span></div>
+                <div class="panel-empty">
+                    <div class="icon">&#128225;</div>
+                    <div>No active Radar items.</div>
+                    <div style="margin-top:8px; font-size:12px">Create a Radar item to start monitoring a specific concern.</div>
+                </div>
             </div>
-            <div class="panel-empty">
-                <div class="icon">&#128225;</div>
-                <div>Radar monitoring not yet active.</div>
-                <div style="margin-top:8px; font-size:12px">Radar items will appear once the signal pipeline and synthesis cycles are running.</div>
+        ` : items.map(item => `
+            <div class="panel" style="cursor:pointer;" onclick="viewRadarItem('${item.id}')">
+                <div class="panel-header">
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <span class="health-indicator ${item.priority === 'critical' ? 'red' : item.priority === 'high' ? 'yellow' : 'unknown'}">${item.priority}</span>
+                        <span class="panel-title">${esc(item.title)}</span>
+                    </div>
+                    <div style="display:flex; gap:8px; font-size:11px; color:var(--text-muted);">
+                        <span>${item.activity_count || 0} updates</span>
+                        <span>${item.link_count || 0} docs</span>
+                        <span>${esc(item.project_name || '')}</span>
+                    </div>
+                </div>
+                <div class="panel-body" style="font-size:13px; color:var(--text-secondary);">
+                    ${esc(item.description || 'No description')}
+                    <div style="margin-top:8px; font-size:11px; color:var(--text-muted);">
+                        Created ${timeAgo(item.created_at)} | Last updated ${timeAgo(item.updated_at)}
+                    </div>
+                </div>
+            </div>
+        `).join('')}
+    `;
+}
+
+function showCreateRadarForm() {
+    const form = document.getElementById('radar-create-form');
+    if (form.style.display !== 'none') { form.style.display = 'none'; return; }
+
+    const projectOptions = state.projects.map(p =>
+        `<option value="${p.id}">${esc(p.name)}</option>`
+    ).join('');
+
+    form.style.display = 'block';
+    form.innerHTML = `
+        <div class="panel">
+            <div class="panel-header"><span class="panel-title">Create Radar Item</span></div>
+            <div class="panel-body">
+                <div style="display:grid; gap:12px;">
+                    <div>
+                        <label style="font-size:11px; color:var(--text-muted); display:block; margin-bottom:4px;">Project</label>
+                        <select id="radar-project" style="width:100%; padding:8px; background:var(--navy-dark); border:1px solid var(--border); border-radius:6px; color:var(--text-primary); font-size:13px;">
+                            ${projectOptions}
+                        </select>
+                    </div>
+                    <div>
+                        <label style="font-size:11px; color:var(--text-muted); display:block; margin-bottom:4px;">Title</label>
+                        <input id="radar-title" type="text" placeholder="e.g., Mechanical rough-in schedule slip" style="width:100%; padding:8px; background:var(--navy-dark); border:1px solid var(--border); border-radius:6px; color:var(--text-primary); font-size:13px;">
+                    </div>
+                    <div>
+                        <label style="font-size:11px; color:var(--text-muted); display:block; margin-bottom:4px;">Description</label>
+                        <textarea id="radar-desc" rows="3" placeholder="What should the system watch for?" style="width:100%; padding:8px; background:var(--navy-dark); border:1px solid var(--border); border-radius:6px; color:var(--text-primary); font-size:13px; resize:vertical;"></textarea>
+                    </div>
+                    <div style="display:flex; gap:12px;">
+                        <div style="flex:1;">
+                            <label style="font-size:11px; color:var(--text-muted); display:block; margin-bottom:4px;">Priority</label>
+                            <select id="radar-priority" style="width:100%; padding:8px; background:var(--navy-dark); border:1px solid var(--border); border-radius:6px; color:var(--text-primary); font-size:13px;">
+                                <option value="watch">Watch</option>
+                                <option value="high">High</option>
+                                <option value="critical">Critical</option>
+                            </select>
+                        </div>
+                        <div style="flex:1;">
+                            <label style="font-size:11px; color:var(--text-muted); display:block; margin-bottom:4px;">Keywords (comma-separated)</label>
+                            <input id="radar-keywords" type="text" placeholder="e.g., mechanical, HVAC, delay" style="width:100%; padding:8px; background:var(--navy-dark); border:1px solid var(--border); border-radius:6px; color:var(--text-primary); font-size:13px;">
+                        </div>
+                    </div>
+                    <div style="display:flex; gap:8px; justify-content:flex-end;">
+                        <button onclick="document.getElementById('radar-create-form').style.display='none'" style="background:var(--border); border:none; color:var(--text-secondary); padding:8px 16px; border-radius:6px; cursor:pointer; font-size:13px;">Cancel</button>
+                        <button onclick="submitRadarItem()" style="background:var(--steel-blue); border:none; color:white; padding:8px 16px; border-radius:6px; cursor:pointer; font-size:13px;">Create</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+async function submitRadarItem() {
+    const body = {
+        project_id: document.getElementById('radar-project').value,
+        title: document.getElementById('radar-title').value,
+        description: document.getElementById('radar-desc').value,
+        priority: document.getElementById('radar-priority').value,
+        primary_target: document.getElementById('radar-title').value,
+        monitoring_scope: {
+            keywords: document.getElementById('radar-keywords').value.split(',').map(s => s.trim()).filter(Boolean),
+        },
+    };
+
+    if (!body.title) { alert('Title is required'); return; }
+
+    const res = await fetch(API_BASE + '/radar/items', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(body),
+    });
+
+    if (res.ok) {
+        navigate('radar');
+    } else {
+        alert('Failed to create Radar item');
+    }
+}
+
+async function viewRadarItem(itemId) {
+    const main = document.getElementById('main-content');
+    main.innerHTML = '<div class="loading"><div class="spinner"></div> Loading...</div>';
+
+    const res = await api(`/radar/items/${itemId}`);
+    if (!res?.data) { main.innerHTML = '<div class="panel-empty">Radar item not found.</div>'; return; }
+
+    const item = res.data;
+    main.innerHTML = `
+        <div style="margin-bottom:16px;">
+            <button onclick="navigate('radar')" style="background:none; border:none; color:var(--steel-blue-light); cursor:pointer; font-size:13px;">&larr; Back to Radar</button>
+        </div>
+        <div class="project-detail-header">
+            <div>
+                <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+                    <span class="health-indicator ${item.priority === 'critical' ? 'red' : item.priority === 'high' ? 'yellow' : 'unknown'}">${item.priority}</span>
+                    <span class="health-indicator ${item.status === 'active' ? 'green' : 'unknown'}">${item.status}</span>
+                </div>
+                <h1>${esc(item.title)}</h1>
+                <div class="meta">${esc(item.project_name || '')} | Created ${timeAgo(item.created_at)}</div>
+            </div>
+        </div>
+
+        <div class="detail-grid">
+            <div>
+                <div class="panel">
+                    <div class="panel-header"><span class="panel-title">Description</span></div>
+                    <div class="panel-body" style="font-size:13px; color:var(--text-secondary); line-height:1.6;">
+                        ${esc(item.description || 'No description provided.')}
+                    </div>
+                </div>
+                <div class="panel">
+                    <div class="panel-header">
+                        <span class="panel-title">Activity Log</span>
+                        <span class="panel-badge">${(item.activity || []).length}</span>
+                    </div>
+                    <div class="panel-body">
+                        ${(item.activity || []).length === 0 ? '<div class="panel-empty">No activity yet.</div>' :
+                          (item.activity || []).map(a => `
+                            <div style="padding:8px 0; border-bottom:1px solid var(--border); font-size:12px;">
+                                <div style="display:flex; justify-content:space-between; margin-bottom:2px;">
+                                    <span class="status-badge ${a.activity_type === 'system_detection' ? 'pending' : 'open'}">${a.activity_type.replace(/_/g, ' ')}</span>
+                                    <span style="color:var(--text-muted); font-size:11px;">${timeAgo(a.created_at)}</span>
+                                </div>
+                                <div style="color:var(--text-secondary);">${esc(a.content)}</div>
+                            </div>
+                          `).join('')}
+                    </div>
+                </div>
+            </div>
+            <div>
+                <div class="panel">
+                    <div class="panel-header"><span class="panel-title">Monitoring Scope</span></div>
+                    <div class="panel-body" style="font-size:12px; color:var(--text-secondary);">
+                        ${item.monitoring_scope_json ? `<pre style="white-space:pre-wrap; font-family:var(--font-mono);">${JSON.stringify(typeof item.monitoring_scope_json === 'string' ? JSON.parse(item.monitoring_scope_json) : item.monitoring_scope_json, null, 2)}</pre>` : 'No monitoring scope defined.'}
+                    </div>
+                </div>
+                <div class="panel">
+                    <div class="panel-header"><span class="panel-title">Linked Documents</span><span class="panel-badge">${(item.document_links || []).length}</span></div>
+                    <div class="panel-body">
+                        ${(item.document_links || []).length === 0 ? '<div class="panel-empty" style="font-size:12px;">No linked documents yet.</div>' :
+                          (item.document_links || []).map(d => `
+                            <div style="padding:6px 0; border-bottom:1px solid var(--border); font-size:12px;">
+                                ${d.document_type}: ${d.document_id} (${Math.round(d.relevance_score * 100)}%)
+                            </div>
+                          `).join('')}
+                    </div>
+                </div>
             </div>
         </div>
     `;
@@ -1154,6 +1339,96 @@ function timeAgo(iso) {
     if (hrs < 24) return hrs + 'h ago';
     const days = Math.floor(hrs / 24);
     return days + 'd ago';
+}
+
+// =============================================================================
+// SYNTHESIS TRIGGER (CC-4.4)
+// =============================================================================
+
+async function runSynthesis() {
+    const btn = document.getElementById('synthesis-btn');
+    if (!btn) return;
+
+    // Pick first project for now (or selected)
+    const pid = state.selectedProjectId || (state.projects[0]?.id);
+    if (!pid) { alert('No project available'); return; }
+
+    btn.disabled = true;
+    btn.textContent = 'Running analysis...';
+    btn.style.opacity = '0.7';
+
+    try {
+        const res = await fetch(`${API_BASE}/synthesis/trigger?project_id=${pid}&cycle_type=morning_briefing`, { method: 'POST' });
+        const data = await res.json();
+        const jobId = data.job_id;
+
+        // Poll for completion
+        let attempts = 0;
+        const poll = setInterval(async () => {
+            attempts++;
+            const status = await api(`/synthesis/status/${jobId}`);
+            if (status?.status === 'completed') {
+                clearInterval(poll);
+                btn.textContent = 'Analysis complete!';
+                btn.style.background = 'var(--accent-green)';
+                btn.style.color = 'var(--navy)';
+                setTimeout(() => {
+                    btn.textContent = 'Run Analysis';
+                    btn.style.background = 'var(--steel-blue)';
+                    btn.style.color = 'white';
+                    btn.style.opacity = '1';
+                    btn.disabled = false;
+                    render(); // Refresh dashboard
+                }, 2000);
+            } else if (status?.status === 'failed' || attempts > 60) {
+                clearInterval(poll);
+                btn.textContent = 'Analysis failed';
+                btn.style.background = 'var(--accent-red)';
+                setTimeout(() => {
+                    btn.textContent = 'Run Analysis';
+                    btn.style.background = 'var(--steel-blue)';
+                    btn.style.color = 'white';
+                    btn.style.opacity = '1';
+                    btn.disabled = false;
+                }, 3000);
+            } else {
+                btn.textContent = `Analyzing... (${attempts}s)`;
+            }
+        }, 1000);
+
+    } catch (err) {
+        console.error('Synthesis trigger failed:', err);
+        btn.textContent = 'Run Analysis';
+        btn.style.opacity = '1';
+        btn.disabled = false;
+    }
+}
+
+async function runSignalSweep() {
+    const btn = document.getElementById('sweep-btn');
+    if (!btn) return;
+
+    const pid = state.selectedProjectId || (state.projects[0]?.id);
+    if (!pid) { alert('No project available'); return; }
+
+    btn.disabled = true;
+    btn.textContent = 'Sweeping...';
+
+    try {
+        const res = await fetch(`${API_BASE}/synthesis/sweep?project_id=${pid}`, { method: 'POST' });
+        const data = await res.json();
+        const total = Object.values(data.results || {}).reduce((a, b) => a + Math.max(0, b), 0);
+        btn.textContent = `${total} signals found`;
+        setTimeout(() => {
+            btn.textContent = 'Sweep Signals';
+            btn.disabled = false;
+            if (state.view === 'project') renderDetailTab();
+        }, 2000);
+    } catch (err) {
+        console.error('Sweep failed:', err);
+        btn.textContent = 'Sweep Signals';
+        btn.disabled = false;
+    }
 }
 
 // =============================================================================
