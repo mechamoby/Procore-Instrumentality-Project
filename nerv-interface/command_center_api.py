@@ -752,6 +752,64 @@ def trigger_decay_cycle(project_id: str = Query(...)):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@router.post("/deep-dive")
+def trigger_deep_dive(
+    item_id: str = Query(..., description="Intelligence item UUID to deep-dive"),
+):
+    """Trigger an escalation review synthesis for a specific intelligence item.
+
+    Queues an escalation_review cycle focused on the given item and its related
+    signals/items. Returns a job_id for polling via /synthesis/status/{job_id}.
+    """
+    import threading
+
+    # Validate item exists and get its project_id
+    with get_cursor() as cur:
+        cur.execute(
+            "SELECT id, project_id FROM intelligence_items WHERE id = %s",
+            (item_id,),
+        )
+        row = cur.fetchone()
+        if not row:
+            raise HTTPException(status_code=404, detail="Intelligence item not found")
+        project_id = str(row["project_id"])
+
+    job_id = str(__import__("uuid").uuid4())
+    _synthesis_jobs[job_id] = {
+        "status": "running",
+        "project_id": project_id,
+        "cycle_type": "escalation_review",
+        "item_id": item_id,
+    }
+
+    def _run():
+        try:
+            from synthesis_engine import SynthesisEngine
+            cycle_id = SynthesisEngine.run_cycle(
+                project_id, "escalation_review", escalation_item_id=item_id
+            )
+            _synthesis_jobs[job_id] = {
+                "status": "completed",
+                "cycle_id": cycle_id,
+                "project_id": project_id,
+                "cycle_type": "escalation_review",
+                "item_id": item_id,
+            }
+        except Exception as e:
+            _synthesis_jobs[job_id] = {
+                "status": "failed",
+                "error": str(e),
+                "project_id": project_id,
+                "item_id": item_id,
+            }
+            logger.error(f"Deep dive job {job_id} failed: {e}")
+
+    thread = threading.Thread(target=_run, daemon=True)
+    thread.start()
+
+    return {"job_id": job_id, "status": "running", "item_id": item_id}
+
+
 @router.post("/documents/refire-signals")
 def refire_document_signals(body: dict = Body(...)):
     """CC-2.4: Re-fire signal generation after PM confirms project assignment.

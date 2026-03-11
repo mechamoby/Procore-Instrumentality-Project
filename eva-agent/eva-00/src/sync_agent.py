@@ -16,6 +16,7 @@ from typing import Optional, List, Dict, Any
 
 import psycopg2
 import psycopg2.extras
+import psycopg2.pool
 
 # Add our directory to path for procore_client import
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -78,10 +79,31 @@ signal.signal(signal.SIGINT, handle_signal)
 # Database helpers
 # =============================================================================
 
+# Connection pool (min 1, max 5 connections)
+_pool = None
+
+
+def _get_pool():
+    global _pool
+    if _pool is None:
+        _pool = psycopg2.pool.ThreadedConnectionPool(
+            1, 5,
+            dbname=DB_NAME, user=DB_USER, host=DB_HOST, port=DB_PORT,
+        )
+    return _pool
+
+
 def get_conn():
-    return psycopg2.connect(
-        dbname=DB_NAME, user=DB_USER, host=DB_HOST, port=DB_PORT,
-    )
+    """Get a connection from the pool. Caller must return it via return_conn()."""
+    return _get_pool().getconn()
+
+
+def return_conn(conn):
+    """Return a connection to the pool."""
+    try:
+        _get_pool().putconn(conn)
+    except Exception:
+        pass
 
 
 def payload_hash(data: dict) -> str:
@@ -117,8 +139,16 @@ def log_sync(conn, entity_type: str, entity_id, procore_id: int, action: str,
         """, (entity_type, entity_id, procore_id, action, status, error_msg, p_hash))
 
 
+ALLOWED_TABLES = frozenset({
+    "projects", "companies", "contacts", "submittals", "rfis",
+    "drawings", "drawing_revisions", "documents",
+})
+
+
 def find_by_procore_id(conn, table: str, procore_id: int) -> Optional[str]:
     """Find local UUID by procore_id. Returns id string or None."""
+    if table not in ALLOWED_TABLES:
+        raise ValueError(f"Invalid table name: {table}")
     with conn.cursor() as cur:
         cur.execute(f"SELECT id FROM {table} WHERE procore_id = %s", (procore_id,))
         row = cur.fetchone()
@@ -786,12 +816,25 @@ def main():
                 time.sleep(30)  # Check every 30s if anything is due
                 if shutdown_requested:
                     break
+                # Reconnect if connection dropped
+                try:
+                    conn.isolation_level  # lightweight aliveness check
+                except Exception:
+                    log.warning("Connection lost — reconnecting from pool")
+                    try:
+                        return_conn(conn)
+                    except Exception:
+                        pass
+                    conn = get_conn()
                 run_sync_pass(client, conn)
 
     except KeyboardInterrupt:
         log.info("Interrupted.")
     finally:
-        conn.close()
+        return_conn(conn)
+        pool = _get_pool()
+        if pool:
+            pool.closeall()
         log.info("Sync agent stopped.")
 
 

@@ -1,9 +1,17 @@
-"""Procore API client with automatic token refresh."""
+"""Procore API client with automatic token refresh and retry logic."""
 
 import json
+import logging
 import time
 import requests
 from pathlib import Path
+
+log = logging.getLogger("procore_client")
+
+# Retry configuration
+MAX_RETRIES = 3
+RETRY_BACKOFF_BASE = 1.0  # seconds — doubles each retry (1s, 2s, 4s)
+RETRYABLE_STATUS_CODES = {429, 500, 502, 503, 504}
 
 CREDS_DIR = Path("/home/moby/.openclaw/workspace/.credentials")
 TOKEN_PATH = CREDS_DIR / "procore_token.json"
@@ -76,12 +84,27 @@ class ProcoreClient:
         }
 
     def get(self, path: str, params: dict = None) -> requests.Response:
-        """GET request with auto-refresh on 401."""
+        """GET request with auto-refresh on 401 and retry with exponential backoff."""
         self._ensure_fresh_token()
-        resp = requests.get(f'{API_BASE}{path}', headers=self._headers(), params=params)
-        if resp.status_code == 401:
-            self._refresh_token()
-            resp = requests.get(f'{API_BASE}{path}', headers=self._headers(), params=params)
+
+        for attempt in range(MAX_RETRIES + 1):
+            resp = requests.get(f'{API_BASE}{path}', headers=self._headers(), params=params, timeout=30)
+            if resp.status_code == 401:
+                self._refresh_token()
+                resp = requests.get(f'{API_BASE}{path}', headers=self._headers(), params=params, timeout=30)
+
+            if resp.status_code not in RETRYABLE_STATUS_CODES or attempt == MAX_RETRIES:
+                return resp
+
+            wait = RETRY_BACKOFF_BASE * (2 ** attempt)
+            # Respect Retry-After header for 429s
+            if resp.status_code == 429:
+                retry_after = resp.headers.get("Retry-After")
+                if retry_after:
+                    wait = max(wait, float(retry_after))
+            log.warning(f"Retryable {resp.status_code} on {path}, attempt {attempt + 1}/{MAX_RETRIES}, waiting {wait:.1f}s")
+            time.sleep(wait)
+
         return resp
 
     def get_json(self, path: str, params: dict = None) -> list | dict:

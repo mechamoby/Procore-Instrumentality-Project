@@ -291,6 +291,20 @@ class ItemManager:
         return item_id
 
     @staticmethod
+    def get_item(item_id: str) -> Optional[Dict]:
+        """Fetch a single intelligence item by ID."""
+        with get_cursor() as cur:
+            cur.execute("""
+                SELECT id, project_id, item_type, title, summary,
+                       severity, confidence, status,
+                       recommended_attention_level, source_evidence_count,
+                       synthesis_cycle_id, created_at, updated_at
+                FROM intelligence_items WHERE id = %s
+            """, (item_id,))
+            row = cur.fetchone()
+            return serialize_row(row) if row else None
+
+    @staticmethod
     def update_item(
         item_id: str,
         synthesis_output: Dict,
@@ -642,83 +656,122 @@ class SynthesisEngine:
 
     @staticmethod
     def _call_anthropic(system_prompt: str, user_prompt: str) -> Optional[Dict]:
-        """Call Anthropic API for synthesis."""
+        """Call Anthropic API for synthesis with retry on 5xx errors.
+
+        Uses a 60-second timeout and retries once on server errors (5xx).
+        """
         import httpx
 
         if not ANTHROPIC_API_KEY:
             logger.error("ANTHROPIC_API_KEY not set")
             return None
 
-        try:
-            response = httpx.post(
-                "https://api.anthropic.com/v1/messages",
-                headers={
-                    "x-api-key": ANTHROPIC_API_KEY,
-                    "anthropic-version": "2023-06-01",
-                    "content-type": "application/json",
-                },
-                json={
-                    "model": SYNTHESIS_MODEL,
-                    "max_tokens": 4096,
-                    "system": [
-                        {
-                            "type": "text",
-                            "text": system_prompt,
-                            "cache_control": {"type": "ephemeral"},
-                        }
-                    ],
-                    "messages": [
-                        {"role": "user", "content": user_prompt}
-                    ],
-                },
-                timeout=120.0,
-            )
-            response.raise_for_status()
-            data = response.json()
+        ANTHROPIC_TIMEOUT = 60.0
+        MAX_RETRIES = 1
 
-            # Extract token usage
-            usage = data.get("usage", {})
-            tokens = {
-                "input_tokens": usage.get("input_tokens", 0),
-                "output_tokens": usage.get("output_tokens", 0),
-                "cache_read": usage.get("cache_read_input_tokens", 0),
-                "cache_creation": usage.get("cache_creation_input_tokens", 0),
-            }
-            logger.info(f"Anthropic API tokens: {tokens}")
+        request_body = {
+            "model": SYNTHESIS_MODEL,
+            "max_tokens": 4096,
+            "system": [
+                {
+                    "type": "text",
+                    "text": system_prompt,
+                    "cache_control": {"type": "ephemeral"},
+                }
+            ],
+            "messages": [
+                {"role": "user", "content": user_prompt}
+            ],
+        }
+        headers = {
+            "x-api-key": ANTHROPIC_API_KEY,
+            "anthropic-version": "2023-06-01",
+            "content-type": "application/json",
+        }
 
-            # Parse response content
-            content = data.get("content", [])
-            text = ""
-            for block in content:
-                if block.get("type") == "text":
-                    text += block.get("text", "")
-
-            # Parse JSON from response
-            text = text.strip()
-            if text.startswith("```"):
-                lines = text.split("\n")
-                text = "\n".join(lines[1:])
-                if text.endswith("```"):
-                    text = text[:-3]
-                text = text.strip()
-
+        last_error = None
+        for attempt in range(MAX_RETRIES + 1):
             try:
-                result = json.loads(text)
-                result["_token_usage"] = tokens
-                return result
-            except json.JSONDecodeError:
-                start = text.find("{")
-                end = text.rfind("}") + 1
-                if start >= 0 and end > start:
-                    result = json.loads(text[start:end])
+                response = httpx.post(
+                    "https://api.anthropic.com/v1/messages",
+                    headers=headers,
+                    json=request_body,
+                    timeout=ANTHROPIC_TIMEOUT,
+                )
+
+                # Retry on 5xx server errors
+                if response.status_code >= 500 and attempt < MAX_RETRIES:
+                    logger.warning(
+                        f"Anthropic API returned {response.status_code}, "
+                        f"retrying ({attempt + 1}/{MAX_RETRIES})..."
+                    )
+                    import time
+                    time.sleep(2 ** attempt)
+                    continue
+
+                response.raise_for_status()
+                data = response.json()
+
+                # Extract token usage
+                usage = data.get("usage", {})
+                tokens = {
+                    "input_tokens": usage.get("input_tokens", 0),
+                    "output_tokens": usage.get("output_tokens", 0),
+                    "cache_read": usage.get("cache_read_input_tokens", 0),
+                    "cache_creation": usage.get("cache_creation_input_tokens", 0),
+                }
+                logger.info(f"Anthropic API tokens: {tokens}")
+
+                # Parse response content
+                content = data.get("content", [])
+                text = ""
+                for block in content:
+                    if block.get("type") == "text":
+                        text += block.get("text", "")
+
+                # Parse JSON from response
+                text = text.strip()
+                if text.startswith("```"):
+                    lines = text.split("\n")
+                    text = "\n".join(lines[1:])
+                    if text.endswith("```"):
+                        text = text[:-3]
+                    text = text.strip()
+
+                try:
+                    result = json.loads(text)
                     result["_token_usage"] = tokens
                     return result
-                logger.error(f"Failed to parse Opus response: {text[:500]}")
+                except json.JSONDecodeError:
+                    start = text.find("{")
+                    end = text.rfind("}") + 1
+                    if start >= 0 and end > start:
+                        result = json.loads(text[start:end])
+                        result["_token_usage"] = tokens
+                        return result
+                    logger.error(f"Failed to parse Opus response: {text[:500]}")
+                    return None
+
+            except httpx.TimeoutException:
+                last_error = "Request timed out"
+                if attempt < MAX_RETRIES:
+                    logger.warning(f"Anthropic API timed out after {ANTHROPIC_TIMEOUT}s, retrying...")
+                    continue
+                logger.error(f"Anthropic API timed out after {MAX_RETRIES + 1} attempts")
                 return None
 
-        except Exception as e:
-            logger.error(f"Anthropic API call failed: {e}", exc_info=True)
-            return None
+            except Exception as e:
+                last_error = str(e)
+                if attempt < MAX_RETRIES:
+                    logger.warning(f"Anthropic API error: {e}, retrying...")
+                    import time
+                    time.sleep(2 ** attempt)
+                    continue
+                logger.error(f"Anthropic API call failed after {MAX_RETRIES + 1} attempts: {e}", exc_info=True)
+                return None
+
+        logger.error(f"Anthropic API call exhausted retries. Last error: {last_error}")
+        return None
 
     @staticmethod
     def _run_local_synthesis(
@@ -1038,8 +1091,12 @@ class SynthesisEngine:
         }
 
     @classmethod
-    def run_cycle(cls, project_id: str, cycle_type: str = "morning_briefing") -> Optional[str]:
+    def run_cycle(cls, project_id: str, cycle_type: str = "morning_briefing",
+                  escalation_item_id: str = None) -> Optional[str]:
         """Run a complete synthesis cycle for a project.
+
+        For escalation_review cycles, pass escalation_item_id to focus the
+        deep-dive on a specific intelligence item.
 
         Returns the synthesis_cycle_id.
         """
@@ -1096,6 +1153,24 @@ class SynthesisEngine:
                 template_kwargs["midday_summary"] = cls._get_last_cycle_summary(
                     project_id, "midday_checkpoint"
                 )
+            elif cycle_type == "escalation_review" and escalation_item_id:
+                # Fetch the escalation item and related items for deep-dive
+                escalation_item = ItemManager.get_item(escalation_item_id)
+                if escalation_item:
+                    template_kwargs["escalation_item"] = json.dumps(
+                        escalation_item, indent=2, default=str
+                    )
+                    # Find related items by shared signals or same entity
+                    related = []
+                    for item in active_items:
+                        if item.get("id") != escalation_item_id:
+                            related.append(item)
+                    template_kwargs["related_items"] = json.dumps(
+                        related[:10], indent=2, default=str
+                    )
+                else:
+                    template_kwargs["escalation_item"] = "Item not found"
+                    template_kwargs["related_items"] = "[]"
 
             system_prompt = cls._get_template(cycle_type, **template_kwargs)
 
