@@ -4,6 +4,7 @@
 *.env.production
 *.env.development
 .env.*
+!.env.example
 
 # API keys, tokens, credentials
 *.pem
