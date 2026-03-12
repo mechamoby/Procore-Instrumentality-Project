@@ -93,11 +93,12 @@ class SignalWriter:
             if source_document_id:
                 cur.execute("""
                     SELECT id, supporting_context_json FROM signals
-                    WHERE source_document_id = %s
+                    WHERE project_id = %s
+                      AND source_document_id = %s
                       AND signal_type = %s
                       AND created_at > NOW() - INTERVAL '1 hour'
                     LIMIT 1
-                """, (source_document_id, signal_type))
+                """, (project_id, source_document_id, signal_type))
 
                 existing = cur.fetchone()
                 if existing:
