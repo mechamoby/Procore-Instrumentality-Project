@@ -1022,7 +1022,7 @@ async def email_document(request_data: dict = None):
     smtp_host = os.environ.get("SMTP_HOST", "smtp.gmail.com")
     smtp_port = int(os.environ.get("SMTP_PORT", "587"))
     smtp_user = os.environ.get("SMTP_USER", "")
-    smtp_pass = os.environ.get("SMTP_PASS", "")
+    smtp_pass = os.environ.get("SMTP_PASSWORD", "")
     
     # Try loading from credential files
     if not smtp_user:
@@ -1036,7 +1036,7 @@ async def email_document(request_data: dict = None):
                         v = v.strip().strip('"').strip("'")
                         if k in ("SMTP_USER", "GMAIL_USER", "EMAIL_USER", "EMAIL"):
                             smtp_user = v
-                        elif k in ("SMTP_PASS", "GMAIL_PASS", "EMAIL_PASS", "APP_PASSWORD"):
+                        elif k in ("SMTP_PASSWORD", "SMTP_PASS", "GMAIL_PASS", "EMAIL_PASS", "APP_PASSWORD"):
                             smtp_pass = v
                         elif k in ("SMTP_HOST",):
                             smtp_host = v
@@ -1045,7 +1045,7 @@ async def email_document(request_data: dict = None):
                 break
     
     if not smtp_user or not smtp_pass:
-        return {"error": "SMTP credentials not configured. Add ~/.credentials/smtp.env with SMTP_USER and SMTP_PASS."}
+        return {"error": "SMTP credentials not configured. Add ~/.credentials/smtp.env with SMTP_USER and SMTP_PASSWORD."}
     
     try:
         msg = MIMEMultipart()
