@@ -1377,7 +1377,7 @@ CYCLE METADATA:
                     SELECT active_item_count, watch_item_count
                     FROM working_memory_state
                     WHERE project_id = %s
-                    ORDER BY created_at DESC LIMIT 1
+                    ORDER BY snapshot_at DESC LIMIT 1
                 """, (project_id,))
                 prev = cur.fetchone()
                 if prev:

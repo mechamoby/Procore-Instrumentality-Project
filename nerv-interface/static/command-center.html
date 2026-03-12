@@ -1376,8 +1376,16 @@ async function loadSidebar() {
         return;
     }
 
+    // Enrich sidebar with health data from dashboard if available
+    const dashData = state.dashboardData;
     list.innerHTML = state.projects.map(p => {
-        const health = 'neutral'; // will be intelligence-driven later
+        // Look up health from dashboard projects (which include synthesis data)
+        let health = 'neutral';
+        if (dashData?.projects) {
+            const dp = dashData.projects.find(dp => dp.id === p.id);
+            if (dp?.last_synthesis?.overall_health) health = dp.last_synthesis.overall_health;
+            else if (dp?.intelligence?.total_active > 0) health = dp.intelligence.high > 0 ? 'red' : 'yellow';
+        }
         const itemCount = (p.rfi_count || 0) + (p.submittal_count || 0);
         return `
             <div class="project-item ${p.id === state.selectedProjectId ? 'active' : ''}"
@@ -1424,9 +1432,16 @@ async function runSynthesis() {
     const btn = document.getElementById('synthesis-btn');
     if (!btn) return;
 
-    // Pick first project for now (or selected)
+    // Use selected project, or all active projects from dashboard
     const pid = state.selectedProjectId || (state.projects[0]?.id);
     if (!pid) { alert('No project available'); return; }
+
+    // If on dashboard with multiple projects, run sweep first for all projects
+    if (state.view === 'dashboard' && state.projects.length > 1) {
+        for (const p of state.projects) {
+            try { await fetch(`${API_BASE}/synthesis/sweep?project_id=${p.id}`, { method: 'POST' }); } catch(e) {}
+        }
+    }
 
     btn.disabled = true;
     btn.textContent = 'Running analysis...';
@@ -1510,8 +1525,12 @@ async function runSignalSweep() {
 // INIT
 // =============================================================================
 async function init() {
+    // Load sidebar first
     await loadSidebar();
+    // Render dashboard (also populates state.dashboardData)
     await render();
+    // Refresh sidebar with health data now that dashboard is loaded
+    await loadSidebar();
 
     // Update sync indicator
     const healthRes = await api('/health');

@@ -32,6 +32,22 @@ NERV_SESSION_KEY = "agent:main:nerv"
 
 app = FastAPI(title="NERV Interface")
 
+# CORS middleware for development
+from fastapi.middleware.cors import CORSMiddleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+@app.get("/health")
+async def root_health():
+    """Root health check for Docker healthcheck and load balancers."""
+    return {"status": "ok", "service": "nerv-interface"}
+
+
 # Mount SteelSync Command Center API
 try:
     from command_center_api import router as cc_router
