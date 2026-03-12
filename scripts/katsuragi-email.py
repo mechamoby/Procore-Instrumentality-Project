@@ -39,7 +39,7 @@ def load_creds():
             if "=" in line and not line.startswith("#"):
                 k, v = line.split("=", 1)
                 env[k] = v.strip().strip('"')
-    return env["SMTP_PASS"]
+    return env["SMTP_PASSWORD"]
 
 def load_state():
     if STATE_FILE.exists():
