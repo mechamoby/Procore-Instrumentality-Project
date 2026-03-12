@@ -666,7 +666,7 @@ class SynthesisEngine:
             logger.error("ANTHROPIC_API_KEY not set")
             return None
 
-        ANTHROPIC_TIMEOUT = 60.0
+        ANTHROPIC_TIMEOUT = 180.0
         MAX_RETRIES = 1
 
         request_body = {
