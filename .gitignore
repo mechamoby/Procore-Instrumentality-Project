@@ -1,21 +1,56 @@
-# Secrets and local runtime
+# Environment files containing secrets
+.env
+*.env.local
+*.env.production
+*.env.development
+.env.*
+
+# API keys, tokens, credentials
+*.pem
+*.key
+*.cert
 .credentials/
 .openclaw/
 .security-pin
 
-# Python/cache
+# Python build artifacts
 __pycache__/
 *.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+*.egg
 .venv/
 
-# Local generated artifacts
-*.log
-/tmp/
+# Node build artifacts
+node_modules/
 
-# Local media/docs not for source control
-media/
-eva01-reviews/
-NERV-DOCS/
+# Container volumes and data
+postgres_data/
+redis_data/
+data/
+
+# IDE configuration
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS artifacts
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Log files
+*.log
+logs/
+
+# Temporary and test outputs
+tmp/
+temp/
+*.tmp
 
 # Large binary project files (not for git)
 eva-agent/btv5-dxf/
@@ -32,18 +67,17 @@ eva-drawing-index/
 nerv-uploads/
 katsuragi-email-state.json
 
+# Local media/docs not for source control
+media/
+eva01-reviews/
+NERV-DOCS/
+
 # Local personal memory logs
 memory/daily/
 memory/nap/
 memory/heartbeat-state.json
 
-# OS/editor
-.DS_Store
-.vscode/
-.idea/
-
 # Sentry ingest data (runtime)
 eva-sentry-v1/ingest/
 eva-sentry-v1/state/verdicts/
 nerv-deploy/
-eva-agent/btv5-dxf/
