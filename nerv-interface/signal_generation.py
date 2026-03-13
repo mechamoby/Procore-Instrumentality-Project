@@ -28,6 +28,14 @@ ALLOWED_INGESTION_CATEGORIES = {
     "document_significance", "radar_match"
 }
 
+# Persistent-condition signals should deduplicate against any active unresolved
+# signal for the same source document, not a rolling time window.
+PERSISTENT_CONDITION_SIGNAL_TYPES = {
+    "rfi_became_overdue",
+    "submittal_overdue",
+    "daily_log_missing",
+}
+
 OLLAMA_HOST = os.environ.get("OLLAMA_HOST", "http://localhost:11434")
 OLLAMA_MODEL = os.environ.get("SIGNAL_LLM_MODEL", "deepseek-r1:8b")
 
@@ -89,15 +97,27 @@ class SignalWriter:
         effective_weight = round(confidence * strength * source_multiplier, 2)
 
         with get_cursor() as cur:
-            # Deduplication check: same source_document_id + signal_type within 1 hour
+            # Deduplication check:
+            # - persistent-condition signals: any active unresolved match
+            # - event-based signals: same source_document_id + signal_type within 1 hour
             if source_document_id:
-                cur.execute("""
-                    SELECT id, supporting_context_json FROM signals
-                    WHERE source_document_id = %s
-                      AND signal_type = %s
-                      AND created_at > NOW() - INTERVAL '1 hour'
-                    LIMIT 1
-                """, (source_document_id, signal_type))
+                if signal_type in PERSISTENT_CONDITION_SIGNAL_TYPES:
+                    cur.execute("""
+                        SELECT id, supporting_context_json FROM signals
+                        WHERE source_document_id = %s
+                          AND signal_type = %s
+                          AND archived_at IS NULL
+                          AND resolved_at IS NULL
+                        LIMIT 1
+                    """, (source_document_id, signal_type))
+                else:
+                    cur.execute("""
+                        SELECT id, supporting_context_json FROM signals
+                        WHERE source_document_id = %s
+                          AND signal_type = %s
+                          AND created_at > NOW() - INTERVAL '1 hour'
+                        LIMIT 1
+                    """, (source_document_id, signal_type))
 
                 existing = cur.fetchone()
                 if existing:
@@ -269,6 +289,7 @@ def detect_daily_log_missing(project_id: str) -> int:
                 decay_profile="fast_24h",
                 entity_type="daily_report",
                 entity_value=str(yesterday),
+                source_document_id=f"{project_id}:{yesterday}",
                 supporting_context={
                     "missing_date": str(yesterday),
                     "project_id": project_id,
