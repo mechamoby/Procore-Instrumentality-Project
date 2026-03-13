@@ -441,8 +441,13 @@ def sync_submittals(client: ProcoreClient, conn):
                 else:
                     cols = ", ".join(vals.keys())
                     placeholders = ", ".join(["%s"] * len(vals))
-                    cur.execute(f"INSERT INTO submittals ({cols}) VALUES ({placeholders}) RETURNING id",
-                                list(vals.values()))
+                    update_cols = [k for k in vals if k not in ("project_id", "number")]
+                    on_conflict_set = ", ".join(f"{k} = EXCLUDED.{k}" for k in update_cols)
+                    cur.execute(
+                        f"INSERT INTO submittals ({cols}) VALUES ({placeholders}) "
+                        f"ON CONFLICT (project_id, number) DO UPDATE SET {on_conflict_set} "
+                        f"RETURNING id",
+                        list(vals.values()))
                     new_id = str(cur.fetchone()[0])
                     log_sync(conn, "submittal", new_id, sid, "create", p_hash=payload_hash(s))
                     created += 1
@@ -551,8 +556,13 @@ def sync_rfis(client: ProcoreClient, conn):
                 else:
                     cols = ", ".join(vals.keys())
                     placeholders = ", ".join(["%s"] * len(vals))
-                    cur.execute(f"INSERT INTO rfis ({cols}) VALUES ({placeholders}) RETURNING id",
-                                list(vals.values()))
+                    update_cols = [k for k in vals if k not in ("project_id", "number")]
+                    on_conflict_set = ", ".join(f"{k} = EXCLUDED.{k}" for k in update_cols)
+                    cur.execute(
+                        f"INSERT INTO rfis ({cols}) VALUES ({placeholders}) "
+                        f"ON CONFLICT (project_id, number) DO UPDATE SET {on_conflict_set} "
+                        f"RETURNING id",
+                        list(vals.values()))
                     new_id = str(cur.fetchone()[0])
                     log_sync(conn, "rfi", new_id, rid, "create", p_hash=payload_hash(r))
                     created += 1
