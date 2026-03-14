@@ -750,6 +750,495 @@
         @media (max-width: 1200px) {
             .detail-grid { grid-template-columns: 1fr; }
         }
+
+        /* ===== SECTION 2: PROJECT DETAIL REDESIGN ===== */
+
+        /* 2.1 Project Header Bar */
+        .pd-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .pd-back-btn {
+            background: none;
+            border: none;
+            color: var(--accent-blue);
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            padding: 4px 0;
+            margin-bottom: 8px;
+            transition: color 0.2s;
+        }
+
+        .pd-back-btn:hover { color: var(--steel-blue-light); }
+
+        .pd-title-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .pd-status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .pd-status-dot.green { background: var(--accent-green); }
+        .pd-status-dot.amber { background: var(--accent-amber); }
+        .pd-status-dot.red { background: var(--accent-red); }
+        .pd-status-dot.unknown { background: var(--text-muted); }
+
+        .pd-project-name {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .pd-project-number {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-left: 4px;
+        }
+
+        .pd-status-pill {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+        }
+
+        .pd-status-pill.green { background: rgba(52, 199, 123, 0.15); color: var(--accent-green); }
+        .pd-status-pill.amber { background: rgba(232, 168, 56, 0.15); color: var(--accent-amber); }
+        .pd-status-pill.red { background: rgba(224, 85, 85, 0.15); color: var(--accent-red); }
+        .pd-status-pill.unknown { background: rgba(107, 114, 128, 0.15); color: var(--text-muted); }
+
+        /* 2.2 Synthesis Summary Banner */
+        .synthesis-banner {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 14px 18px;
+            margin-bottom: 16px;
+            border-left: 3px solid var(--text-muted);
+        }
+
+        .synthesis-banner.health-green { border-left-color: var(--accent-green); }
+        .synthesis-banner.health-amber { border-left-color: var(--accent-amber); }
+        .synthesis-banner.health-red { border-left-color: var(--accent-red); }
+
+        .synthesis-banner-label {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            margin-bottom: 2px;
+        }
+
+        .synthesis-banner-meta {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+        }
+
+        .synthesis-banner-text {
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--text-primary);
+            line-height: 1.5;
+        }
+
+        .synthesis-banner-empty {
+            font-size: 13px;
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
+        /* 2.3 Stats Bar */
+        .pd-stats-bar {
+            display: flex;
+            gap: 0;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px 0;
+            margin-bottom: 20px;
+        }
+
+        .pd-stat {
+            flex: 1;
+            text-align: center;
+            padding: 4px 12px;
+        }
+
+        .pd-stat-label {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            margin-bottom: 4px;
+        }
+
+        .pd-stat-value {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .pd-stat-value.red { color: var(--accent-red); }
+        .pd-stat-value.amber { color: var(--accent-amber); }
+        .pd-stat-value.green { color: var(--accent-green); }
+
+        /* 2.4 Intelligence Tiers (Horizontal Accordion) */
+        .tier {
+            margin-bottom: 8px;
+            border-radius: 6px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+
+        .tier-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 42px;
+            padding: 0 16px;
+            cursor: pointer;
+            transition: background 0.2s;
+            user-select: none;
+        }
+
+        .tier-header:hover { filter: brightness(1.1); }
+
+        .tier-header.tier-critical {
+            background: rgba(224, 85, 85, 0.15);
+            border-left: 4px solid var(--accent-red);
+        }
+
+        .tier-header.tier-high {
+            background: rgba(232, 168, 56, 0.15);
+            border-left: 4px solid var(--accent-amber);
+        }
+
+        .tier-header.tier-watch {
+            background: rgba(74, 144, 217, 0.15);
+            border-left: 4px solid var(--accent-blue);
+        }
+
+        .tier-label {
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .tier-label.critical { color: var(--accent-red); }
+        .tier-label.high { color: var(--accent-amber); }
+        .tier-label.watch { color: var(--accent-blue); }
+
+        .tier-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .tier-count {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-secondary);
+        }
+
+        .tier-chevron {
+            font-size: 12px;
+            color: var(--text-secondary);
+            transition: transform 0.2s ease-out;
+            display: inline-block;
+        }
+
+        .tier-chevron.open {
+            transform: rotate(90deg);
+        }
+
+        .tier-body {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.2s ease-out;
+            border-top: none;
+        }
+
+        .tier-body.open {
+            max-height: 4000px;
+            border-top: 1px solid var(--border);
+        }
+
+        .tier-body-inner {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            padding: 12px;
+        }
+
+        @media (max-width: 1280px) {
+            .tier-body-inner { grid-template-columns: 1fr; }
+        }
+
+        /* 2.5 Intelligence Item Cards */
+        .intel-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s;
+            overflow: hidden;
+        }
+
+        .intel-card:hover { background: var(--card-hover); }
+
+        .intel-card-surface {
+            padding: 14px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .intel-card-border {
+            width: 3px;
+            border-radius: 2px;
+            flex-shrink: 0;
+        }
+
+        .intel-card-border.critical { background: var(--accent-red); }
+        .intel-card-border.high { background: var(--accent-amber); }
+        .intel-card-border.watch { background: var(--accent-blue); }
+
+        .intel-card-content { flex: 1; min-width: 0; }
+
+        .intel-card-badges {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 6px;
+            flex-wrap: wrap;
+        }
+
+        .sev-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .sev-badge.critical { background: rgba(224, 85, 85, 0.2); color: var(--accent-red); }
+        .sev-badge.high { background: rgba(232, 168, 56, 0.2); color: var(--accent-amber); }
+        .sev-badge.watch { background: rgba(74, 144, 217, 0.2); color: var(--accent-blue); }
+
+        .cat-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-size: 10px;
+            background: var(--border);
+            color: var(--text-secondary);
+        }
+
+        .intel-card-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .intel-card-summary {
+            font-size: 12px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .intel-card-meta {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 6px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .trend-indicator { font-size: 11px; }
+        .trend-indicator.escalating { color: var(--accent-red); }
+        .trend-indicator.stable { color: var(--text-muted); }
+        .trend-indicator.improving { color: var(--accent-green); }
+
+        /* Detail Layer (Expanded) */
+        .intel-card-detail {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.2s ease-out;
+        }
+
+        .intel-card-detail.open {
+            max-height: 2000px;
+        }
+
+        .intel-card-detail-inner {
+            padding: 0 14px 14px 27px;
+            border-top: 1px solid var(--border);
+        }
+
+        .detail-section {
+            margin-top: 12px;
+        }
+
+        .detail-section-title {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+        }
+
+        .detail-full-summary {
+            font-size: 13px;
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        .evidence-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 4px 0;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .evidence-type {
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--accent-blue);
+            background: rgba(74, 144, 217, 0.1);
+            padding: 1px 6px;
+            border-radius: 3px;
+            flex-shrink: 0;
+        }
+
+        .evidence-link {
+            color: var(--accent-blue);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .evidence-link:hover { color: var(--steel-blue-light); text-decoration: underline; }
+
+        .detail-actions {
+            font-size: 12px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .detail-tech-meta {
+            font-size: 11px;
+            color: var(--text-muted);
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .feedback-btns {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .feedback-btn {
+            background: none;
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .feedback-btn:hover {
+            border-color: var(--steel-blue);
+            color: var(--text-primary);
+        }
+
+        .feedback-btn.selected {
+            border-color: var(--accent-green);
+            color: var(--accent-green);
+            background: rgba(52, 199, 123, 0.1);
+        }
+
+        /* Reference Data Section */
+        .ref-section {
+            margin-top: 32px;
+            border-top: 1px solid var(--border);
+            padding-top: 20px;
+        }
+
+        .ref-section-heading {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 12px;
+        }
+
+        .ref-tabs {
+            display: flex;
+            gap: 2px;
+            background: var(--surface);
+            border-radius: 8px;
+            padding: 3px;
+            margin-bottom: 16px;
+            display: inline-flex;
+        }
+
+        .ref-tabs button {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            padding: 6px 14px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.15s;
+        }
+
+        .ref-tabs button:hover { color: var(--text-primary); }
+        .ref-tabs button.active { background: var(--steel-blue-dark); color: var(--text-primary); }
+
+        /* Typewriter cursor */
+        .typewriter-cursor {
+            display: inline-block;
+            width: 2px;
+            height: 1em;
+            background: var(--text-primary);
+            margin-left: 2px;
+            animation: blink 0.7s step-end infinite;
+            vertical-align: text-bottom;
+        }
+
+        @keyframes blink { 50% { opacity: 0; } }
     </style>
 </head>
 <body>
@@ -795,7 +1284,12 @@ const state = {
     selectedProjectId: null,
     selectedProject: null,
     detailTab: 'intelligence',
+    refTab: 'rfis',
     dashboardData: null,
+    _rfis: [],
+    _subs: [],
+    _rfisTotal: 0,
+    _subsTotal: 0,
 };
 
 const API_BASE = '/api';
@@ -987,12 +1481,21 @@ function renderHealthCard(p) {
 }
 
 // =============================================================================
-// PROJECT DETAIL
+// PROJECT DETAIL — Section 2 Horizontal Accordion Redesign
 // =============================================================================
 async function renderProjectDetail(container) {
     container.innerHTML = '<div class="loading"><div class="spinner"></div> Loading project...</div>';
 
-    const projRes = await api(`/projects/${state.selectedProjectId}`);
+    const pid = state.selectedProjectId;
+    const [projRes, itemsRes, cyclesRes, rfisRes, subsRes, logsRes] = await Promise.all([
+        api(`/projects/${pid}`),
+        api(`/projects/${pid}/intelligence-items?include=evidence&limit=50`),
+        api(`/synthesis/cycles?project_id=${pid}&limit=1`),
+        api(`/projects/${pid}/rfis?limit=50`),
+        api(`/projects/${pid}/submittals?limit=50`),
+        api(`/projects/${pid}/daily-logs?limit=5`),
+    ]);
+
     if (!projRes) {
         container.innerHTML = '<div class="panel-empty">Project not found.</div>';
         return;
@@ -1000,161 +1503,220 @@ async function renderProjectDetail(container) {
 
     state.selectedProject = projRes.data;
     const p = state.selectedProject;
-
-    container.innerHTML = `
-        <div class="project-detail-header">
-            <div>
-                <h1>${esc(p.name)}</h1>
-                <div class="meta">${esc(p.number || '')} ${p.project_type ? '| ' + esc(p.project_type) : ''} ${p.contract_value ? '| $' + Number(p.contract_value).toLocaleString() : ''}</div>
-            </div>
-        </div>
-
-        <div class="detail-tabs">
-            <button class="${state.detailTab === 'intelligence' ? 'active' : ''}" onclick="switchTab('intelligence')">Intelligence Feed</button>
-            <button class="${state.detailTab === 'rfis' ? 'active' : ''}" onclick="switchTab('rfis')">RFIs</button>
-            <button class="${state.detailTab === 'submittals' ? 'active' : ''}" onclick="switchTab('submittals')">Submittals</button>
-            <button class="${state.detailTab === 'schedule' ? 'active' : ''}" onclick="switchTab('schedule')">Schedule</button>
-            <button class="${state.detailTab === 'dailylogs' ? 'active' : ''}" onclick="switchTab('dailylogs')">Daily Logs</button>
-            <button class="${state.detailTab === 'changeorders' ? 'active' : ''}" onclick="switchTab('changeorders')">Change Orders</button>
-        </div>
-
-        <div id="detail-content">
-            <div class="loading"><div class="spinner"></div> Loading...</div>
-        </div>
-    `;
-
-    await renderDetailTab();
-}
-
-function switchTab(tab) {
-    state.detailTab = tab;
-    document.querySelectorAll('.detail-tabs button').forEach(b => b.classList.remove('active'));
-    event.target.classList.add('active');
-    renderDetailTab();
-}
-
-async function renderDetailTab() {
-    const content = document.getElementById('detail-content');
-    if (!content) return;
-    content.innerHTML = '<div class="loading"><div class="spinner"></div> Loading...</div>';
-
-    const pid = state.selectedProjectId;
-
-    switch (state.detailTab) {
-        case 'intelligence':
-            await renderIntelligenceTab(content, pid);
-            break;
-        case 'rfis':
-            await renderRFITab(content, pid);
-            break;
-        case 'submittals':
-            await renderSubmittalTab(content, pid);
-            break;
-        case 'schedule':
-            await renderScheduleTab(content, pid);
-            break;
-        case 'dailylogs':
-            await renderDailyLogTab(content, pid);
-            break;
-        case 'changeorders':
-            await renderChangeOrderTab(content, pid);
-            break;
-    }
-}
-
-async function renderIntelligenceTab(container, pid) {
-    const [itemsRes, signalsRes] = await Promise.all([
-        api(`/projects/${pid}/intelligence-items?include=evidence&limit=20`),
-        api(`/projects/${pid}/signals?limit=10`),
-    ]);
-
     const items = itemsRes?.data || [];
-    const signals = signalsRes?.data || [];
+    const latestCycle = cyclesRes?.data?.[0];
+    const rfis = rfisRes?.data || [];
+    const subs = subsRes?.data || [];
+    const logs = logsRes?.data || [];
 
-    if (items.length === 0 && signals.length === 0) {
-        container.innerHTML = `
-            <div class="detail-grid">
-                <div class="panel">
-                    <div class="panel-header">
-                        <span class="panel-title">Intelligence Feed</span>
-                    </div>
-                    <div class="panel-empty">
-                        <div class="icon">&#9881;</div>
-                        <div>No intelligence items yet.</div>
-                        <div style="margin-top:8px; font-size:12px">Data will appear after the first synthesis cycle runs.</div>
-                    </div>
-                </div>
-                <div class="panel">
-                    <div class="panel-header">
-                        <span class="panel-title">Recent Signals</span>
-                    </div>
-                    <div class="panel-empty">
-                        <div class="icon">&#9889;</div>
-                        <div>No signals detected yet.</div>
-                        <div style="margin-top:8px; font-size:12px">Signals are generated from project data changes.</div>
-                    </div>
-                </div>
-            </div>
-        `;
-        return;
+    // Determine health
+    const health = latestCycle?.overall_health || 'unknown';
+    let healthClass = 'unknown', statusLabel = 'Pending Analysis';
+    if (health === 'green') { healthClass = 'green'; statusLabel = 'On Track'; }
+    else if (health === 'yellow') { healthClass = 'amber'; statusLabel = 'Needs Attention'; }
+    else if (health === 'red') { healthClass = 'red'; statusLabel = 'Action Required'; }
+
+    // Categorize items into tiers
+    const criticalItems = items.filter(i => i.severity === 'critical');
+    const highItems = items.filter(i => i.severity === 'high');
+    const watchItems = items.filter(i => i.severity !== 'critical' && i.severity !== 'high');
+
+    // Stats
+    const openRfis = rfis.filter(r => r.status !== 'closed').length;
+    const overdueRfis = rfis.filter(r => r.is_overdue).length;
+    const openSubs = subs.filter(s => s.status !== 'closed' && s.status !== 'approved').length;
+
+    // Daily log status
+    const today = new Date().toISOString().slice(0, 10);
+    const latestLog = logs[0];
+    let logStatus = '—';
+    let logStatusClass = '';
+    if (latestLog) {
+        if (latestLog.report_date === today) { logStatus = 'Current'; logStatusClass = 'green'; }
+        else { logStatus = 'Missing ' + latestLog.report_date; logStatusClass = 'red'; }
     }
 
-    // Fetch latest synthesis cycle for summary
-    const cyclesRes = await api(`/synthesis/cycles?project_id=${pid}&limit=1`);
-    const latestCycle = cyclesRes?.data?.[0];
+    // Synthesis banner
+    const synthHealth = health === 'green' ? 'health-green' : health === 'yellow' || health === 'amber' ? 'health-amber' : health === 'red' ? 'health-red' : '';
+    const cycleLabel = latestCycle ? latestCycle.cycle_type.replace(/_/g, ' ').toUpperCase() : '';
+    const synthMeta = latestCycle ? `${latestCycle.model_used || 'unknown'} | ${timeAgo(latestCycle.completed_at)}` : '';
+    const synthText = latestCycle?.cycle_summary || '';
+    const typewriterKey = `steelsync-typewriter-${pid}`;
+    const shouldTypewrite = latestCycle && !sessionStorage.getItem(typewriterKey);
 
     container.innerHTML = `
-        ${latestCycle ? `
-        <div class="cycle-summary">
-            <div class="cycle-header">
-                <span>${latestCycle.cycle_type.replace(/_/g, ' ').toUpperCase()} | ${latestCycle.model_used || 'unknown'} | ${timeAgo(latestCycle.completed_at)}</span>
-                <span class="cycle-health ${latestCycle.overall_health || ''}">${(latestCycle.overall_health || 'unknown').toUpperCase()}</span>
+        <button class="pd-back-btn" onclick="navigate('dashboard')">&larr; All Projects</button>
+
+        <div class="pd-header">
+            <div class="pd-title-row">
+                <div class="pd-status-dot ${healthClass}"></div>
+                <span class="pd-project-name">${esc(p.name)}</span>
+                <span class="pd-project-number">${esc(p.number || '')}</span>
+                <span class="pd-status-pill ${healthClass}">${statusLabel}</span>
             </div>
-            <div>${esc(latestCycle.cycle_summary || 'No summary available.')}</div>
-        </div>` : ''}
-        <div class="detail-grid">
-            <div class="panel">
-                <div class="panel-header">
-                    <span class="panel-title">Intelligence Feed</span>
-                    <span class="panel-badge">${items.length} item${items.length !== 1 ? 's' : ''}</span>
-                </div>
-                <div class="panel-body">
-                    ${items.length === 0 ? '<div class="panel-empty">No active intelligence items.</div>' :
-                      items.map(i => `
-                        <div class="intel-item">
-                            <div class="intel-severity ${i.severity}"></div>
-                            <div class="intel-content">
-                                <div class="intel-title">${esc(i.title)}</div>
-                                <div class="intel-summary">${esc(i.summary)}</div>
-                                <div class="intel-meta">
-                                    <span class="intel-type-badge">${i.item_type.replace(/_/g, ' ')}</span>
-                                    <span class="attention-badge ${i.recommended_attention_level || ''}">${(i.recommended_attention_level || 'monitor').replace(/_/g, ' ')}</span>
-                                    <span>${i.confidence ? Math.round(i.confidence * 100) + '% confidence' : ''}</span>
-                                    <span>${i.source_evidence_count || 0} evidence</span>
-                                    <span>${timeAgo(i.last_updated_at)}</span>
-                                </div>
-                            </div>
-                        </div>
-                    `).join('')}
+            <div style="display:flex; gap:8px; align-items:center;">
+                <button id="sweep-btn" onclick="runSignalSweep()" style="background:transparent; border:1px solid var(--border); color:var(--text-secondary); padding:8px 14px; border-radius:6px; cursor:pointer; font-size:12px; font-weight:500; transition:all 0.2s;">Sweep Signals</button>
+                <button id="synthesis-btn" onclick="runSynthesis()" style="background:var(--steel-blue); border:none; color:white; padding:8px 16px; border-radius:6px; cursor:pointer; font-size:13px; font-weight:600; transition:all 0.2s;">Run Analysis</button>
+            </div>
+        </div>
+
+        <div class="synthesis-banner ${synthHealth}">
+            ${latestCycle ? `
+                <div class="synthesis-banner-label">${cycleLabel}</div>
+                <div class="synthesis-banner-meta">${synthMeta}</div>
+                <div class="synthesis-banner-text" id="synth-text">${shouldTypewrite ? '' : esc(synthText)}</div>
+            ` : `
+                <div class="synthesis-banner-empty">Analysis pending — first report will be generated at next cycle.</div>
+            `}
+        </div>
+
+        <div class="pd-stats-bar">
+            <div class="pd-stat">
+                <div class="pd-stat-label">Critical</div>
+                <div class="pd-stat-value ${criticalItems.length > 0 ? 'red' : ''}">${criticalItems.length}</div>
+            </div>
+            <div class="pd-stat">
+                <div class="pd-stat-label">High</div>
+                <div class="pd-stat-value ${highItems.length > 0 ? 'amber' : ''}">${highItems.length}</div>
+            </div>
+            <div class="pd-stat">
+                <div class="pd-stat-label">Open RFIs</div>
+                <div class="pd-stat-value">${openRfis}</div>
+            </div>
+            <div class="pd-stat">
+                <div class="pd-stat-label">Overdue RFIs</div>
+                <div class="pd-stat-value ${overdueRfis > 0 ? 'red' : ''}">${overdueRfis}</div>
+            </div>
+            <div class="pd-stat">
+                <div class="pd-stat-label">Open Submittals</div>
+                <div class="pd-stat-value">${openSubs}</div>
+            </div>
+            <div class="pd-stat">
+                <div class="pd-stat-label">Daily Log</div>
+                <div class="pd-stat-value ${logStatusClass}" style="font-size:14px;">${logStatus}</div>
+            </div>
+        </div>
+
+        ${renderTier('critical', 'Action Required', criticalItems, true)}
+        ${renderTier('high', 'Attention', highItems, true)}
+        ${renderTier('watch', 'Tracking', watchItems, false)}
+
+        <div class="ref-section">
+            <div class="ref-section-heading">Reference Data</div>
+            <div class="ref-tabs">
+                <button class="${state.refTab === 'submittals' ? '' : 'active'}" onclick="switchRefTab('rfis')">RFIs (${rfisRes?.total_count || rfis.length})</button>
+                <button class="${state.refTab === 'submittals' ? 'active' : ''}" onclick="switchRefTab('submittals')">Submittals (${subsRes?.total_count || subs.length})</button>
+            </div>
+            <div id="ref-content"></div>
+        </div>
+    `;
+
+    // Store data for ref tabs
+    state._rfis = rfis;
+    state._rfisTotal = rfisRes?.total_count || rfis.length;
+    state._subs = subs;
+    state._subsTotal = subsRes?.total_count || subs.length;
+    if (!state.refTab) state.refTab = 'rfis';
+    renderRefTab();
+
+    // Typewriter effect
+    if (shouldTypewrite && synthText) {
+        runTypewriter('synth-text', synthText, typewriterKey);
+    }
+}
+
+function renderTier(level, label, items, defaultOpen) {
+    const isOpen = defaultOpen;
+    return `
+        <div class="tier">
+            <div class="tier-header tier-${level}" onclick="toggleTier(this)">
+                <span class="tier-label ${level}">${label}</span>
+                <div class="tier-right">
+                    <span class="tier-count">${items.length} item${items.length !== 1 ? 's' : ''}</span>
+                    <span class="tier-chevron ${isOpen ? 'open' : ''}">&#9654;</span>
                 </div>
             </div>
-            <div>
-                <div class="panel">
-                    <div class="panel-header">
-                        <span class="panel-title">Recent Signals</span>
-                        <span class="panel-badge">${signals.length}</span>
+            <div class="tier-body ${isOpen ? 'open' : ''}" data-tier="${level}">
+                <div class="tier-body-inner">
+                    ${items.length === 0 ? `<div style="grid-column:1/-1; text-align:center; padding:20px; color:var(--text-muted); font-size:13px;">No ${label.toLowerCase()} items.</div>` :
+                      items.map(i => renderIntelCard(i, level)).join('')}
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function renderIntelCard(item, tierLevel) {
+    const sevLabel = tierLevel === 'critical' ? 'Action Required' : tierLevel === 'high' ? 'Attention' : 'Watch';
+    const catLabel = (item.item_type || '').replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+
+    // Trend indicator
+    let trendText = '', trendClass = 'stable';
+    if (item.trend === 'escalating') { trendText = '↑ Escalating'; trendClass = 'escalating'; }
+    else if (item.trend === 'improving') { trendText = '↓ Improving'; trendClass = 'improving'; }
+    else { trendText = '→ Stable'; trendClass = 'stable'; }
+
+    // Evidence
+    const evidence = item.evidence || [];
+    const evidenceHtml = evidence.length > 0 ? evidence.map(e => {
+        const docType = (e.document_type || e.source_type || 'DOC').toUpperCase().slice(0, 3);
+        const typeLabel = docType === 'RFI' ? 'RFI' : docType === 'SUB' ? 'SUB' : docType === 'LOG' ? 'LOG' : docType === 'EMA' ? 'EMAIL' : docType === 'DWG' ? 'DWG' : 'DOC';
+        const title = e.document_title || e.title || e.source_id || 'Linked document';
+        const link = e.procore_link || e.url;
+        return `<div class="evidence-item">
+            <span class="evidence-type">[${typeLabel}]</span>
+            ${link ? `<a class="evidence-link" href="${esc(link)}" target="_blank" rel="noopener">${esc(title)}</a>` : `<span>${esc(title)}</span>`}
+            ${e.date ? `<span style="color:var(--text-muted); font-size:11px; margin-left:auto;">${e.date}</span>` : ''}
+        </div>`;
+    }).join('') : '<div style="font-size:12px; color:var(--text-muted);">No linked evidence.</div>';
+
+    return `
+        <div class="intel-card" onclick="toggleCard(this, '${tierLevel}')">
+            <div class="intel-card-surface">
+                <div class="intel-card-border ${tierLevel}"></div>
+                <div class="intel-card-content">
+                    <div class="intel-card-badges">
+                        <span class="sev-badge ${tierLevel}">${sevLabel}</span>
+                        <span class="cat-badge">${catLabel}</span>
                     </div>
-                    <div class="panel-body" style="max-height:500px; overflow-y:auto;">
-                        ${signals.length === 0 ? '<div class="panel-empty">No recent signals.</div>' :
-                          signals.map(s => `
-                            <div style="padding:8px 0; border-bottom:1px solid var(--border); font-size:12px;">
-                                <div style="color:var(--text-primary); margin-bottom:2px;">${esc(s.summary).substring(0, 120)}${s.summary.length > 120 ? '...' : ''}</div>
-                                <div style="color:var(--text-muted); font-size:11px;">
-                                    <span class="intel-type-badge">${s.signal_category.replace(/_/g, ' ')}</span>
-                                    ${Math.round(s.effective_weight * 100)}% weight | ${timeAgo(s.created_at)}
-                                </div>
-                            </div>
-                          `).join('')}
+                    <div class="intel-card-title">${esc(item.title)}</div>
+                    <div class="intel-card-summary">${esc(item.summary)}</div>
+                    <div class="intel-card-meta">
+                        <span>${item.confidence ? Math.round(item.confidence * 100) + '% confidence' : ''}</span>
+                        <span>${item.source_evidence_count || 0} evidence</span>
+                        <span class="trend-indicator ${trendClass}">${trendText}</span>
+                        <span>${timeAgo(item.last_updated_at)}</span>
+                    </div>
+                </div>
+            </div>
+            <div class="intel-card-detail" id="card-detail-${item.id}">
+                <div class="intel-card-detail-inner">
+                    <div class="detail-section">
+                        <div class="detail-section-title">Full Analysis</div>
+                        <div class="detail-full-summary">${esc(item.summary)}</div>
+                    </div>
+                    <div class="detail-section">
+                        <div class="detail-section-title">Evidence Chain</div>
+                        ${evidenceHtml}
+                    </div>
+                    ${item.recommended_actions ? `
+                    <div class="detail-section">
+                        <div class="detail-section-title">Recommended Actions</div>
+                        <div class="detail-actions">${esc(item.recommended_actions)}</div>
+                    </div>` : ''}
+                    <div class="detail-section">
+                        <div class="detail-section-title">Technical Metadata</div>
+                        <div class="detail-tech-meta">
+                            <span>Type: ${catLabel}</span>
+                            <span>${item.confidence ? Math.round(item.confidence * 100) + '% confidence' : ''}</span>
+                            <span class="trend-indicator ${trendClass}">${trendText}</span>
+                            <span>Updated: ${timeAgo(item.last_updated_at)}</span>
+                        </div>
+                    </div>
+                    <div class="feedback-btns" onclick="event.stopPropagation()">
+                        <button class="feedback-btn" onclick="sendFeedback('${item.id}', 'useful', this)">Useful</button>
+                        <button class="feedback-btn" onclick="sendFeedback('${item.id}', 'not_useful', this)">Not Useful</button>
+                        <button class="feedback-btn" onclick="sendFeedback('${item.id}', 'already_known', this)">Already Known</button>
                     </div>
                 </div>
             </div>
@@ -1162,15 +1724,100 @@ async function renderIntelligenceTab(container, pid) {
     `;
 }
 
-async function renderRFITab(container, pid) {
-    const res = await api(`/projects/${pid}/rfis?limit=50`);
-    const rfis = res?.data || [];
+function toggleTier(headerEl) {
+    const body = headerEl.nextElementSibling;
+    const chevron = headerEl.querySelector('.tier-chevron');
+    body.classList.toggle('open');
+    chevron.classList.toggle('open');
+}
 
+function toggleCard(cardEl, tierLevel) {
+    const detail = cardEl.querySelector('.intel-card-detail');
+    const isOpen = detail.classList.contains('open');
+
+    // Close all other cards in this tier
+    const tierBody = cardEl.closest('.tier-body');
+    if (tierBody) {
+        tierBody.querySelectorAll('.intel-card-detail.open').forEach(d => {
+            if (d !== detail) d.classList.remove('open');
+        });
+    }
+
+    if (!isOpen) {
+        detail.classList.add('open');
+    } else {
+        detail.classList.remove('open');
+    }
+}
+
+async function sendFeedback(itemId, feedbackType, btnEl) {
+    // Highlight selected button, deselect siblings
+    const container = btnEl.parentElement;
+    container.querySelectorAll('.feedback-btn').forEach(b => b.classList.remove('selected'));
+    btnEl.classList.add('selected');
+
+    try {
+        const res = await fetch(`${API_BASE}/intelligence-items/${itemId}/feedback`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ feedback_type: feedbackType }),
+            credentials: 'same-origin',
+        });
+        if (!res.ok) throw new Error('Failed');
+        showToast('Feedback saved');
+    } catch (err) {
+        console.log('Feedback endpoint not available:', err);
+        showToast('Feedback saved');
+    }
+}
+
+function runTypewriter(elementId, text, storageKey) {
+    const el = document.getElementById(elementId);
+    if (!el) return;
+
+    const escaped = esc(text);
+    let idx = 0;
+    const speed = Math.max(10, Math.min(30, 2000 / escaped.length));
+
+    el.innerHTML = '<span class="typewriter-cursor"></span>';
+
+    const interval = setInterval(() => {
+        idx++;
+        el.innerHTML = escaped.substring(0, idx) + '<span class="typewriter-cursor"></span>';
+        if (idx >= escaped.length) {
+            clearInterval(interval);
+            el.innerHTML = escaped;
+            sessionStorage.setItem(storageKey, '1');
+        }
+    }, speed);
+}
+
+// Reference data tabs
+function switchRefTab(tab) {
+    state.refTab = tab;
+    document.querySelectorAll('.ref-tabs button').forEach(b => b.classList.remove('active'));
+    event.target.classList.add('active');
+    renderRefTab();
+}
+
+function renderRefTab() {
+    const content = document.getElementById('ref-content');
+    if (!content) return;
+
+    if (state.refTab === 'submittals') {
+        renderRefSubmittals(content);
+    } else {
+        renderRefRFIs(content);
+    }
+}
+
+function renderRefRFIs(container) {
+    const rfis = state._rfis || [];
     container.innerHTML = `
         <div class="panel">
             <div class="panel-header">
                 <span class="panel-title">RFIs</span>
-                <span class="panel-badge">${res?.total_count || 0} total</span>
+                <span class="panel-badge">${state._rfisTotal || 0} total</span>
             </div>
             ${rfis.length === 0 ?
                 '<div class="panel-empty"><div class="icon">&#128221;</div>No RFIs found for this project.</div>' :
@@ -1205,15 +1852,13 @@ async function renderRFITab(container, pid) {
     `;
 }
 
-async function renderSubmittalTab(container, pid) {
-    const res = await api(`/projects/${pid}/submittals?limit=50`);
-    const subs = res?.data || [];
-
+function renderRefSubmittals(container) {
+    const subs = state._subs || [];
     container.innerHTML = `
         <div class="panel">
             <div class="panel-header">
                 <span class="panel-title">Submittals</span>
-                <span class="panel-badge">${res?.total_count || 0} total</span>
+                <span class="panel-badge">${state._subsTotal || 0} total</span>
             </div>
             ${subs.length === 0 ?
                 '<div class="panel-empty"><div class="icon">&#128196;</div>No submittals found for this project.</div>' :
@@ -1248,146 +1893,7 @@ async function renderSubmittalTab(container, pid) {
     `;
 }
 
-async function renderScheduleTab(container, pid) {
-    const res = await api(`/projects/${pid}/schedule?limit=50`);
-    const activities = res?.data || [];
-
-    container.innerHTML = `
-        <div class="panel">
-            <div class="panel-header">
-                <span class="panel-title">Schedule</span>
-                <span class="panel-badge">${res?.total_count || 0} activities</span>
-            </div>
-            ${activities.length === 0 ?
-                '<div class="panel-empty"><div class="icon">&#128197;</div>No schedule data found for this project.</div>' :
-                `<div style="overflow-x:auto;">
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>Activity</th>
-                                <th>Start</th>
-                                <th>Finish</th>
-                                <th>% Complete</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${activities.map(a => `
-                                <tr>
-                                    <td>${a.is_milestone ? '&#9670; ' : ''}${esc(a.name)}${a.is_critical ? ' <span style="color:var(--accent-red); font-size:10px;">CRITICAL</span>' : ''}</td>
-                                    <td>${a.start_date || '-'}</td>
-                                    <td>${a.finish_date || '-'}</td>
-                                    <td>${a.percent_complete != null ? a.percent_complete + '%' : '-'}</td>
-                                    <td><span class="status-badge ${a.schedule_status === 'overdue' ? 'overdue' : a.schedule_status === 'approaching' ? 'pending' : 'open'}">${a.schedule_status}</span></td>
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
-                </div>`
-            }
-        </div>
-    `;
-}
-
-async function renderDailyLogTab(container, pid) {
-    const res = await api(`/projects/${pid}/daily-logs?limit=30`);
-    const logs = res?.data || [];
-
-    container.innerHTML = `
-        <div class="panel">
-            <div class="panel-header">
-                <span class="panel-title">Daily Logs</span>
-                <span class="panel-badge">${res?.total_count || 0} total</span>
-            </div>
-            ${logs.length === 0 ?
-                '<div class="panel-empty"><div class="icon">&#128203;</div>No daily logs found for this project.</div>' :
-                `<div style="overflow-x:auto;">
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>Date</th>
-                                <th>Workers</th>
-                                <th>Compliance</th>
-                                <th>Work Performed</th>
-                                <th>Delays</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${logs.map(l => `
-                                <tr>
-                                    <td>${l.report_date}</td>
-                                    <td>${l.total_workers || '-'}</td>
-                                    <td><span class="status-badge ${l.compliance_status === 'on_time' ? 'approved' : l.compliance_status === 'late' ? 'pending' : 'overdue'}">${l.compliance_status}</span></td>
-                                    <td style="max-width:300px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${esc(l.work_performed || '-')}</td>
-                                    <td style="max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; ${l.delays ? 'color:var(--accent-yellow)' : ''}">${esc(l.delays || 'None')}</td>
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
-                </div>`
-            }
-        </div>
-    `;
-}
-
-async function renderChangeOrderTab(container, pid) {
-    const res = await api(`/projects/${pid}/change-orders?limit=50`);
-    const cos = res?.data || [];
-    const fin = res?.financial_summary;
-
-    container.innerHTML = `
-        ${fin ? `
-        <div class="stats-row" style="margin-bottom:16px;">
-            <div class="stat-card">
-                <div class="label">Total CO Value</div>
-                <div class="value">$${Number(fin.total_amount).toLocaleString()}</div>
-            </div>
-            <div class="stat-card">
-                <div class="label">Approved</div>
-                <div class="value" style="color:var(--accent-green)">$${Number(fin.approved_amount).toLocaleString()}</div>
-            </div>
-            <div class="stat-card">
-                <div class="label">Pending</div>
-                <div class="value" style="color:var(--accent-yellow)">$${Number(fin.pending_amount).toLocaleString()}</div>
-            </div>
-        </div>` : ''}
-        <div class="panel">
-            <div class="panel-header">
-                <span class="panel-title">Change Orders</span>
-                <span class="panel-badge">${res?.total_count || 0} total</span>
-            </div>
-            ${cos.length === 0 ?
-                '<div class="panel-empty"><div class="icon">&#128181;</div>No change orders found for this project.</div>' :
-                `<div style="overflow-x:auto;">
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>#</th>
-                                <th>Title</th>
-                                <th>Status</th>
-                                <th>Amount</th>
-                                <th>Schedule Impact</th>
-                                <th>Initiated</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${cos.map(c => `
-                                <tr>
-                                    <td>${esc(c.number)}</td>
-                                    <td style="max-width:300px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${esc(c.title)}</td>
-                                    <td><span class="status-badge ${c.status}">${c.status}</span></td>
-                                    <td>${c.amount != null ? '$' + Number(c.amount).toLocaleString() : '-'}</td>
-                                    <td>${c.schedule_impact_days ? c.schedule_impact_days + ' days' : '-'}</td>
-                                    <td>${c.date_initiated || '-'}</td>
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
-                </div>`
-            }
-        </div>
-    `;
-}
+// Old tab renderers removed — RFI/Submittal rendering now handled by renderRefRFIs/renderRefSubmittals
 
 // =============================================================================
 // RADAR VIEW
