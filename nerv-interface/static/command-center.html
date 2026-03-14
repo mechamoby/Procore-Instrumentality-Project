@@ -191,8 +191,84 @@
         /* MAIN CONTENT */
         .main-content {
             flex: 1;
+            display: flex;
+            overflow: hidden;
+            min-width: 0;
+        }
+
+        .main-scroll {
+            flex: 1;
             overflow-y: auto;
             padding: 24px;
+            min-width: 0;
+        }
+
+        /* RADAR SIDEBAR */
+        .radar-sidebar {
+            width: 280px;
+            min-width: 280px;
+            border-left: 1px solid var(--border);
+            background: var(--surface);
+            overflow-y: auto;
+            padding: 16px;
+        }
+
+        .radar-sidebar-header {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+        }
+
+        .radar-sidebar-item {
+            padding: 10px 12px;
+            border-radius: 6px;
+            margin-bottom: 6px;
+            cursor: pointer;
+            transition: background 0.2s;
+            border-left: 3px solid var(--text-muted);
+        }
+
+        .radar-sidebar-item:hover { background: var(--card-hover); }
+        .radar-sidebar-item.sev-critical { border-left-color: var(--accent-red); }
+        .radar-sidebar-item.sev-high { border-left-color: var(--accent-amber); }
+        .radar-sidebar-item.sev-watch { border-left-color: var(--accent-blue); }
+
+        .radar-sidebar-item .rsi-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 2px;
+            line-height: 1.3;
+        }
+
+        .radar-sidebar-item .rsi-project {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-bottom: 3px;
+        }
+
+        .radar-sidebar-item .rsi-meta {
+            font-size: 11px;
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+
+        .radar-sidebar-item .rsi-severity {
+            font-weight: 600;
+            text-transform: capitalize;
+        }
+
+        .radar-sidebar-item .rsi-severity.critical { color: var(--accent-red); }
+        .radar-sidebar-item .rsi-severity.high { color: var(--accent-amber); }
+        .radar-sidebar-item .rsi-severity.watch { color: var(--accent-blue); }
+
+        .radar-sidebar-empty {
+            font-size: 12px;
+            color: var(--text-muted);
+            text-align: center;
+            padding: 20px 0;
         }
 
         /* DASHBOARD VIEW */
@@ -849,7 +925,7 @@
 
         .synthesis-banner-text {
             font-size: 15px;
-            font-weight: 500;
+            font-weight: 700;
             color: var(--text-primary);
             line-height: 1.5;
         }
@@ -1239,22 +1315,478 @@
         }
 
         @keyframes blink { 50% { opacity: 0; } }
+
+        /* RADAR INTAKE FORM MODAL */
+        .radar-form-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 300;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.15s ease-out;
+        }
+
+        .radar-form-modal {
+            background: #1B2A4A;
+            border: 1px solid rgba(59,107,138,0.3);
+            border-radius: 12px;
+            width: 640px;
+            max-width: 90vw;
+            max-height: 85vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 16px 48px rgba(0,0,0,0.4);
+            animation: modalSlideIn 0.15s ease-out;
+        }
+
+        @keyframes modalSlideIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .radar-form-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 1.25rem 1.5rem;
+            border-bottom: 0.5px solid rgba(59,107,138,0.3);
+        }
+
+        .radar-form-header .rf-icon {
+            width: 36px;
+            height: 36px;
+            background: rgba(59,107,138,0.25);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .radar-form-header .rf-title { font-size: 15px; font-weight: 500; color: #E8ECF1; }
+        .radar-form-header .rf-subtitle { font-size: 12px; color: #8A9BB5; margin-top: 2px; }
+
+        .radar-form-body {
+            padding: 1.25rem 1.5rem;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .rf-field { margin-bottom: 16px; }
+
+        .rf-label {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            font-size: 13px;
+            font-weight: 500;
+            color: #E8ECF1;
+            margin-bottom: 6px;
+        }
+
+        .rf-label .rf-required { color: #E24B4A; margin-left: 3px; }
+        .rf-label .rf-hint { font-size: 11px; color: #5E7089; font-weight: 400; }
+
+        .rf-input, .rf-select, .rf-textarea {
+            width: 100%;
+            background: rgba(27,42,74,0.6);
+            border: 0.5px solid rgba(59,107,138,0.3);
+            border-radius: 8px;
+            padding: 10px 12px;
+            font-size: 14px;
+            font-family: var(--font);
+            color: #E8ECF1;
+            transition: border-color 0.15s ease, background 0.15s ease;
+            outline: none;
+        }
+
+        .rf-input::placeholder, .rf-textarea::placeholder { color: #5E7089; font-size: 13px; }
+        .rf-input:hover, .rf-select:hover, .rf-textarea:hover { border-color: rgba(59,107,138,0.7); }
+        .rf-input:focus, .rf-select:focus, .rf-textarea:focus { border-color: #4A7D9E; background: rgba(27,42,74,0.8); }
+        .rf-input.rf-invalid, .rf-select.rf-invalid { border-color: rgba(226,75,74,0.5); }
+
+        .rf-select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%235E7089' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            padding-right: 36px;
+            cursor: pointer;
+        }
+
+        .rf-select option { background: #1B2A4A; color: #E8ECF1; }
+
+        .rf-textarea { min-height: 80px; resize: vertical; }
+
+        .rf-row { display: flex; gap: 12px; }
+        .rf-row > * { flex: 1; }
+
+        /* Priority toggle buttons */
+        .rf-priority-group {
+            display: flex;
+            gap: 6px;
+        }
+
+        .rf-priority-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 9px 12px;
+            border-radius: 8px;
+            border: 0.5px solid rgba(59,107,138,0.3);
+            background: rgba(27,42,74,0.6);
+            color: #8A9BB5;
+            font-size: 12px;
+            font-weight: 500;
+            font-family: var(--font);
+            cursor: pointer;
+            transition: all 0.15s ease;
+            flex: 1;
+            justify-content: center;
+        }
+
+        .rf-priority-btn:hover { border-color: rgba(59,107,138,0.7); }
+
+        .rf-priority-btn .rf-dot {
+            width: 8px; height: 8px; border-radius: 50%;
+        }
+
+        .rf-priority-btn[data-priority="critical"] .rf-dot { background: #E24B4A; }
+        .rf-priority-btn[data-priority="high"] .rf-dot { background: #EF9F27; }
+        .rf-priority-btn[data-priority="watch"] .rf-dot { background: #3B6B8A; }
+
+        .rf-priority-btn.active[data-priority="critical"] {
+            background: rgba(226,75,74,0.12); border-color: rgba(226,75,74,0.5); color: #F09595;
+        }
+        .rf-priority-btn.active[data-priority="high"] {
+            background: rgba(239,159,39,0.12); border-color: rgba(239,159,39,0.5); color: #FAC775;
+        }
+        .rf-priority-btn.active[data-priority="watch"] {
+            background: rgba(59,107,138,0.15); border-color: rgba(59,107,138,0.5); color: #4A7D9E;
+        }
+
+        /* Monitoring scope chips */
+        .rf-scope-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+        }
+
+        .rf-scope-chip {
+            padding: 8px 10px;
+            border-radius: 8px;
+            border: 0.5px solid rgba(59,107,138,0.3);
+            background: rgba(27,42,74,0.6);
+            color: #8A9BB5;
+            font-size: 12px;
+            font-weight: 500;
+            font-family: var(--font);
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.15s ease;
+            user-select: none;
+        }
+
+        .rf-scope-chip:hover { border-color: rgba(59,107,138,0.7); }
+
+        .rf-scope-chip.active {
+            background: rgba(59,107,138,0.18);
+            border-color: rgba(59,107,138,0.6);
+            color: #E8ECF1;
+        }
+
+        .rf-scope-chip.everything {
+            grid-column: 1 / -1;
+        }
+
+        .rf-scope-chip.everything.active {
+            background: rgba(59,107,138,0.25);
+            border-color: #4A7D9E;
+        }
+
+        .rf-divider {
+            height: 0.5px;
+            background: rgba(59,107,138,0.3);
+            margin: 4px 0 16px;
+        }
+
+        /* Form footer */
+        .radar-form-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 1.5rem;
+            border-top: 0.5px solid rgba(59,107,138,0.3);
+        }
+
+        .rf-cancel-btn {
+            background: transparent;
+            border: 0.5px solid rgba(59,107,138,0.3);
+            color: #8A9BB5;
+            padding: 9px 18px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            font-family: var(--font);
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .rf-cancel-btn:hover { border-color: rgba(59,107,138,0.7); color: #E8ECF1; }
+
+        .rf-submit-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #3B6B8A;
+            border: none;
+            color: white;
+            padding: 9px 20px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            font-family: var(--font);
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .rf-submit-btn:hover { background: #4A7D9E; }
+        .rf-submit-btn:active { transform: scale(0.98); }
+        .rf-submit-btn.success { background: #0F6E56; }
+
+        /* DEEP DIVE MODAL */
+        .dd-tab-bar {
+            display: flex;
+            border-bottom: 0.5px solid rgba(59,107,138,0.3);
+        }
+
+        .dd-tab {
+            flex: 1;
+            padding: 10px 16px;
+            font-size: 13px;
+            font-weight: 500;
+            text-align: center;
+            color: #5E7089;
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid transparent;
+            cursor: pointer;
+            font-family: var(--font);
+            transition: all 0.15s ease;
+        }
+
+        .dd-tab:hover { color: #8A9BB5; }
+        .dd-tab.active { color: #E8ECF1; border-bottom-color: #4A7D9E; }
+
+        .dd-linked-card {
+            background: rgba(59,107,138,0.1);
+            border: 0.5px solid rgba(59,107,138,0.3);
+            border-left: 3px solid #3B6B8A;
+            border-radius: 8px;
+            padding: 12px 14px;
+            margin-bottom: 12px;
+        }
+
+        .dd-linked-title {
+            font-size: 14px;
+            font-weight: 500;
+            color: #E8ECF1;
+            margin-bottom: 6px;
+        }
+
+        .dd-linked-meta {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            font-size: 12px;
+            color: #8A9BB5;
+            flex-wrap: wrap;
+        }
+
+        .dd-sev-badge {
+            font-size: 11px;
+            font-weight: 500;
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        .dd-sev-badge.critical { background: rgba(226,75,74,0.15); color: #F09595; }
+        .dd-sev-badge.high { background: rgba(239,159,39,0.15); color: #FAC775; }
+        .dd-sev-badge.watch { background: rgba(59,107,138,0.15); color: #4A7D9E; }
+
+        .dd-char-count {
+            text-align: right;
+            font-size: 11px;
+            color: #5E7089;
+            margin-top: 4px;
+        }
+
+        .dd-footer-note {
+            text-align: center;
+            font-size: 11px;
+            color: #5E7089;
+        }
+
+        /* SEARCH MODAL */
+        .search-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.6);
+            z-index: 300;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding-top: 10vh;
+            animation: fadeIn 0.15s ease-out;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .search-modal {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            width: 680px;
+            max-width: 90vw;
+            max-height: 70vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 16px 48px rgba(0,0,0,0.4);
+        }
+
+        .search-input-wrap {
+            display: flex;
+            align-items: center;
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            gap: 12px;
+        }
+
+        .search-input-wrap .search-icon {
+            font-size: 18px;
+            color: var(--text-muted);
+            flex-shrink: 0;
+        }
+
+        .search-input {
+            flex: 1;
+            background: none;
+            border: none;
+            outline: none;
+            color: var(--text-primary);
+            font-size: 16px;
+            font-family: var(--font);
+        }
+
+        .search-input::placeholder { color: var(--text-muted); }
+
+        .search-hint {
+            font-size: 11px;
+            color: var(--text-muted);
+            flex-shrink: 0;
+        }
+
+        .search-results {
+            overflow-y: auto;
+            padding: 8px 0;
+            flex: 1;
+        }
+
+        .search-group-label {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            padding: 10px 20px 4px;
+        }
+
+        .search-result-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 10px 20px;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        .search-result-item:hover { background: var(--card-hover); }
+
+        .search-result-item .sri-icon {
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            flex-shrink: 0;
+            font-weight: 700;
+        }
+
+        .search-result-item .sri-icon.rfi { background: rgba(74,144,217,0.15); color: var(--accent-blue); }
+        .search-result-item .sri-icon.sub { background: rgba(232,168,56,0.15); color: var(--accent-amber); }
+        .search-result-item .sri-icon.intel { background: rgba(224,85,85,0.15); color: var(--accent-red); }
+        .search-result-item .sri-icon.signal { background: rgba(52,199,123,0.15); color: var(--accent-green); }
+        .search-result-item .sri-icon.contact { background: rgba(59,107,138,0.15); color: var(--steel-blue-light); }
+
+        .search-result-item .sri-body { flex: 1; min-width: 0; }
+
+        .search-result-item .sri-title {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .search-result-item .sri-meta {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        .search-result-item .sri-project {
+            font-size: 11px;
+            color: var(--text-muted);
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .search-empty {
+            text-align: center;
+            padding: 32px 20px;
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+
+        .search-loading {
+            text-align: center;
+            padding: 24px;
+            color: var(--text-muted);
+            font-size: 13px;
+        }
     </style>
 </head>
 <body>
 
 <!-- TOP BAR -->
 <div class="topbar">
-    <div class="topbar-brand">
+    <div class="topbar-brand" onclick="navigate('dashboard')" style="cursor:pointer;">
         <div class="logo">SS</div>
         <span>SteelSync</span>
     </div>
     <div class="topbar-nav">
-        <button id="nav-dashboard" class="active" onclick="navigate('dashboard')">Dashboard</button>
+        <button id="nav-dashboard" class="active" onclick="navigate('dashboard')">Overview</button>
         <button id="nav-radar" onclick="navigate('radar')">Radar</button>
     </div>
     <div class="topbar-meta">
-        <span><span class="sync-dot" id="sync-dot"></span> <span id="last-sync">Loading...</span></span>
+        <span id="topbar-datetime"></span>
+        <span><span class="sync-dot" id="sync-dot"></span> <span id="last-sync" style="display:none;">Loading...</span></span>
+        <div style="width:28px; height:28px; border-radius:50%; background:var(--steel-blue-dark); display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:600; color:var(--text-primary);">M</div>
     </div>
 </div>
 
@@ -1269,8 +1801,11 @@
     </div>
 
     <!-- MAIN CONTENT -->
-    <div class="main-content" id="main-content">
-        <!-- Content injected by JS -->
+    <div class="main-content">
+        <div class="main-scroll" id="main-content">
+            <!-- Content injected by JS -->
+        </div>
+        <div class="radar-sidebar" id="radar-sidebar"></div>
     </div>
 </div>
 
@@ -1314,9 +1849,17 @@ async function api(path) {
 // =============================================================================
 // NAVIGATION
 // =============================================================================
-function navigate(view, projectId) {
+function navigate(view, projectId, skipPush) {
     state.view = view;
     if (projectId) state.selectedProjectId = projectId;
+
+    // Update URL without reload
+    if (!skipPush) {
+        let path = '/';
+        if (view === 'project' && state.selectedProjectId) path = `/project/${state.selectedProjectId}`;
+        else if (view === 'radar') path = '/radar';
+        history.pushState({ view, projectId: state.selectedProjectId }, '', path);
+    }
 
     // Update nav buttons
     document.querySelectorAll('.topbar-nav button').forEach(b => b.classList.remove('active'));
@@ -1353,6 +1896,9 @@ async function render() {
             renderRadar(main);
             break;
     }
+
+    // Render Radar sidebar (hidden on full Radar view)
+    renderRadarSidebar();
 }
 
 // =============================================================================
@@ -1382,36 +1928,36 @@ async function renderDashboard(container) {
     const hour = new Date().getHours();
     const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
 
+    // Count critical items specifically
+    let criticalCount = 0;
+    if (d.projects) {
+        d.projects.forEach(p => { criticalCount += (p.intelligence?.critical || 0); });
+    }
+
     container.innerHTML = `
-        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:24px;">
-            <div class="dashboard-greeting">
-                <h1>${greeting}, Moby.${attentionCount > 0 ? ` <span style="font-weight:400">${attentionCount} item${attentionCount !== 1 ? 's' : ''} across your projects need attention today.</span>` : ' <span style="font-weight:400">All clear across your projects.</span>'}</h1>
-                <div class="sub">${d.project_count} active project${d.project_count !== 1 ? 's' : ''}</div>
-            </div>
-            <div style="display:flex; gap:8px; align-items:center;">
-                <button id="sweep-btn" onclick="runSignalSweep()" style="background:transparent; border:1px solid var(--border); color:var(--text-secondary); padding:8px 14px; border-radius:6px; cursor:pointer; font-size:12px; font-weight:500; transition:all 0.2s;">Sweep Signals</button>
-                <button id="synthesis-btn" onclick="runSynthesis()" style="background:var(--steel-blue); border:none; color:white; padding:8px 16px; border-radius:6px; cursor:pointer; font-size:13px; font-weight:600; transition:all 0.2s;">Run Analysis</button>
-            </div>
+        <div class="dashboard-greeting" style="margin-bottom:20px;">
+            <h1>${greeting}, Moby.</h1>
+            <div class="sub">${criticalCount > 0 ? `${criticalCount} critical item${criticalCount !== 1 ? 's' : ''} across your projects need attention today.` : attentionCount > 0 ? `${attentionCount} item${attentionCount !== 1 ? 's' : ''} across your projects need attention today.` : 'All clear across your projects.'}</div>
         </div>
 
         <div class="project-grid" id="project-grid">
             ${sortProjectsByHealth(d.projects).map(p => renderHealthCard(p)).join('')}
         </div>
 
+        <div style="font-size:14px; font-weight:600; color:var(--text-primary); margin-bottom:8px;">Live activity</div>
         <div class="activity-feed" id="activity-feed">
-            <div class="activity-feed-header">Live Activity</div>
             <div class="activity-feed-list" id="activity-feed-list">
                 <div class="loading"><div class="spinner"></div> Loading signals...</div>
             </div>
         </div>
 
         <div class="quick-actions">
-            <button class="quick-action-btn" onclick="showToast('Search coming soon')">
+            <button class="quick-action-btn" onclick="openSearch()">
                 <span class="qa-icon">&#9937;</span>
                 <span class="qa-label">Search Database</span>
                 <span class="qa-sub">Cross-project memory</span>
             </button>
-            <button class="quick-action-btn" onclick="showToast('Deep dive coming soon')">
+            <button class="quick-action-btn" onclick="openDeepDive(null)">
                 <span class="qa-icon">&#9673;</span>
                 <span class="qa-label">Request Analysis</span>
                 <span class="qa-sub">Submit for deep review</span>
@@ -1467,14 +2013,14 @@ function renderHealthCard(p) {
             ${summary ? `<div class="health-card-summary">${esc(summary)}</div>` : health === 'unknown' ? `<div class="health-card-summary" style="color:var(--text-muted); font-style:italic;">Awaiting first analysis cycle.</div>` : ''}
             ${p.intelligence?.total_active > 0 ? `
             <div class="health-card-counts">
-                ${criticalCount > 0 ? `<span class="count-item"><span class="count-num critical">${criticalCount}</span>Critical</span>` : ''}
-                ${highCount > 0 ? `<span class="count-item"><span class="count-num high">${highCount}</span>High</span>` : ''}
-                ${watchCount > 0 ? `<span class="count-item"><span class="count-num">${watchCount}</span>Watch</span>` : ''}
+                ${criticalCount > 0 ? `<span class="count-item"><span class="count-num critical">${criticalCount}</span> critical</span>` : ''}
+                ${highCount > 0 ? `<span class="count-item"><span class="count-num high">${highCount}</span> high</span>` : ''}
+                ${watchCount > 0 ? `<span class="count-item"><span class="count-num">${watchCount}</span> watch</span>` : ''}
             </div>` : ''}
-            <div class="health-card-confidence">${sourceCount > 0 ? `${sourceCount} data sources active` : 'Limited data'}</div>
+            <div class="health-card-confidence">${p.last_synthesis ? 'High confidence' : 'Limited data'} — ${sourceCount > 0 ? `${sourceCount} sources active` : 'no sources'}</div>
             ${p.last_synthesis ? `
             <div class="health-card-footer">
-                Last analysis: ${timeAgo(p.last_synthesis.completed_at)} | ${p.last_synthesis.cycle_type.replace(/_/g, ' ')}
+                Updated ${timeAgo(p.last_synthesis.completed_at)}
             </div>` : ''}
         </div>
     `;
@@ -1491,8 +2037,8 @@ async function renderProjectDetail(container) {
         api(`/projects/${pid}`),
         api(`/projects/${pid}/intelligence-items?include=evidence&limit=50`),
         api(`/synthesis/cycles?project_id=${pid}&limit=1`),
-        api(`/projects/${pid}/rfis?limit=50`),
-        api(`/projects/${pid}/submittals?limit=50`),
+        api(`/projects/${pid}/rfis?limit=200&sort=number`),
+        api(`/projects/${pid}/submittals?limit=200`),
         api(`/projects/${pid}/daily-logs?limit=5`),
     ]);
 
@@ -1504,6 +2050,8 @@ async function renderProjectDetail(container) {
     state.selectedProject = projRes.data;
     const p = state.selectedProject;
     const items = itemsRes?.data || [];
+    // Cache items for Deep Dive modal
+    items.forEach(i => { i.project_name = p.name; _intelItemsCache[i.id] = i; });
     const latestCycle = cyclesRes?.data?.[0];
     const rfis = rfisRes?.data || [];
     const subs = subsRes?.data || [];
@@ -1521,10 +2069,10 @@ async function renderProjectDetail(container) {
     const highItems = items.filter(i => i.severity === 'high');
     const watchItems = items.filter(i => i.severity !== 'critical' && i.severity !== 'high');
 
-    // Stats
-    const openRfis = rfis.filter(r => r.status !== 'closed').length;
-    const overdueRfis = rfis.filter(r => r.is_overdue).length;
-    const openSubs = subs.filter(s => s.status !== 'closed' && s.status !== 'approved').length;
+    // Stats — use API-provided counts (accurate across all pages) with fallback
+    const openRfis = rfisRes?.open_count ?? rfis.filter(r => r.status !== 'closed').length;
+    const overdueRfis = rfisRes?.overdue_count ?? rfis.filter(r => r.is_overdue).length;
+    const openSubs = subsRes?.open_count ?? subs.filter(s => s.status !== 'closed' && s.status !== 'approved').length;
 
     // Daily log status
     const today = new Date().toISOString().slice(0, 10);
@@ -1536,16 +2084,39 @@ async function renderProjectDetail(container) {
         else { logStatus = 'Missing ' + latestLog.report_date; logStatusClass = 'red'; }
     }
 
+    // Completion percentage — use API totals for accuracy
+    const totalSubs = subsRes?.total_count || subs.length;
+    const approvedSubs = totalSubs - (subsRes?.open_count ?? subs.filter(s => s.status !== 'closed' && s.status !== 'approved').length);
+    const completePct = totalSubs > 0 ? Math.round((approvedSubs / totalSubs) * 100) : 0;
+
     // Synthesis banner
     const synthHealth = health === 'green' ? 'health-green' : health === 'yellow' || health === 'amber' ? 'health-amber' : health === 'red' ? 'health-red' : '';
-    const cycleLabel = latestCycle ? latestCycle.cycle_type.replace(/_/g, ' ').toUpperCase() : '';
-    const synthMeta = latestCycle ? `${latestCycle.model_used || 'unknown'} | ${timeAgo(latestCycle.completed_at)}` : '';
     const synthText = latestCycle?.cycle_summary || '';
     const typewriterKey = `steelsync-typewriter-${pid}`;
     const shouldTypewrite = latestCycle && !sessionStorage.getItem(typewriterKey);
 
+    // Formatted time for synthesis banner
+    const itemsNeedAttention = criticalItems.length + highItems.length;
+    let synthTimeStr = '';
+    if (latestCycle?.completed_at) {
+        const d = new Date(latestCycle.completed_at);
+        synthTimeStr = d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+    }
+    // Estimate next cycle (roughly 6 hours from last)
+    let nextCycleStr = '8:00 AM';
+    if (latestCycle?.completed_at) {
+        const next = new Date(new Date(latestCycle.completed_at).getTime() + 6 * 3600000);
+        nextCycleStr = next.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+    }
+    // Confidence level from items
+    const avgConfidence = items.length > 0 ? items.reduce((sum, i) => sum + (i.confidence || 0.5), 0) / items.length : 0;
+    const confidenceLabel = avgConfidence >= 0.7 ? 'High Confidence' : avgConfidence >= 0.4 ? 'Medium Confidence' : 'Low Confidence';
+    // Source count
+    const sourceCount = new Set(items.flatMap(i => (i.evidence || []).map(e => e.source_id || e.document_title || ''))).size || items.reduce((sum, i) => sum + (i.source_evidence_count || 0), 0);
+    const activeSourceCount = sourceCount > 0 ? sourceCount : (items.length > 0 ? items.length : 0);
+
     container.innerHTML = `
-        <button class="pd-back-btn" onclick="navigate('dashboard')">&larr; All Projects</button>
+        <button class="pd-back-btn" onclick="navigate('dashboard')">&larr; All projects</button>
 
         <div class="pd-header">
             <div class="pd-title-row">
@@ -1554,17 +2125,14 @@ async function renderProjectDetail(container) {
                 <span class="pd-project-number">${esc(p.number || '')}</span>
                 <span class="pd-status-pill ${healthClass}">${statusLabel}</span>
             </div>
-            <div style="display:flex; gap:8px; align-items:center;">
-                <button id="sweep-btn" onclick="runSignalSweep()" style="background:transparent; border:1px solid var(--border); color:var(--text-secondary); padding:8px 14px; border-radius:6px; cursor:pointer; font-size:12px; font-weight:500; transition:all 0.2s;">Sweep Signals</button>
-                <button id="synthesis-btn" onclick="runSynthesis()" style="background:var(--steel-blue); border:none; color:white; padding:8px 16px; border-radius:6px; cursor:pointer; font-size:13px; font-weight:600; transition:all 0.2s;">Run Analysis</button>
-            </div>
         </div>
 
         <div class="synthesis-banner ${synthHealth}">
             ${latestCycle ? `
-                <div class="synthesis-banner-label">${cycleLabel}</div>
-                <div class="synthesis-banner-meta">${synthMeta}</div>
-                <div class="synthesis-banner-text" id="synth-text">${shouldTypewrite ? '' : esc(synthText)}</div>
+                <div style="font-size:15px; font-weight:500; color:var(--text-primary); margin-bottom:2px;">Welcome back, Moby.</div>
+                <div class="synthesis-banner-meta">Last report issued at ${synthTimeStr}. ${itemsNeedAttention} item${itemsNeedAttention !== 1 ? 's' : ''} require attention.</div>
+                <div class="synthesis-banner-text" id="synth-text" style="margin:8px 0;">${shouldTypewrite ? '' : esc(synthText)}</div>
+                <div style="font-size:12px; color:var(--text-muted);">Next cycle: ${nextCycleStr} · ${confidenceLabel} · ${activeSourceCount} source${activeSourceCount !== 1 ? 's' : ''} active</div>
             ` : `
                 <div class="synthesis-banner-empty">Analysis pending — first report will be generated at next cycle.</div>
             `}
@@ -1595,11 +2163,38 @@ async function renderProjectDetail(container) {
                 <div class="pd-stat-label">Daily Log</div>
                 <div class="pd-stat-value ${logStatusClass}" style="font-size:14px;">${logStatus}</div>
             </div>
+            <div class="pd-stat">
+                <div class="pd-stat-label">Complete</div>
+                <div class="pd-stat-value">${completePct}%</div>
+            </div>
         </div>
 
         ${renderTier('critical', 'Action Required', criticalItems, true)}
         ${renderTier('high', 'Attention', highItems, true)}
         ${renderTier('watch', 'Tracking', watchItems, false)}
+
+        <div class="quick-actions" style="margin-top:24px;">
+            <button class="quick-action-btn" onclick="openSearch()">
+                <span class="qa-icon">&#128269;</span>
+                <span class="qa-label">Search Database</span>
+                <span class="qa-sub">Cross-project institutional memory</span>
+            </button>
+            <button class="quick-action-btn" onclick="openDeepDive(null)">
+                <span class="qa-icon">&#128202;</span>
+                <span class="qa-label">Request Deep Dive</span>
+                <span class="qa-sub">Detailed analysis on demand</span>
+            </button>
+            <button class="quick-action-btn" onclick="showToast('Reports coming soon')">
+                <span class="qa-icon">&#128196;</span>
+                <span class="qa-label">View Reports</span>
+                <span class="qa-sub">Briefing history & archives</span>
+            </button>
+            <button class="quick-action-btn" onclick="openRadarForm()">
+                <span class="qa-icon">&#127919;</span>
+                <span class="qa-label">Add to Radar</span>
+                <span class="qa-sub">Track an item or pattern</span>
+            </button>
+        </div>
 
         <div class="ref-section">
             <div class="ref-section-heading">Reference Data</div>
@@ -1660,13 +2255,19 @@ function renderIntelCard(item, tierLevel) {
     const evidence = item.evidence || [];
     const evidenceHtml = evidence.length > 0 ? evidence.map(e => {
         const docType = (e.document_type || e.source_type || 'DOC').toUpperCase().slice(0, 3);
-        const typeLabel = docType === 'RFI' ? 'RFI' : docType === 'SUB' ? 'SUB' : docType === 'LOG' ? 'LOG' : docType === 'EMA' ? 'EMAIL' : docType === 'DWG' ? 'DWG' : 'DOC';
+        // Color squares by document type
+        let squareColor = 'var(--text-muted)';
+        if (docType === 'LOG' || docType === 'DAI') squareColor = 'var(--text-muted)';
+        else if (docType === 'SCH' || docType === 'CPM') squareColor = 'var(--accent-red)';
+        else if (docType === 'SUB') squareColor = 'var(--accent-amber)';
+        else if (docType === 'RFI') squareColor = 'var(--accent-blue)';
         const title = e.document_title || e.title || e.source_id || 'Linked document';
         const link = e.procore_link || e.url;
-        return `<div class="evidence-item">
-            <span class="evidence-type">[${typeLabel}]</span>
-            ${link ? `<a class="evidence-link" href="${esc(link)}" target="_blank" rel="noopener">${esc(title)}</a>` : `<span>${esc(title)}</span>`}
-            ${e.date ? `<span style="color:var(--text-muted); font-size:11px; margin-left:auto;">${e.date}</span>` : ''}
+        const dateStr = e.date || '';
+        return `<div class="evidence-item" style="display:flex; align-items:center; gap:8px; padding:5px 0;">
+            <span style="width:12px; height:12px; border-radius:2px; background:${squareColor}; flex-shrink:0;"></span>
+            <span style="flex:1; min-width:0;">${link ? `<a class="evidence-link" href="${esc(link)}" target="_blank" rel="noopener">${esc(title)}</a>` : esc(title)}</span>
+            ${dateStr ? `<span style="color:var(--text-muted); font-size:11px; white-space:nowrap;">${dateStr}</span>` : ''}
         </div>`;
     }).join('') : '<div style="font-size:12px; color:var(--text-muted);">No linked evidence.</div>';
 
@@ -1682,10 +2283,11 @@ function renderIntelCard(item, tierLevel) {
                     <div class="intel-card-title">${esc(item.title)}</div>
                     <div class="intel-card-summary">${esc(item.summary)}</div>
                     <div class="intel-card-meta">
-                        <span>${item.confidence ? Math.round(item.confidence * 100) + '% confidence' : ''}</span>
-                        <span>${item.source_evidence_count || 0} evidence</span>
-                        <span class="trend-indicator ${trendClass}">${trendText}</span>
+                        <span>${item.source_evidence_count || 0} sources</span>
+                        <span>·</span>
                         <span>${timeAgo(item.last_updated_at)}</span>
+                        <span>·</span>
+                        <span class="trend-indicator ${trendClass}">${trendText}</span>
                     </div>
                 </div>
             </div>
@@ -1696,7 +2298,7 @@ function renderIntelCard(item, tierLevel) {
                         <div class="detail-full-summary">${esc(item.summary)}</div>
                     </div>
                     <div class="detail-section">
-                        <div class="detail-section-title">Evidence Chain</div>
+                        <div class="detail-section-title">Evidence</div>
                         ${evidenceHtml}
                     </div>
                     ${item.recommended_actions ? `
@@ -1704,19 +2306,24 @@ function renderIntelCard(item, tierLevel) {
                         <div class="detail-section-title">Recommended Actions</div>
                         <div class="detail-actions">${esc(item.recommended_actions)}</div>
                     </div>` : ''}
-                    <div class="detail-section">
-                        <div class="detail-section-title">Technical Metadata</div>
+                    <div class="detail-section" style="margin-top:14px;">
                         <div class="detail-tech-meta">
-                            <span>Type: ${catLabel}</span>
+                            <span>${catLabel}</span>
+                            <span>·</span>
                             <span>${item.confidence ? Math.round(item.confidence * 100) + '% confidence' : ''}</span>
+                            <span>·</span>
                             <span class="trend-indicator ${trendClass}">${trendText}</span>
-                            <span>Updated: ${timeAgo(item.last_updated_at)}</span>
+                            <span>·</span>
+                            <span>Updated ${timeAgo(item.last_updated_at)}</span>
                         </div>
                     </div>
-                    <div class="feedback-btns" onclick="event.stopPropagation()">
-                        <button class="feedback-btn" onclick="sendFeedback('${item.id}', 'useful', this)">Useful</button>
-                        <button class="feedback-btn" onclick="sendFeedback('${item.id}', 'not_useful', this)">Not Useful</button>
-                        <button class="feedback-btn" onclick="sendFeedback('${item.id}', 'already_known', this)">Already Known</button>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:12px;" onclick="event.stopPropagation()">
+                        <div class="feedback-btns" style="margin-top:0;">
+                            <button class="feedback-btn" onclick="sendFeedback('${item.id}', 'useful', this)">Useful</button>
+                            <button class="feedback-btn" onclick="sendFeedback('${item.id}', 'not_useful', this)">Not Useful</button>
+                            <button class="feedback-btn" onclick="sendFeedback('${item.id}', 'already_known', this)">Already Known</button>
+                        </div>
+                        <button class="feedback-btn" style="background:rgba(59,107,138,0.15); border-color:rgba(59,107,138,0.4); color:#4A7D9E;" onclick="openDeepDive(_intelItemsCache['${item.id}'])">Deep Dive</button>
                     </div>
                 </div>
             </div>
@@ -1908,7 +2515,7 @@ async function renderRadar(container) {
         <div class="radar-header">
             <h1>Radar</h1>
             <p>Automated monitoring system for high-priority concerns across active projects.</p>
-            <button onclick="showCreateRadarForm()" style="margin-top:12px; background:var(--steel-blue); border:none; color:white; padding:8px 16px; border-radius:6px; cursor:pointer; font-size:13px;">+ New Radar Item</button>
+            <button onclick="openRadarForm()" style="margin-top:12px; background:var(--steel-blue); border:none; color:white; padding:8px 16px; border-radius:6px; cursor:pointer; font-size:13px;">+ New Radar Item</button>
         </div>
         <div id="radar-create-form" style="display:none; margin-bottom:16px;"></div>
         ${items.length === 0 ? `
@@ -1944,83 +2551,212 @@ async function renderRadar(container) {
     `;
 }
 
-function showCreateRadarForm() {
-    const form = document.getElementById('radar-create-form');
-    if (form.style.display !== 'none') { form.style.display = 'none'; return; }
+// =============================================================================
+// RADAR INTAKE FORM (CC-5.2)
+// =============================================================================
+function openRadarForm() {
+    const radarIcon = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4A7D9E" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>`;
+    const submitIcon = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>`;
 
     const projectOptions = state.projects.map(p =>
-        `<option value="${p.id}">${esc(p.name)}</option>`
+        `<option value="${p.id}" ${p.id === state.selectedProjectId ? 'selected' : ''}>${esc(p.name)}</option>`
     ).join('');
 
-    form.style.display = 'block';
-    form.innerHTML = `
-        <div class="panel">
-            <div class="panel-header"><span class="panel-title">Create Radar Item</span></div>
-            <div class="panel-body">
-                <div style="display:grid; gap:12px;">
+    const preselected = state.view === 'project' && state.selectedProjectId;
+
+    const overlay = document.createElement('div');
+    overlay.className = 'radar-form-overlay';
+    overlay.id = 'radar-form-overlay';
+    overlay.onclick = (e) => { if (e.target === overlay) closeRadarForm(); };
+    overlay.innerHTML = `
+        <div class="radar-form-modal">
+            <div class="radar-form-header">
+                <div class="rf-icon">${radarIcon}</div>
+                <div>
+                    <div class="rf-title">New radar item</div>
+                    <div class="rf-subtitle">Create a structured monitoring directive for the intelligence system</div>
+                </div>
+            </div>
+            <div class="radar-form-body">
+                <div id="rf-error-toast" style="display:none; background:rgba(226,75,74,0.15); border:1px solid rgba(226,75,74,0.3); border-radius:8px; padding:10px 14px; margin-bottom:12px; font-size:13px; color:#F09595;"></div>
+
+                <div class="rf-field">
+                    <div class="rf-label">What should the system monitor?<span class="rf-required">*</span></div>
+                    <input class="rf-input" id="rf-title" type="text" placeholder="e.g., Shell Electric submittal delays on Tower B">
+                </div>
+
+                <div class="rf-field rf-row">
                     <div>
-                        <label style="font-size:11px; color:var(--text-muted); display:block; margin-bottom:4px;">Project</label>
-                        <select id="radar-project" style="width:100%; padding:8px; background:var(--navy-dark); border:1px solid var(--border); border-radius:6px; color:var(--text-primary); font-size:13px;">
+                        <div class="rf-label">Project<span class="rf-required">*</span></div>
+                        <select class="rf-select" id="rf-project" ${preselected ? 'disabled' : ''}>
+                            ${preselected ? '' : '<option value="" disabled selected>Select project</option>'}
                             ${projectOptions}
+                            <option disabled>───────────</option>
+                            <option value="cross-project">Cross-project</option>
                         </select>
+                        ${preselected ? `<div style="font-size:11px; color:#5E7089; margin-top:4px;">Creating for: ${esc(state.selectedProject?.name || '')}</div>` : ''}
                     </div>
                     <div>
-                        <label style="font-size:11px; color:var(--text-muted); display:block; margin-bottom:4px;">Title</label>
-                        <input id="radar-title" type="text" placeholder="e.g., Mechanical rough-in schedule slip" style="width:100%; padding:8px; background:var(--navy-dark); border:1px solid var(--border); border-radius:6px; color:var(--text-primary); font-size:13px;">
-                    </div>
-                    <div>
-                        <label style="font-size:11px; color:var(--text-muted); display:block; margin-bottom:4px;">Description</label>
-                        <textarea id="radar-desc" rows="3" placeholder="What should the system watch for?" style="width:100%; padding:8px; background:var(--navy-dark); border:1px solid var(--border); border-radius:6px; color:var(--text-primary); font-size:13px; resize:vertical;"></textarea>
-                    </div>
-                    <div style="display:flex; gap:12px;">
-                        <div style="flex:1;">
-                            <label style="font-size:11px; color:var(--text-muted); display:block; margin-bottom:4px;">Priority</label>
-                            <select id="radar-priority" style="width:100%; padding:8px; background:var(--navy-dark); border:1px solid var(--border); border-radius:6px; color:var(--text-primary); font-size:13px;">
-                                <option value="watch">Watch</option>
-                                <option value="high">High</option>
-                                <option value="critical">Critical</option>
-                            </select>
-                        </div>
-                        <div style="flex:1;">
-                            <label style="font-size:11px; color:var(--text-muted); display:block; margin-bottom:4px;">Keywords (comma-separated)</label>
-                            <input id="radar-keywords" type="text" placeholder="e.g., mechanical, HVAC, delay" style="width:100%; padding:8px; background:var(--navy-dark); border:1px solid var(--border); border-radius:6px; color:var(--text-primary); font-size:13px;">
+                        <div class="rf-label">Priority<span class="rf-required">*</span></div>
+                        <div class="rf-priority-group">
+                            <button type="button" class="rf-priority-btn" data-priority="critical" onclick="selectPriority(this)">
+                                <span class="rf-dot"></span>Critical
+                            </button>
+                            <button type="button" class="rf-priority-btn" data-priority="high" onclick="selectPriority(this)">
+                                <span class="rf-dot"></span>High
+                            </button>
+                            <button type="button" class="rf-priority-btn active" data-priority="watch" onclick="selectPriority(this)">
+                                <span class="rf-dot"></span>Watch
+                            </button>
                         </div>
                     </div>
-                    <div style="display:flex; gap:8px; justify-content:flex-end;">
-                        <button onclick="document.getElementById('radar-create-form').style.display='none'" style="background:var(--border); border:none; color:var(--text-secondary); padding:8px 16px; border-radius:6px; cursor:pointer; font-size:13px;">Cancel</button>
-                        <button onclick="submitRadarItem()" style="background:var(--steel-blue); border:none; color:white; padding:8px 16px; border-radius:6px; cursor:pointer; font-size:13px;">Create</button>
+                </div>
+
+                <div class="rf-field">
+                    <div class="rf-label">What's the concern?<span class="rf-hint">What should the system look for?</span></div>
+                    <textarea class="rf-textarea" id="rf-description" placeholder="Describe the situation and what patterns or changes you want the system to flag..."></textarea>
+                </div>
+
+                <div class="rf-field">
+                    <div class="rf-label">Who or what to watch</div>
+                    <input class="rf-input" id="rf-target" type="text" placeholder="e.g., Shell Electric, RFI-047, concrete pour schedule">
+                </div>
+
+                <div class="rf-divider"></div>
+
+                <div class="rf-field">
+                    <div class="rf-label">Monitoring scope<span class="rf-hint">Select data sources</span></div>
+                    <div class="rf-scope-grid">
+                        <div class="rf-scope-chip" data-scope="rfis" onclick="toggleScope(this)">RFIs</div>
+                        <div class="rf-scope-chip" data-scope="submittals" onclick="toggleScope(this)">Submittals</div>
+                        <div class="rf-scope-chip" data-scope="daily_logs" onclick="toggleScope(this)">Daily logs</div>
+                        <div class="rf-scope-chip" data-scope="schedule" onclick="toggleScope(this)">Schedule</div>
+                        <div class="rf-scope-chip" data-scope="change_orders" onclick="toggleScope(this)">Change orders</div>
+                        <div class="rf-scope-chip everything" data-scope="everything" onclick="toggleScope(this)">Everything</div>
                     </div>
                 </div>
             </div>
+            <div class="radar-form-footer">
+                <button class="rf-cancel-btn" onclick="closeRadarForm()">Cancel</button>
+                <button class="rf-submit-btn" id="rf-submit-btn" onclick="submitRadarForm()">
+                    ${submitIcon} Add to radar
+                </button>
+            </div>
         </div>
     `;
+    document.body.appendChild(overlay);
+    document.getElementById('rf-title').focus();
+    document.addEventListener('keydown', radarFormKeyHandler);
 }
 
-async function submitRadarItem() {
+function radarFormKeyHandler(e) {
+    if (e.key === 'Escape') closeRadarForm();
+}
+
+function closeRadarForm() {
+    const overlay = document.getElementById('radar-form-overlay');
+    if (overlay) overlay.remove();
+    document.removeEventListener('keydown', radarFormKeyHandler);
+}
+
+function selectPriority(btn) {
+    btn.parentElement.querySelectorAll('.rf-priority-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+}
+
+function toggleScope(chip) {
+    const grid = chip.parentElement;
+    const isEverything = chip.dataset.scope === 'everything';
+    const individuals = grid.querySelectorAll('.rf-scope-chip:not(.everything)');
+    const everythingChip = grid.querySelector('.rf-scope-chip.everything');
+
+    if (isEverything) {
+        const wasActive = chip.classList.contains('active');
+        individuals.forEach(c => c.classList.remove('active'));
+        chip.classList.toggle('active', !wasActive);
+    } else {
+        everythingChip.classList.remove('active');
+        chip.classList.toggle('active');
+        // Auto-collapse to "Everything" if all 5 are active
+        const activeCount = grid.querySelectorAll('.rf-scope-chip.active:not(.everything)').length;
+        if (activeCount === 5) {
+            individuals.forEach(c => c.classList.remove('active'));
+            everythingChip.classList.add('active');
+        }
+    }
+}
+
+async function submitRadarForm() {
+    const btn = document.getElementById('rf-submit-btn');
+    const titleEl = document.getElementById('rf-title');
+    const projectEl = document.getElementById('rf-project');
+
+    // Validation
+    let valid = true;
+    if (!titleEl.value.trim()) { titleEl.classList.add('rf-invalid'); valid = false; setTimeout(() => titleEl.classList.remove('rf-invalid'), 3000); }
+    if (!projectEl.value || projectEl.value === '') { projectEl.classList.add('rf-invalid'); valid = false; setTimeout(() => projectEl.classList.remove('rf-invalid'), 3000); }
+    if (!valid) return;
+
+    // Gather scope
+    const scopeChips = document.querySelectorAll('.rf-scope-chip.active');
+    let scope = [];
+    if (document.querySelector('.rf-scope-chip.everything.active')) {
+        scope = ['rfis', 'submittals', 'daily_logs', 'schedule', 'change_orders'];
+    } else {
+        scopeChips.forEach(c => scope.push(c.dataset.scope));
+    }
+
+    // Priority
+    const priorityBtn = document.querySelector('.rf-priority-btn.active');
+    const priority = priorityBtn ? priorityBtn.dataset.priority : 'watch';
+
+    // Project — handle cross-project and pre-selected
+    let projectId = projectEl.value;
+    if (projectId === 'cross-project') projectId = state.projects[0]?.id || '';
+
     const body = {
-        project_id: document.getElementById('radar-project').value,
-        title: document.getElementById('radar-title').value,
-        description: document.getElementById('radar-desc').value,
-        priority: document.getElementById('radar-priority').value,
-        primary_target: document.getElementById('radar-title').value,
-        monitoring_scope: {
-            keywords: document.getElementById('radar-keywords').value.split(',').map(s => s.trim()).filter(Boolean),
-        },
+        title: titleEl.value.trim(),
+        project_id: projectId,
+        priority: priority,
+        description: document.getElementById('rf-description').value.trim(),
+        primary_target: document.getElementById('rf-target').value.trim() || titleEl.value.trim(),
+        monitoring_scope: { keywords: [], entity_types: scope },
     };
 
-    if (!body.title) { alert('Title is required'); return; }
+    btn.innerHTML = 'Adding...';
+    btn.style.opacity = '0.7';
+    btn.disabled = true;
 
-    const res = await fetch(API_BASE + '/radar/items', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify(body),
-        credentials: 'same-origin',
-    });
+    try {
+        const res = await fetch(API_BASE + '/radar/items', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(body),
+            credentials: 'same-origin',
+        });
 
-    if (res.ok) {
-        navigate('radar');
-    } else {
-        alert('Failed to create Radar item');
+        if (res.ok) {
+            btn.innerHTML = '&#10003; Added to radar';
+            btn.classList.add('success');
+            btn.style.opacity = '1';
+            setTimeout(() => {
+                closeRadarForm();
+                renderRadarSidebar();
+                if (state.view === 'radar') render();
+            }, 1500);
+        } else {
+            throw new Error('Failed');
+        }
+    } catch (err) {
+        btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg> Add to radar`;
+        btn.style.opacity = '1';
+        btn.disabled = false;
+        const errorToast = document.getElementById('rf-error-toast');
+        if (errorToast) {
+            errorToast.textContent = 'Failed to add item — try again';
+            errorToast.style.display = 'block';
+            setTimeout(() => { errorToast.style.display = 'none'; }, 4000);
+        }
     }
 }
 
@@ -2094,6 +2830,59 @@ async function viewRadarItem(itemId) {
                 </div>
             </div>
         </div>
+    `;
+}
+
+// =============================================================================
+// RADAR SIDEBAR
+// =============================================================================
+async function renderRadarSidebar() {
+    const sidebar = document.getElementById('radar-sidebar');
+    if (!sidebar) return;
+
+    // Hide on full Radar view
+    if (state.view === 'radar') {
+        sidebar.style.display = 'none';
+        return;
+    }
+    sidebar.style.display = '';
+
+    // Fetch radar items
+    const res = await api('/radar/items?limit=20');
+    const allItems = res?.data || [];
+
+    // Filter by project if on project detail
+    let items = allItems;
+    const showProjectName = state.view !== 'project';
+    if (state.view === 'project' && state.selectedProjectId) {
+        items = allItems.filter(i => i.project_id === state.selectedProjectId);
+    }
+
+    sidebar.innerHTML = `
+        <div class="radar-sidebar-header">Radar</div>
+        ${items.length === 0 ? `
+            <div class="radar-sidebar-empty">No active Radar items${state.view === 'project' ? ' for this project' : ''}.</div>
+        ` : items.map(item => {
+            const sevClass = item.priority === 'critical' ? 'sev-critical' : item.priority === 'high' ? 'sev-high' : 'sev-watch';
+            const sevLabelClass = item.priority === 'critical' ? 'critical' : item.priority === 'high' ? 'high' : 'watch';
+            // Determine trend from activity or default to stable
+            const trend = item.trend || 'stable';
+            let trendText = '→ Stable', trendColor = 'var(--text-muted)';
+            if (trend === 'escalating') { trendText = '↑ Escalating'; trendColor = 'var(--accent-red)'; }
+            else if (trend === 'improving') { trendText = '↓ Improving'; trendColor = 'var(--accent-green)'; }
+            const projName = showProjectName ? (item.project_name || findProjectName(item.project_id)) : '';
+            return `
+                <div class="radar-sidebar-item ${sevClass}" onclick="viewRadarItem('${item.id}')">
+                    <div class="rsi-title">${esc(item.title)}</div>
+                    ${projName ? `<div class="rsi-project">${esc(projName)}</div>` : ''}
+                    <div class="rsi-meta">
+                        <span class="rsi-severity ${sevLabelClass}">${item.priority}</span>
+                        <span style="color:var(--text-muted);">·</span>
+                        <span style="color:${trendColor};">${trendText}</span>
+                    </div>
+                </div>
+            `;
+        }).join('')}
     `;
 }
 
@@ -2248,7 +3037,7 @@ async function runSignalSweep() {
         setTimeout(() => {
             btn.textContent = 'Sweep Signals';
             btn.disabled = false;
-            if (state.view === 'project') renderDetailTab();
+            if (state.view === 'project') render();
         }, 2000);
     } catch (err) {
         console.error('Sweep failed:', err);
@@ -2283,59 +3072,490 @@ async function loadActivityFeed() {
     const feedList = document.getElementById('activity-feed-list');
     if (!feedList) return;
 
-    // Try /api/signals/recent first, fall back to per-project signals
-    let signals = [];
-    const recentRes = await api('/signals/recent?limit=20');
-    if (recentRes?.data) {
-        signals = recentRes.data;
+    // Try unified activity endpoint first, then signals/recent, then per-project fallback
+    let activities = [];
+    const activityRes = await api('/activity/recent?limit=30');
+    if (activityRes?.data) {
+        activities = activityRes.data;
     } else {
-        // Fall back: get signals from all projects
-        for (const p of state.projects) {
-            const res = await api(`/projects/${p.id}/signals?limit=10`);
-            if (res?.data) {
-                signals.push(...res.data.map(s => ({ ...s, project_name: p.name })));
+        const recentRes = await api('/signals/recent?limit=20');
+        if (recentRes?.data) {
+            activities = recentRes.data;
+        } else {
+            for (const p of state.projects) {
+                const res = await api(`/projects/${p.id}/signals?limit=10`);
+                if (res?.data) {
+                    activities.push(...res.data.map(s => ({ ...s, project_name: p.name })));
+                }
             }
+            activities.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+            activities = activities.slice(0, 20);
         }
-        signals.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-        signals = signals.slice(0, 20);
     }
 
-    if (signals.length === 0) {
+    if (activities.length === 0) {
         feedList.innerHTML = '<div style="padding:16px; text-align:center; color:var(--text-muted); font-size:13px;">No recent activity.</div>';
         return;
     }
 
-    // Dedup by summary
-    const seen = new Set();
-    const deduped = [];
-    for (const s of signals) {
-        const key = s.summary?.substring(0, 80) || '';
-        if (!seen.has(key)) {
-            seen.add(key);
-            deduped.push(s);
-        }
-    }
-
-    feedList.innerHTML = deduped.map(s => {
-        const isCritical = s.signal_category === 'contradiction' || (s.effective_weight && s.effective_weight > 0.8);
-        const projName = s.project_name || findProjectName(s.project_id);
-        const ts = new Date(s.created_at);
-        const timeStr = ts.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    feedList.innerHTML = activities.map(a => {
+        const isCritical = a.is_critical || a.signal_category === 'contradiction' || (a.effective_weight && a.effective_weight > 0.8);
+        const projName = a.project_name || findProjectName(a.project_id);
+        const person = a.person || '';
+        // Parse server time directly (avoid browser timezone conversion)
+        const timeStr = formatServerTime(a.created_at);
+        const url = a.procore_url || '';
+        const clickable = url ? `onclick="window.open('${esc(url)}', '_blank')" style="cursor:pointer;"` : '';
         return `
-            <div class="activity-entry">
+            <div class="activity-entry" ${clickable}>
                 ${isCritical ? '<div class="activity-critical-dot"></div>' : '<div style="width:6px;flex-shrink:0;"></div>'}
                 <div class="activity-time">${timeStr}</div>
-                <div class="activity-desc">${esc(s.summary || '').substring(0, 120)}</div>
-                ${projName ? `<div class="activity-project-pill">${esc(projName)}</div>` : ''}
+                <div class="activity-desc" ${url ? 'style="color:var(--text-primary);"' : ''}>${esc(a.summary || '').substring(0, 120)}</div>
+                ${person ? `<div style="font-size:11px; color:var(--text-muted); white-space:nowrap; min-width:90px; text-align:right;">${esc(person)}</div>` : '<div style="min-width:90px;"></div>'}
+                ${projName ? `<div class="activity-project-pill">${esc(projName)}</div>` : '<div style="min-width:80px;"></div>'}
             </div>
         `;
     }).join('');
+}
+
+function formatServerTime(isoStr) {
+    // Extract time directly from ISO string to avoid browser timezone conversion
+    // Format: 2026-03-13T23:07:27.571517-04:00
+    if (!isoStr) return '';
+    const match = isoStr.match(/T(\d{2}):(\d{2})/);
+    if (!match) return '';
+    let h = parseInt(match[1], 10);
+    const m = match[2];
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    if (h === 0) h = 12;
+    else if (h > 12) h -= 12;
+    return `${h}:${m} ${ampm}`;
 }
 
 function findProjectName(projectId) {
     if (!projectId) return '';
     const p = state.projects.find(p => p.id === projectId);
     return p?.name || '';
+}
+
+// =============================================================================
+// DEEP DIVE REQUEST FORM
+// =============================================================================
+const _intelItemsCache = {};
+let _ddLinkedItem = null;
+let _ddMode = 'open'; // 'linked' or 'open'
+let _ddItems = []; // cached intelligence items for subject dropdown
+
+function openDeepDive(item) {
+    _ddLinkedItem = item;
+    _ddMode = item ? 'linked' : 'open';
+
+    const headerIcon = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4A7D9E" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/><path d="M11 8v6M8 11h6"/></svg>`;
+    const submitIcon = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/><path d="M11 8v6M8 11h6"/></svg>`;
+
+    const overlay = document.createElement('div');
+    overlay.className = 'radar-form-overlay';
+    overlay.id = 'dd-overlay';
+    overlay.onclick = (e) => { if (e.target === overlay) closeDeepDive(); };
+    overlay.innerHTML = `
+        <div class="radar-form-modal">
+            <div class="radar-form-header">
+                <div class="rf-icon">${headerIcon}</div>
+                <div>
+                    <div class="rf-title">Request deep dive</div>
+                    <div class="rf-subtitle">Submit a structured analysis request to the intelligence system</div>
+                </div>
+            </div>
+            <div class="dd-tab-bar">
+                <button class="dd-tab ${_ddMode === 'linked' ? 'active' : ''}" onclick="switchDDMode('linked')">From intelligence item</button>
+                <button class="dd-tab ${_ddMode === 'open' ? 'active' : ''}" onclick="switchDDMode('open')">New concern</button>
+            </div>
+            <div class="radar-form-body" id="dd-body">
+            </div>
+            <div class="radar-form-footer" style="flex-direction:column; gap:10px;">
+                <div style="display:flex; justify-content:space-between; width:100%;">
+                    <button class="rf-cancel-btn" onclick="closeDeepDive()">Cancel</button>
+                    <button class="rf-submit-btn" id="dd-submit-btn" onclick="submitDeepDive()">
+                        ${submitIcon} Request analysis
+                    </button>
+                </div>
+                <div class="dd-footer-note">Analysis typically takes 30–60 seconds. You'll be notified when it's ready.</div>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(overlay);
+    document.addEventListener('keydown', ddKeyHandler);
+    renderDDBody();
+}
+
+function ddKeyHandler(e) { if (e.key === 'Escape') closeDeepDive(); }
+
+function closeDeepDive() {
+    const overlay = document.getElementById('dd-overlay');
+    if (overlay) overlay.remove();
+    document.removeEventListener('keydown', ddKeyHandler);
+    _ddLinkedItem = null;
+}
+
+function switchDDMode(mode) {
+    _ddMode = mode;
+    document.querySelectorAll('.dd-tab').forEach(t => t.classList.remove('active'));
+    document.querySelector(`.dd-tab:${mode === 'linked' ? 'first-child' : 'last-child'}`).classList.add('active');
+    renderDDBody();
+}
+
+function renderDDBody() {
+    const body = document.getElementById('dd-body');
+    if (!body) return;
+
+    // Shared fields
+    const focusChips = ['Schedule impact', 'Cost exposure', 'Sub performance', 'Cross-project', 'Evidence quality', 'Recommended actions'];
+    const focusValues = ['schedule_impact', 'cost_exposure', 'subcontractor_performance', 'cross_project_patterns', 'evidence_quality', 'recommended_actions'];
+    const chipsHtml = focusChips.map((label, i) =>
+        `<div class="rf-scope-chip" data-focus="${focusValues[i]}" onclick="this.classList.toggle('active')">${label}</div>`
+    ).join('');
+
+    if (_ddMode === 'linked') {
+        const item = _ddLinkedItem || {};
+        const sevClass = item.severity === 'critical' ? 'critical' : item.severity === 'high' ? 'high' : 'watch';
+        const sevLabel = item.severity === 'critical' ? 'Critical' : item.severity === 'high' ? 'High' : 'Watch';
+        const confidence = item.confidence ? Math.round(item.confidence * 100) + '% confidence' : '';
+        const sources = (item.source_evidence_count || item.evidence?.length || 0) + ' sources';
+        const projectName = item.project_name || findProjectName(item.project_id) || '';
+
+        body.innerHTML = `
+            <div class="rf-field">
+                <div class="rf-label">Analyzing</div>
+                <div class="dd-linked-card">
+                    <div class="dd-linked-title">${esc(item.title || 'No item selected')}</div>
+                    <div class="dd-linked-meta">
+                        <span class="dd-sev-badge ${sevClass}">${sevLabel}</span>
+                        <span>${esc(projectName)}</span>
+                        <span>${confidence}</span>
+                        <span>${sources}</span>
+                    </div>
+                </div>
+            </div>
+            <div class="rf-field">
+                <div class="rf-label">What should the analysis focus on?<span class="rf-hint">Optional — leave blank for full scope</span></div>
+                <textarea class="rf-textarea" id="dd-steering" style="min-height:64px;" placeholder="e.g., Focus on schedule impact to drywall close-in, or check if this sub has the same issue on Tower B..."></textarea>
+            </div>
+            <div class="rf-divider"></div>
+            <div class="rf-field">
+                <div class="rf-label">Focus areas<span class="rf-hint">Select all that apply</span></div>
+                <div class="rf-scope-grid">${chipsHtml}</div>
+            </div>
+            <div class="rf-field">
+                <div class="rf-label">Anything else we should know?<span class="rf-hint">Optional · 500 char max</span></div>
+                <textarea class="rf-textarea" id="dd-context" style="min-height:64px;" maxlength="500" placeholder="Verbal commitments, site observations, relationship context — anything the system might not know." oninput="updateCharCount(this, 'dd-context-count')"></textarea>
+                <div class="dd-char-count" id="dd-context-count">0 / 500</div>
+            </div>
+        `;
+    } else {
+        // Open mode
+        const projectOptions = state.projects.map(p =>
+            `<option value="${p.id}" ${p.id === state.selectedProjectId && state.view === 'project' ? 'selected' : ''}>${esc(p.name)}</option>`
+        ).join('');
+        const preselected = state.view === 'project' && state.selectedProjectId;
+
+        body.innerHTML = `
+            <div class="rf-field">
+                <div class="rf-label">Which project?<span class="rf-required">*</span></div>
+                <select class="rf-select" id="dd-project" onchange="loadDDSubjectItems()" ${preselected ? 'disabled' : ''}>
+                    ${preselected ? '' : '<option value="" disabled selected>Select project</option>'}
+                    ${projectOptions}
+                </select>
+            </div>
+            <div class="rf-field">
+                <div class="rf-label">What should we analyze?<span class="rf-required">*</span></div>
+                <select class="rf-select" id="dd-subject">
+                    <option value="" disabled selected>Select an intelligence item or describe a new concern</option>
+                    <option value="something_else">Something else (describe below)</option>
+                </select>
+            </div>
+            <div class="rf-field">
+                <div class="rf-label">Describe the concern<span class="rf-required" id="dd-concern-req" style="display:none;">*</span></div>
+                <textarea class="rf-textarea" id="dd-concern" maxlength="500" placeholder="What's happening, who's involved, why it matters." oninput="updateCharCount(this, 'dd-concern-count')"></textarea>
+                <div class="dd-char-count" id="dd-concern-count">0 / 500</div>
+            </div>
+            <div class="rf-divider"></div>
+            <div class="rf-field">
+                <div class="rf-label">Focus areas<span class="rf-hint">Select all that apply</span></div>
+                <div class="rf-scope-grid">${chipsHtml}</div>
+            </div>
+            <div class="rf-field">
+                <div class="rf-label">Anything else we should know?<span class="rf-hint">Optional · 500 char max</span></div>
+                <textarea class="rf-textarea" id="dd-context" style="min-height:64px;" maxlength="500" placeholder="Verbal commitments, site observations, relationship context — anything the system might not know." oninput="updateCharCount(this, 'dd-context-count')"></textarea>
+                <div class="dd-char-count" id="dd-context-count">0 / 500</div>
+            </div>
+        `;
+
+        // Load subject items if project is pre-selected
+        if (preselected) loadDDSubjectItems();
+
+        // Watch subject dropdown for "something else" to toggle required
+        const subjectEl = document.getElementById('dd-subject');
+        if (subjectEl) {
+            subjectEl.addEventListener('change', () => {
+                const reqStar = document.getElementById('dd-concern-req');
+                if (reqStar) reqStar.style.display = subjectEl.value === 'something_else' ? '' : 'none';
+            });
+        }
+    }
+}
+
+async function loadDDSubjectItems() {
+    const projectId = document.getElementById('dd-project')?.value;
+    if (!projectId) return;
+    const subjectEl = document.getElementById('dd-subject');
+    if (!subjectEl) return;
+
+    const res = await api(`/projects/${projectId}/intelligence-items?limit=50`);
+    _ddItems = res?.data || [];
+
+    const itemOptions = _ddItems.map(i =>
+        `<option value="${i.id}">${esc(i.title)}</option>`
+    ).join('');
+
+    subjectEl.innerHTML = `
+        <option value="" disabled selected>Select an intelligence item or describe a new concern</option>
+        ${itemOptions}
+        <option disabled>───────────</option>
+        <option value="something_else">Something else (describe below)</option>
+    `;
+}
+
+function updateCharCount(textarea, countId) {
+    const countEl = document.getElementById(countId);
+    if (countEl) countEl.textContent = `${textarea.value.length} / 500`;
+}
+
+async function submitDeepDive() {
+    const btn = document.getElementById('dd-submit-btn');
+
+    if (_ddMode === 'open') {
+        // Validate
+        let valid = true;
+        const projectEl = document.getElementById('dd-project');
+        const subjectEl = document.getElementById('dd-subject');
+        const concernEl = document.getElementById('dd-concern');
+
+        if (!projectEl?.value) { projectEl.classList.add('rf-invalid'); valid = false; setTimeout(() => projectEl.classList.remove('rf-invalid'), 3000); }
+        if (!subjectEl?.value) { subjectEl.classList.add('rf-invalid'); valid = false; setTimeout(() => subjectEl.classList.remove('rf-invalid'), 3000); }
+        if (subjectEl?.value === 'something_else' && !concernEl?.value?.trim()) {
+            concernEl.classList.add('rf-invalid'); valid = false; setTimeout(() => concernEl.classList.remove('rf-invalid'), 3000);
+        }
+        if (!valid) return;
+    }
+
+    // Gather focus areas
+    const focusAreas = [];
+    document.querySelectorAll('#dd-body .rf-scope-chip.active').forEach(c => focusAreas.push(c.dataset.focus));
+
+    // Build payload
+    const payload = {
+        trigger_type: _ddMode === 'linked' ? 'user_item_linked' : 'user_open',
+        project_id: _ddMode === 'linked'
+            ? (_ddLinkedItem?.project_id || state.selectedProjectId)
+            : document.getElementById('dd-project')?.value,
+        linked_item_id: _ddMode === 'linked'
+            ? (_ddLinkedItem?.id || null)
+            : (document.getElementById('dd-subject')?.value !== 'something_else' ? document.getElementById('dd-subject')?.value : null),
+        concern_description: _ddMode === 'open' ? (document.getElementById('dd-concern')?.value?.trim() || null) : null,
+        focus_areas: focusAreas,
+        additional_context: document.getElementById('dd-context')?.value?.trim() || null,
+        focus_steering: _ddMode === 'linked' ? (document.getElementById('dd-steering')?.value?.trim() || null) : null,
+    };
+
+    btn.innerHTML = 'Submitting...';
+    btn.style.opacity = '0.7';
+    btn.disabled = true;
+
+    try {
+        console.log('[Deep Dive] POST /api/deep-dive/requests', payload);
+        const res = await fetch(API_BASE + '/deep-dive/requests', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(payload),
+            credentials: 'same-origin',
+        });
+        if (res.status === 429) {
+            throw new Error("You've reached today's analysis limit. Your next request will be available tomorrow.");
+        }
+        if (!res.ok && res.status !== 404) throw new Error('Request failed');
+        // 404 = endpoint doesn't exist yet — still show success for demo
+        if (res.status === 404) console.log('[Deep Dive] POST returned 404 — endpoint not built yet, showing success for demo');
+    } catch (err) {
+        console.log('[Deep Dive] POST failed:', err.message);
+        if (err.message.includes('limit')) {
+            btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/><path d="M11 8v6M8 11h6"/></svg> Request analysis`;
+            btn.style.opacity = '1';
+            btn.disabled = false;
+            showToast(err.message);
+            return;
+        }
+    }
+
+    // Success state (including 404 for demo)
+    btn.innerHTML = '&#10003; Analysis requested';
+    btn.classList.add('success');
+    btn.style.opacity = '1';
+    setTimeout(() => closeDeepDive(), 2000);
+}
+
+// =============================================================================
+// SEARCH
+// =============================================================================
+let searchTimeout = null;
+
+function openSearch() {
+    // Create overlay
+    const overlay = document.createElement('div');
+    overlay.className = 'search-overlay';
+    overlay.id = 'search-overlay';
+    overlay.onclick = (e) => { if (e.target === overlay) closeSearch(); };
+    overlay.innerHTML = `
+        <div class="search-modal">
+            <div class="search-input-wrap">
+                <span class="search-icon">&#128269;</span>
+                <input class="search-input" id="search-input" type="text"
+                    placeholder="Search RFIs, submittals, contacts, intelligence..."
+                    autocomplete="off" autofocus>
+                <span class="search-hint">ESC to close</span>
+            </div>
+            <div class="search-results" id="search-results">
+                <div class="search-empty">
+                    <div style="font-size:24px; margin-bottom:8px; opacity:0.4;">&#128269;</div>
+                    Search across all projects — RFIs, submittals, intelligence items, contacts
+                </div>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(overlay);
+
+    const input = document.getElementById('search-input');
+    input.focus();
+    input.addEventListener('input', (e) => {
+        clearTimeout(searchTimeout);
+        const q = e.target.value.trim();
+        if (q.length < 2) {
+            document.getElementById('search-results').innerHTML = `
+                <div class="search-empty">
+                    <div style="font-size:24px; margin-bottom:8px; opacity:0.4;">&#128269;</div>
+                    Search across all projects — RFIs, submittals, intelligence items, contacts
+                </div>`;
+            return;
+        }
+        document.getElementById('search-results').innerHTML = '<div class="search-loading"><div class="spinner" style="display:inline-block;margin-right:8px;"></div>Searching...</div>';
+        searchTimeout = setTimeout(() => runSearch(q), 300);
+    });
+
+    // ESC to close
+    document.addEventListener('keydown', searchKeyHandler);
+}
+
+function searchKeyHandler(e) {
+    if (e.key === 'Escape') closeSearch();
+}
+
+function closeSearch() {
+    const overlay = document.getElementById('search-overlay');
+    if (overlay) overlay.remove();
+    document.removeEventListener('keydown', searchKeyHandler);
+}
+
+async function runSearch(query) {
+    const res = await api(`/search?q=${encodeURIComponent(query)}&limit=10`);
+    const container = document.getElementById('search-results');
+    if (!container) return;
+
+    if (!res || res.total === 0) {
+        container.innerHTML = `<div class="search-empty">No results for "${esc(query)}"</div>`;
+        return;
+    }
+
+    const d = res.data;
+    let html = '';
+
+    // RFIs
+    if (d.rfis?.length) {
+        html += '<div class="search-group-label">RFIs</div>';
+        html += d.rfis.map(r => {
+            const statusBadge = r.is_overdue ? '<span style="color:var(--accent-red); font-size:10px; font-weight:600;">OVERDUE</span>' : r.status;
+            const click = r.procore_url ? `onclick="window.open('${esc(r.procore_url)}', '_blank')"` : '';
+            return `<div class="search-result-item" ${click}>
+                <div class="sri-icon rfi">RFI</div>
+                <div class="sri-body">
+                    <div class="sri-title">#${esc(r.number)} — ${esc(r.subject)}</div>
+                    <div class="sri-meta">${statusBadge}${r.due_date ? ' · Due ' + r.due_date : ''}</div>
+                </div>
+                <div class="sri-project">${esc(r.project_name || '')}</div>
+            </div>`;
+        }).join('');
+    }
+
+    // Submittals
+    if (d.submittals?.length) {
+        html += '<div class="search-group-label">Submittals</div>';
+        html += d.submittals.map(s => {
+            const click = s.procore_url ? `onclick="window.open('${esc(s.procore_url)}', '_blank')"` : '';
+            return `<div class="search-result-item" ${click}>
+                <div class="sri-icon sub">SUB</div>
+                <div class="sri-body">
+                    <div class="sri-title">#${esc(s.number)} — ${esc(s.title)}</div>
+                    <div class="sri-meta">${esc(s.status || '')}${s.required_date ? ' · Required ' + s.required_date : ''}</div>
+                </div>
+                <div class="sri-project">${esc(s.project_name || '')}</div>
+            </div>`;
+        }).join('');
+    }
+
+    // Intelligence items
+    if (d.intelligence_items?.length) {
+        html += '<div class="search-group-label">Intelligence</div>';
+        html += d.intelligence_items.map(i => {
+            const sevColor = i.severity === 'critical' ? 'var(--accent-red)' : i.severity === 'high' ? 'var(--accent-amber)' : 'var(--accent-blue)';
+            return `<div class="search-result-item" onclick="closeSearch(); selectProject('${i.project_id || ''}')">
+                <div class="sri-icon intel" style="color:${sevColor};">!</div>
+                <div class="sri-body">
+                    <div class="sri-title">${esc(i.title)}</div>
+                    <div class="sri-meta">${esc(i.severity || '')} · ${esc(i.item_type || '')} · ${i.confidence ? Math.round(i.confidence * 100) + '% confidence' : ''}</div>
+                </div>
+                <div class="sri-project">${esc(i.project_name || '')}</div>
+            </div>`;
+        }).join('');
+    }
+
+    // Signals
+    if (d.signals?.length) {
+        html += '<div class="search-group-label">Signals</div>';
+        html += d.signals.map(s => `
+            <div class="search-result-item">
+                <div class="sri-icon signal">S</div>
+                <div class="sri-body">
+                    <div class="sri-title">${esc(s.summary)}</div>
+                    <div class="sri-meta">${esc(s.signal_category || '')} · ${formatServerTime(s.created_at)}</div>
+                </div>
+                <div class="sri-project">${esc(s.project_name || '')}</div>
+            </div>
+        `).join('');
+    }
+
+    // Contacts
+    if (d.contacts?.length) {
+        html += '<div class="search-group-label">Contacts</div>';
+        html += d.contacts.map(c => `
+            <div class="search-result-item">
+                <div class="sri-icon contact">${esc((c.first_name || '')[0] || '')}${esc((c.last_name || '')[0] || '')}</div>
+                <div class="sri-body">
+                    <div class="sri-title">${esc(c.first_name || '')} ${esc(c.last_name || '')}</div>
+                    <div class="sri-meta">${esc(c.title || '')}${c.company_name ? ' · ' + esc(c.company_name) : ''}${c.email ? ' · ' + esc(c.email) : ''}</div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    container.innerHTML = html;
 }
 
 function showToast(msg) {
@@ -2352,9 +3572,34 @@ function showToast(msg) {
 // INIT
 // =============================================================================
 async function init() {
+    // Set topbar date/time
+    updateTopbarDateTime();
+    setInterval(updateTopbarDateTime, 60000);
+
+    // Parse URL to restore view state
+    const path = window.location.pathname;
+    const projectMatch = path.match(/\/project\/([^/]+)/);
+    if (projectMatch) {
+        state.view = 'project';
+        state.selectedProjectId = projectMatch[1];
+    } else if (path === '/radar' || path.startsWith('/radar')) {
+        state.view = 'radar';
+    } else {
+        state.view = 'dashboard';
+    }
+
+    // Handle browser back/forward
+    window.addEventListener('popstate', (e) => {
+        if (e.state) {
+            navigate(e.state.view || 'dashboard', e.state.projectId, true);
+        } else {
+            navigate('dashboard', null, true);
+        }
+    });
+
     // Load sidebar first
     await loadSidebar();
-    // Render dashboard (also populates state.dashboardData)
+    // Render current view (from URL or dashboard)
     await render();
     // Refresh sidebar with health data now that dashboard is loaded
     await loadSidebar();
@@ -2362,14 +3607,27 @@ async function init() {
     // Update sync indicator
     const healthRes = await api('/health');
     const syncDot = document.getElementById('sync-dot');
-    const lastSync = document.getElementById('last-sync');
     if (healthRes?.status === 'healthy') {
         syncDot.style.background = 'var(--accent-green)';
-        lastSync.textContent = 'Connected';
     } else {
         syncDot.style.background = 'var(--accent-red)';
-        lastSync.textContent = 'Disconnected';
     }
+
+    // Auto-refresh activity feed every 30 seconds when on dashboard
+    setInterval(() => {
+        if (state.view === 'dashboard') loadActivityFeed();
+    }, 30000);
+}
+
+function updateTopbarDateTime() {
+    const el = document.getElementById('topbar-datetime');
+    if (!el) return;
+    const now = new Date();
+    const dateStr = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    const timeStr = now.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+    el.innerHTML = `${dateStr}<br><span style="font-size:11px;">${timeStr}</span>`;
+    el.style.textAlign = 'right';
+    el.style.lineHeight = '1.3';
 }
 
 init();

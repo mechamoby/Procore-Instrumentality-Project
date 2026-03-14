@@ -276,8 +276,21 @@ def detect_daily_log_missing(project_id: str) -> int:
             SELECT id FROM daily_reports
             WHERE project_id = %s AND report_date = %s AND is_deleted = FALSE
         """, (project_id, yesterday))
+        has_report = cur.fetchone()
 
-        if not cur.fetchone():
+        # Also check webhook events — daily log webhooks prove the log exists
+        # even if the daily_reports table wasn't populated
+        if not has_report:
+            cur.execute("""
+                SELECT id FROM webhook_events
+                WHERE procore_resource = 'daily logs'
+                  AND procore_project_id = (SELECT procore_id FROM projects WHERE id = %s)
+                  AND created_at::date >= %s
+                LIMIT 1
+            """, (project_id, yesterday))
+            has_report = cur.fetchone()
+
+        if not has_report:
             sid = SignalWriter.write(
                 project_id=project_id,
                 source_type="procore_webhook",

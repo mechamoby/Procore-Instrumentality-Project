@@ -106,7 +106,7 @@ def list_project_rfis(
     status: Optional[str] = Query(None),
     limit: int = Query(50, ge=1, le=200),
     offset: int = Query(0, ge=0),
-    sort: str = Query("due_date", description="Sort by: due_date, date_initiated, number"),
+    sort: str = Query("number", description="Sort by: due_date, date_initiated, number"),
 ):
     """List RFIs for a project with aging and overdue status."""
     with get_cursor() as cur:
@@ -124,7 +124,18 @@ def list_project_rfis(
         cur.execute(f"SELECT COUNT(*) as cnt FROM rfis r {where}", params)
         total = cur.fetchone()["cnt"]
 
-        sort_col = {"due_date": "r.due_date", "date_initiated": "r.date_initiated", "number": "r.number"}.get(sort, "r.due_date")
+        # Get status breakdown for accurate stats (unaffected by pagination)
+        cur.execute("""
+            SELECT
+                COUNT(*) FILTER (WHERE status NOT IN ('closed', 'answered', 'void')) as open_count,
+                COUNT(*) FILTER (WHERE status NOT IN ('closed', 'answered', 'void')
+                    AND due_date IS NOT NULL AND due_date < CURRENT_DATE) as overdue_count
+            FROM rfis
+            WHERE project_id = %s AND is_deleted = FALSE
+        """, [project_id])
+        counts = cur.fetchone()
+
+        sort_col = {"due_date": "r.due_date", "date_initiated": "r.date_initiated", "number": "CAST(r.number AS INTEGER)"}.get(sort, "CAST(r.number AS INTEGER)")
 
         cur.execute(f"""
             SELECT r.id, r.number, r.subject, r.question, r.status,
@@ -144,12 +155,15 @@ def list_project_rfis(
                    END as is_overdue
             FROM rfis r
             {where}
-            ORDER BY {sort_col} ASC NULLS LAST
+            ORDER BY {sort_col} {"DESC" if sort == "number" else "ASC"} NULLS LAST
             LIMIT %s OFFSET %s
         """, params + [limit, offset])
 
         rows = serialize_rows(cur.fetchall())
-        return paginated_response(rows, total, limit, offset)
+        resp = paginated_response(rows, total, limit, offset)
+        resp["open_count"] = counts["open_count"]
+        resp["overdue_count"] = counts["overdue_count"]
+        return resp
 
 
 @router.get("/projects/{project_id}/submittals")
@@ -173,6 +187,15 @@ def list_project_submittals(
 
         cur.execute(f"SELECT COUNT(*) as cnt FROM submittals s {where}", params)
         total = cur.fetchone()["cnt"]
+
+        # Get status breakdown for accurate stats
+        cur.execute("""
+            SELECT
+                COUNT(*) FILTER (WHERE status NOT IN ('approved', 'approved_as_noted', 'closed', 'void')) as open_count
+            FROM submittals
+            WHERE project_id = %s AND is_deleted = FALSE
+        """, [project_id])
+        sub_counts = cur.fetchone()
 
         cur.execute(f"""
             SELECT s.id, s.number, s.title, s.description, s.status,
@@ -199,7 +222,9 @@ def list_project_submittals(
         """, params + [limit, offset])
 
         rows = serialize_rows(cur.fetchall())
-        return paginated_response(rows, total, limit, offset)
+        resp = paginated_response(rows, total, limit, offset)
+        resp["open_count"] = sub_counts["open_count"]
+        return resp
 
 
 @router.get("/projects/{project_id}/daily-logs")
@@ -883,7 +908,294 @@ def signal_stats(project_id: Optional[str] = Query(None)):
         }
 
 
+@router.get("/signals/recent")
+def recent_signals(
+    limit: int = Query(20, ge=1, le=100),
+):
+    """Cross-project recent signals for the activity feed."""
+    with get_cursor() as cur:
+        if not _check_intel_tables_exist(cur):
+            return {"data": []}
+
+        cur.execute("""
+            SELECT s.id, s.project_id, s.signal_category, s.summary,
+                   s.effective_weight, s.created_at,
+                   p.name as project_name
+            FROM signals s
+            LEFT JOIN projects p ON p.id = s.project_id
+            WHERE s.archived_at IS NULL
+            ORDER BY s.created_at DESC
+            LIMIT %s
+        """, [limit])
+        return {"data": serialize_rows(cur.fetchall())}
+
+
+@router.get("/activity/recent")
+def recent_activity(
+    limit: int = Query(30, ge=1, le=100),
+):
+    """Unified activity feed: webhook events + signals, newest first."""
+    with get_cursor() as cur:
+        activities = []
+
+        # Webhook events (real-time Procore changes) — enrich with document titles + person
+        cur.execute("""
+            SELECT w.id, w.event_type, w.procore_resource, w.procore_id,
+                   w.procore_project_id, w.status, w.created_at,
+                   w.payload->>'user_id' as user_procore_id,
+                   p.name as project_name,
+                   r.number as rfi_number, r.subject as rfi_subject,
+                   sub.number as sub_number, sub.title as sub_title
+            FROM webhook_events w
+            LEFT JOIN projects p ON p.procore_id = w.procore_project_id
+            LEFT JOIN rfis r ON r.procore_id = w.procore_id AND w.procore_resource = 'rfis'
+            LEFT JOIN submittals sub ON sub.procore_id = w.procore_id AND w.procore_resource = 'submittals'
+            WHERE w.status = 'completed'
+            ORDER BY w.created_at DESC
+            LIMIT %s
+        """, [limit])
+        webhook_rows = cur.fetchall()
+
+        # Batch-resolve user names from contacts
+        user_ids = set(r['user_procore_id'] for r in webhook_rows if r.get('user_procore_id'))
+        user_names = {}
+        if user_ids:
+            placeholders = ','.join(['%s'] * len(user_ids))
+            cur.execute(f"""
+                SELECT procore_id, first_name || ' ' || last_name as full_name
+                FROM contacts WHERE procore_id IN ({placeholders})
+            """, [int(uid) for uid in user_ids])
+            user_names = {str(r['procore_id']): r['full_name'] for r in cur.fetchall()}
+
+        for row in webhook_rows:
+            resource = row['procore_resource'] or ''
+            event = row['event_type'] or ''
+            person = user_names.get(row.get('user_procore_id', ''), '')
+            procore_project_id = row['procore_project_id']
+            procore_id = row['procore_id']
+            # Build rich summary
+            if resource == 'rfis' and row.get('rfi_number'):
+                summary = f"RFI #{row['rfi_number']} {event}d — {row.get('rfi_subject', '')}"
+            elif resource == 'submittals' and row.get('sub_number'):
+                summary = f"Submittal #{row['sub_number']} {event}d — {row.get('sub_title', '')}"
+            else:
+                summary = f"{resource.replace('_', ' ').title()} #{procore_id} — {event}d"
+            # Build Procore deep link (sandbox environment)
+            procore_url = None
+            company_id = row.get('user_procore_id') and (row.get('payload_company_id') or '4281379')
+            # Extract company_id from webhook payload if available
+            procore_base = "https://sandbox.procore.com/webclients/host/companies/4281379/projects"
+            if procore_project_id and procore_id:
+                if resource == 'rfis':
+                    procore_url = f"{procore_base}/{procore_project_id}/tools/rfis/{procore_id}"
+                elif resource == 'submittals':
+                    procore_url = f"{procore_base}/{procore_project_id}/tools/submittals/{procore_id}"
+                elif resource == 'daily logs':
+                    procore_url = f"{procore_base}/{procore_project_id}/tools/daily_log"
+                else:
+                    resource_path = resource.replace(' ', '_')
+                    procore_url = f"{procore_base}/{procore_project_id}/tools/{resource_path}/{procore_id}"
+            activities.append({
+                "type": "webhook",
+                "summary": summary.strip(' —'),
+                "project_name": row['project_name'] or '',
+                "person": person,
+                "project_id": None,
+                "procore_url": procore_url,
+                "created_at": row['created_at'].isoformat() if row['created_at'] else '',
+                "is_critical": False,
+            })
+
+        # Signals (intelligence layer detections) — deduplicated by summary, with Procore links
+        if _check_intel_tables_exist(cur):
+            cur.execute("""
+                SELECT DISTINCT ON (LEFT(s.summary, 80))
+                       s.id, s.signal_category, s.summary, s.effective_weight,
+                       s.entity_type, s.entity_value, s.source_document_id,
+                       s.created_at, p.name as project_name, s.project_id,
+                       p.procore_id as procore_project_id,
+                       r.procore_id as rfi_procore_id,
+                       r.status as rfi_status,
+                       sub.procore_id as sub_procore_id,
+                       sub.status as sub_status
+                FROM signals s
+                LEFT JOIN projects p ON p.id = s.project_id
+                LEFT JOIN rfis r ON r.id = s.source_document_id AND s.entity_type = 'rfi'
+                LEFT JOIN submittals sub ON sub.id = s.source_document_id AND s.entity_type = 'submittal'
+                WHERE s.archived_at IS NULL
+                ORDER BY LEFT(s.summary, 80), s.created_at DESC
+            """, [])
+            procore_base = "https://sandbox.procore.com/webclients/host/companies/4281379/projects"
+            for row in cur.fetchall():
+                # Skip signals for documents that have been closed/resolved
+                if row.get('rfi_status') in ('closed', 'answered', 'void'):
+                    continue
+                if row.get('sub_status') in ('approved', 'approved_as_noted', 'closed', 'void'):
+                    continue
+
+                is_critical = (row.get('signal_category') == 'contradiction' or
+                               (row.get('effective_weight') and row['effective_weight'] > 0.8))
+                # Build Procore link for signals that reference specific documents
+                procore_url = None
+                ppid = row.get('procore_project_id')
+                if ppid:
+                    if row.get('rfi_procore_id'):
+                        procore_url = f"{procore_base}/{ppid}/tools/rfis/{row['rfi_procore_id']}"
+                    elif row.get('sub_procore_id'):
+                        procore_url = f"{procore_base}/{ppid}/tools/submittals/{row['sub_procore_id']}"
+                activities.append({
+                    "type": "signal",
+                    "summary": row['summary'] or '',
+                    "project_name": row['project_name'] or '',
+                    "project_id": str(row['project_id']) if row['project_id'] else '',
+                    "procore_url": procore_url,
+                    "created_at": row['created_at'].isoformat() if row['created_at'] else '',
+                    "is_critical": is_critical,
+                })
+
+        # Sort by created_at DESC
+        activities.sort(key=lambda a: a['created_at'], reverse=True)
+
+        # Deduplicate: collapse create+update webhook pairs for same resource,
+        # and collapse signals with similar summaries
+        seen_webhooks = set()  # (resource_key)
+        seen_summaries = set()
+        deduped = []
+        for a in activities:
+            if a['type'] == 'webhook':
+                # Key by resource type + procore_id (strip "created"/"updated" distinction)
+                parts = a['summary'].split(' — ', 1)
+                resource_key = parts[0].rsplit(' ', 1)[0] if parts else a['summary'][:40]
+                if resource_key in seen_webhooks:
+                    continue
+                seen_webhooks.add(resource_key)
+            else:
+                key = a['summary'][:60]
+                if key in seen_summaries:
+                    continue
+                seen_summaries.add(key)
+            deduped.append(a)
+            if len(deduped) >= limit:
+                break
+
+        return {"data": deduped}
+
+
 # =============================================================================
+# =============================================================================
+# CROSS-PROJECT SEARCH
+# =============================================================================
+
+@router.get("/search")
+def cross_project_search(
+    q: str = Query(..., min_length=1, max_length=200, description="Search query"),
+    limit: int = Query(10, ge=1, le=50),
+):
+    """Search across RFIs, submittals, intelligence items, signals, and contacts."""
+    with get_cursor() as cur:
+        results = {}
+        procore_base = "https://sandbox.procore.com/webclients/host/companies/4281379/projects"
+        search_term = f"%{q}%"
+        ts_query = " & ".join(w for w in q.split() if w)
+
+        # RFIs — full-text on subject, question, official_answer
+        cur.execute("""
+            SELECT r.id, r.number, r.subject, r.status, r.due_date,
+                   r.procore_id, p.name as project_name, p.procore_id as procore_project_id,
+                   CASE WHEN r.status NOT IN ('closed','answered','void')
+                        AND r.due_date IS NOT NULL AND r.due_date < CURRENT_DATE
+                        THEN TRUE ELSE FALSE END as is_overdue
+            FROM rfis r
+            JOIN projects p ON p.id = r.project_id
+            WHERE r.is_deleted = FALSE
+              AND (r.subject ILIKE %s OR r.question ILIKE %s OR r.official_answer ILIKE %s
+                   OR r.number = %s)
+            ORDER BY r.created_at DESC
+            LIMIT %s
+        """, [search_term, search_term, search_term, q.strip(), limit])
+        rfis = []
+        for row in cur.fetchall():
+            r = dict(row)
+            ppid = r.pop('procore_project_id', None)
+            if ppid and r.get('procore_id'):
+                r['procore_url'] = f"{procore_base}/{ppid}/tools/rfis/{r['procore_id']}"
+            rfis.append(r)
+        if rfis:
+            results['rfis'] = rfis
+
+        # Submittals
+        cur.execute("""
+            SELECT s.id, s.number, s.title, s.status, s.required_date,
+                   s.procore_id, p.name as project_name, p.procore_id as procore_project_id
+            FROM submittals s
+            JOIN projects p ON p.id = s.project_id
+            WHERE s.is_deleted = FALSE
+              AND (s.title ILIKE %s OR s.description ILIKE %s OR s.number = %s)
+            ORDER BY s.created_at DESC
+            LIMIT %s
+        """, [search_term, search_term, q.strip(), limit])
+        subs = []
+        for row in cur.fetchall():
+            r = dict(row)
+            ppid = r.pop('procore_project_id', None)
+            if ppid and r.get('procore_id'):
+                r['procore_url'] = f"{procore_base}/{ppid}/tools/submittals/{r['procore_id']}"
+            subs.append(r)
+        if subs:
+            results['submittals'] = subs
+
+        # Intelligence items
+        if _check_intel_tables_exist(cur):
+            cur.execute("""
+                SELECT i.id, i.title, i.summary, i.severity, i.confidence,
+                       i.item_type, i.status, p.name as project_name
+                FROM intelligence_items i
+                JOIN projects p ON p.id = i.project_id
+                WHERE i.status NOT IN ('archived', 'resolved')
+                  AND (i.title ILIKE %s OR i.summary ILIKE %s)
+                ORDER BY i.last_updated_at DESC
+                LIMIT %s
+            """, [search_term, search_term, limit])
+            items = serialize_rows(cur.fetchall())
+            if items:
+                results['intelligence_items'] = items
+
+            # Signals
+            cur.execute("""
+                SELECT s.id, s.summary, s.signal_category, s.confidence,
+                       s.created_at, p.name as project_name
+                FROM signals s
+                JOIN projects p ON p.id = s.project_id
+                WHERE s.archived_at IS NULL
+                  AND s.summary ILIKE %s
+                ORDER BY s.created_at DESC
+                LIMIT %s
+            """, [search_term, limit])
+            sigs = serialize_rows(cur.fetchall())
+            if sigs:
+                results['signals'] = sigs
+
+        # Contacts
+        cur.execute("""
+            SELECT c.id, c.first_name, c.last_name, c.title, c.email,
+                   c.phone, co.name as company_name
+            FROM contacts c
+            LEFT JOIN companies co ON co.id = c.company_id
+            WHERE c.is_deleted = FALSE
+              AND (c.first_name ILIKE %s OR c.last_name ILIKE %s
+                   OR (c.first_name || ' ' || c.last_name) ILIKE %s
+                   OR c.email ILIKE %s)
+            ORDER BY c.last_name, c.first_name
+            LIMIT %s
+        """, [search_term, search_term, search_term, search_term, limit])
+        contacts = serialize_rows(cur.fetchall())
+        if contacts:
+            results['contacts'] = contacts
+
+        total = sum(len(v) for v in results.values())
+        return {"data": results, "total": total, "query": q}
+
+
 # CC-2.5: REINFORCEMENT CANDIDATE PIPELINE
 # =============================================================================
 

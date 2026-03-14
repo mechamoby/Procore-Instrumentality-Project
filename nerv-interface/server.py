@@ -83,14 +83,14 @@ async def onboarding_page():
 
 
 @app.get("/")
-async def serve_index():
-    index_path = STATIC_DIR / "index.html"
-    content = index_path.read_text()
-    return HTMLResponse(content=content, headers={
-        "Cache-Control": "no-cache, no-store, must-revalidate",
-        "Pragma": "no-cache",
-        "Expires": "0",
-    })
+@app.get("/radar")
+@app.get("/project/{project_id}")
+async def serve_index(project_id: str = ""):
+    """Serve SPA for all client-side routes."""
+    cc_path = STATIC_DIR / "command-center.html"
+    if cc_path.exists():
+        return FileResponse(str(cc_path))
+    return HTMLResponse(content="<h1>SteelSync Command Center</h1>", status_code=200)
 
 UPLOAD_DIR = Path.home() / ".openclaw" / "workspace" / "nerv-uploads"
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
