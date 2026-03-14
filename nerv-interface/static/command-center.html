@@ -4,26 +4,34 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SteelSync Command Center</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --navy: #1B2A4A;
-            --navy-light: #243558;
-            --navy-dark: #131f38;
+            --page-bg: #0F1419;
+            --surface: #161D26;
+            --card-bg: #1A2332;
+            --card-hover: #1F2B3D;
+            --border: #243040;
+            --navy: #1A2332;
+            --navy-light: #1F2B3D;
+            --navy-dark: #0F1419;
             --steel-blue: #3B6B8A;
             --steel-blue-light: #4a8ab0;
             --steel-blue-dark: #2d5570;
-            --accent-green: #4ade80;
-            --accent-yellow: #facc15;
-            --accent-red: #f87171;
-            --accent-orange: #fb923c;
-            --text-primary: #f1f5f9;
-            --text-secondary: #94a3b8;
-            --text-muted: #64748b;
-            --border: #334155;
-            --card-bg: #1e293b;
-            --panel-bg: #0f172a;
+            --accent-green: #34C77B;
+            --accent-amber: #E8A838;
+            --accent-red: #E05555;
+            --accent-blue: #4A90D9;
+            --accent-yellow: #E8A838;
+            --accent-orange: #E8A838;
+            --text-primary: #E8ECF1;
+            --text-secondary: #9AABB8;
+            --text-muted: #6B7280;
+            --panel-bg: #0F1419;
             --hover: rgba(59, 107, 138, 0.15);
-            --font: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+            --font: 'DM Sans', 'Segoe UI', system-ui, sans-serif;
             --font-mono: 'Cascadia Code', 'Fira Code', monospace;
         }
 
@@ -31,7 +39,7 @@
 
         body {
             font-family: var(--font);
-            background: var(--panel-bg);
+            background: var(--page-bg);
             color: var(--text-primary);
             height: 100vh;
             overflow: hidden;
@@ -43,7 +51,7 @@
             align-items: center;
             justify-content: space-between;
             height: 56px;
-            background: var(--navy);
+            background: var(--surface);
             border-bottom: 1px solid var(--border);
             padding: 0 20px;
             position: fixed;
@@ -119,7 +127,7 @@
         .sidebar {
             width: 280px;
             min-width: 280px;
-            background: var(--navy-dark);
+            background: var(--surface);
             border-right: 1px solid var(--border);
             display: flex;
             flex-direction: column;
@@ -239,39 +247,55 @@
         /* PROJECT CARDS GRID */
         .project-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+            grid-template-columns: repeat(3, 1fr);
             gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        @media (max-width: 1440px) {
+            .project-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        @media (max-width: 900px) {
+            .project-grid { grid-template-columns: 1fr; }
+            .quick-actions { grid-template-columns: repeat(2, 1fr); }
         }
 
         .health-card {
             background: var(--card-bg);
             border: 1px solid var(--border);
-            border-radius: 10px;
+            border-radius: 8px;
             padding: 20px;
+            padding-top: 17px;
             cursor: pointer;
-            transition: all 0.15s;
+            transition: all 0.2s;
+            border-top: 3px solid var(--text-muted);
         }
 
         .health-card:hover {
-            border-color: var(--steel-blue);
-            transform: translateY(-1px);
+            background: var(--card-hover);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
         }
+
+        .health-card.health-green { border-top-color: var(--accent-green); }
+        .health-card.health-amber { border-top-color: var(--accent-amber); }
+        .health-card.health-red { border-top-color: var(--accent-red); }
 
         .health-card-header {
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            margin-bottom: 16px;
+            margin-bottom: 10px;
         }
 
         .health-card-title {
-            font-size: 15px;
-            font-weight: 600;
+            font-size: 16px;
+            font-weight: 700;
         }
 
         .health-card-number {
             font-size: 12px;
-            color: var(--text-muted);
+            color: var(--text-secondary);
         }
 
         .health-indicator {
@@ -279,26 +303,199 @@
             border-radius: 12px;
             font-size: 11px;
             font-weight: 600;
-            text-transform: uppercase;
             letter-spacing: 0.3px;
         }
 
-        .health-indicator.green { background: rgba(74, 222, 128, 0.15); color: var(--accent-green); }
-        .health-indicator.yellow { background: rgba(250, 204, 21, 0.15); color: var(--accent-yellow); }
-        .health-indicator.red { background: rgba(248, 113, 113, 0.15); color: var(--accent-red); }
-        .health-indicator.unknown { background: rgba(100, 116, 139, 0.15); color: var(--text-muted); }
+        .health-indicator.green { background: rgba(52, 199, 123, 0.15); color: var(--accent-green); }
+        .health-indicator.yellow, .health-indicator.amber { background: rgba(232, 168, 56, 0.15); color: var(--accent-amber); }
+        .health-indicator.red { background: rgba(224, 85, 85, 0.15); color: var(--accent-red); }
+        .health-indicator.unknown { background: rgba(107, 114, 128, 0.15); color: var(--text-muted); }
 
-        .health-card-stats {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 12px;
+        .health-card-summary {
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+            margin-bottom: 12px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
         }
 
-        .health-card-stat .num { font-size: 18px; font-weight: 600; }
-        .health-card-stat .lbl { font-size: 11px; color: var(--text-muted); }
+        .health-card-counts {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 10px;
+        }
 
-        .health-card-stat .num.warn { color: var(--accent-yellow); }
-        .health-card-stat .num.danger { color: var(--accent-red); }
+        .health-card-counts .count-item {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .health-card-counts .count-item .count-num {
+            font-weight: 700;
+            margin-right: 3px;
+        }
+
+        .health-card-counts .count-num.critical { color: var(--accent-red); }
+        .health-card-counts .count-num.high { color: var(--accent-amber); }
+
+        .health-card-confidence {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+
+        .health-card-footer {
+            font-size: 11px;
+            color: var(--text-muted);
+            padding-top: 8px;
+            border-top: 1px solid var(--border);
+        }
+
+        /* GREETING */
+        .dashboard-greeting {
+            margin-bottom: 8px;
+        }
+
+        .dashboard-greeting h1 {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .dashboard-greeting .sub {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        /* ACTIVITY FEED */
+        .activity-feed {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            margin-bottom: 24px;
+        }
+
+        .activity-feed-header {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border);
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .activity-feed-list {
+            max-height: 280px;
+            overflow-y: auto;
+        }
+
+        .activity-entry {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 10px 16px;
+            border-bottom: 1px solid rgba(36, 48, 64, 0.5);
+            font-size: 12px;
+            transition: background 0.15s;
+        }
+
+        .activity-entry:hover { background: var(--card-hover); }
+        .activity-entry:last-child { border-bottom: none; }
+
+        .activity-time {
+            font-size: 11px;
+            color: var(--text-muted);
+            font-variant-numeric: tabular-nums;
+            white-space: nowrap;
+            min-width: 60px;
+        }
+
+        .activity-desc {
+            flex: 1;
+            color: var(--text-secondary);
+        }
+
+        .activity-project-pill {
+            font-size: 10px;
+            padding: 2px 8px;
+            border-radius: 10px;
+            background: var(--surface);
+            color: var(--text-muted);
+            white-space: nowrap;
+        }
+
+        .activity-critical-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--accent-red);
+            flex-shrink: 0;
+            margin-top: 5px;
+        }
+
+        /* QUICK ACTION BAR */
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .quick-action-btn {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+            color: var(--text-primary);
+        }
+
+        .quick-action-btn:hover {
+            background: var(--card-hover);
+            border-color: var(--steel-blue);
+        }
+
+        .quick-action-btn .qa-icon {
+            font-size: 22px;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .quick-action-btn .qa-label {
+            font-size: 13px;
+            font-weight: 600;
+            display: block;
+            margin-bottom: 2px;
+        }
+
+        .quick-action-btn .qa-sub {
+            font-size: 11px;
+            color: var(--text-muted);
+            display: block;
+        }
+
+        /* TOAST */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px 20px;
+            font-size: 13px;
+            color: var(--text-secondary);
+            z-index: 200;
+            animation: toastIn 0.3s ease-out, toastOut 0.3s ease-in 2.5s forwards;
+        }
+
+        @keyframes toastIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes toastOut { from { opacity: 1; } to { opacity: 0; } }
 
         /* PROJECT DETAIL VIEW */
         .project-detail-header {
@@ -322,7 +519,7 @@
         .detail-tabs {
             display: flex;
             gap: 2px;
-            background: var(--navy-dark);
+            background: var(--surface);
             border-radius: 8px;
             padding: 3px;
             margin-bottom: 24px;
@@ -608,7 +805,7 @@ const API_BASE = '/api';
 // =============================================================================
 async function api(path) {
     try {
-        const res = await fetch(API_BASE + path);
+        const res = await fetch(API_BASE + path, { credentials: 'same-origin' });
         if (!res.ok) {
             if (res.status === 404) return null;
             throw new Error(`API ${res.status}: ${res.statusText}`);
@@ -679,78 +876,110 @@ async function renderDashboard(container) {
     const d = data.data;
     state.dashboardData = d;
 
+    // Count critical+high items across all projects
+    let attentionCount = 0;
+    if (d.projects) {
+        d.projects.forEach(p => {
+            attentionCount += (p.intelligence?.critical || 0) + (p.intelligence?.high || 0);
+        });
+    }
+
+    // Time-aware greeting
+    const hour = new Date().getHours();
+    const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
+
     container.innerHTML = `
-        <div class="dashboard-header" style="display:flex; justify-content:space-between; align-items:flex-start;">
-            <div>
-                <h1>Command Center</h1>
-                <p>${d.project_count} active project${d.project_count !== 1 ? 's' : ''} ${d.intelligence_available ? '' : '| Intelligence layer pending initialization'}</p>
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:24px;">
+            <div class="dashboard-greeting">
+                <h1>${greeting}, Moby.${attentionCount > 0 ? ` <span style="font-weight:400">${attentionCount} item${attentionCount !== 1 ? 's' : ''} across your projects need attention today.</span>` : ' <span style="font-weight:400">All clear across your projects.</span>'}</h1>
+                <div class="sub">${d.project_count} active project${d.project_count !== 1 ? 's' : ''}</div>
             </div>
             <div style="display:flex; gap:8px; align-items:center;">
-                <button id="sweep-btn" onclick="runSignalSweep()" style="background:var(--navy-light); border:1px solid var(--border); color:var(--text-secondary); padding:8px 14px; border-radius:6px; cursor:pointer; font-size:12px;">Sweep Signals</button>
-                <button id="synthesis-btn" onclick="runSynthesis()" style="background:var(--steel-blue); border:none; color:white; padding:8px 14px; border-radius:6px; cursor:pointer; font-size:13px; font-weight:500;">Run Analysis</button>
-            </div>
-        </div>
-
-        <div class="stats-row">
-            <div class="stat-card">
-                <div class="label">Active Projects</div>
-                <div class="value">${d.project_count}</div>
-            </div>
-            <div class="stat-card">
-                <div class="label">Open RFIs</div>
-                <div class="value" style="color: ${d.aggregates.overdue_rfis > 0 ? 'var(--accent-red)' : 'var(--text-primary)'}">${d.aggregates.open_rfis}</div>
-                ${d.aggregates.overdue_rfis > 0 ? `<div class="sub" style="color: var(--accent-red)">${d.aggregates.overdue_rfis} overdue</div>` : ''}
-            </div>
-            <div class="stat-card">
-                <div class="label">Open Submittals</div>
-                <div class="value">${d.aggregates.open_submittals}</div>
-            </div>
-            <div class="stat-card">
-                <div class="label">Pending COs</div>
-                <div class="value" style="color: ${d.aggregates.pending_change_orders > 0 ? 'var(--accent-yellow)' : 'var(--text-primary)'}">${d.aggregates.pending_change_orders}</div>
+                <button id="sweep-btn" onclick="runSignalSweep()" style="background:transparent; border:1px solid var(--border); color:var(--text-secondary); padding:8px 14px; border-radius:6px; cursor:pointer; font-size:12px; font-weight:500; transition:all 0.2s;">Sweep Signals</button>
+                <button id="synthesis-btn" onclick="runSynthesis()" style="background:var(--steel-blue); border:none; color:white; padding:8px 16px; border-radius:6px; cursor:pointer; font-size:13px; font-weight:600; transition:all 0.2s;">Run Analysis</button>
             </div>
         </div>
 
         <div class="project-grid" id="project-grid">
-            ${d.projects.map(p => renderHealthCard(p)).join('')}
+            ${sortProjectsByHealth(d.projects).map(p => renderHealthCard(p)).join('')}
+        </div>
+
+        <div class="activity-feed" id="activity-feed">
+            <div class="activity-feed-header">Live Activity</div>
+            <div class="activity-feed-list" id="activity-feed-list">
+                <div class="loading"><div class="spinner"></div> Loading signals...</div>
+            </div>
+        </div>
+
+        <div class="quick-actions">
+            <button class="quick-action-btn" onclick="showToast('Search coming soon')">
+                <span class="qa-icon">&#9937;</span>
+                <span class="qa-label">Search Database</span>
+                <span class="qa-sub">Cross-project memory</span>
+            </button>
+            <button class="quick-action-btn" onclick="showToast('Deep dive coming soon')">
+                <span class="qa-icon">&#9673;</span>
+                <span class="qa-label">Request Analysis</span>
+                <span class="qa-sub">Submit for deep review</span>
+            </button>
+            <button class="quick-action-btn" onclick="showToast('Reports coming soon')">
+                <span class="qa-icon">&#8862;</span>
+                <span class="qa-label">View Reports</span>
+                <span class="qa-sub">Past briefings</span>
+            </button>
+            <button class="quick-action-btn" onclick="navigate('radar')">
+                <span class="qa-icon">&#9678;</span>
+                <span class="qa-label">Add to Radar</span>
+                <span class="qa-sub">Flag for monitoring</span>
+            </button>
         </div>
     `;
+
+    // Load activity feed async
+    loadActivityFeed();
 }
 
 function renderHealthCard(p) {
     const health = p.last_synthesis?.overall_health || 'unknown';
-    const healthLabel = health === 'unknown' ? 'Pending' : health.charAt(0).toUpperCase() + health.slice(1);
+
+    // Map health to card class and status label
+    let healthClass = '';
+    let statusLabel = 'Awaiting first analysis';
+    let statusColorClass = 'unknown';
+    if (health === 'green') { healthClass = 'health-green'; statusLabel = 'On Track'; statusColorClass = 'green'; }
+    else if (health === 'yellow') { healthClass = 'health-amber'; statusLabel = 'Needs Attention'; statusColorClass = 'amber'; }
+    else if (health === 'red') { healthClass = 'health-red'; statusLabel = 'Action Required'; statusColorClass = 'red'; }
+
+    // Headline summary from synthesis
+    const summary = p.last_synthesis?.cycle_summary || '';
+
+    // Intelligence-driven counts
+    const criticalCount = p.intelligence?.critical || 0;
+    const highCount = p.intelligence?.high || 0;
+    const watchCount = (p.intelligence?.total_active || 0) - criticalCount - highCount;
+
+    // Source count for confidence
+    const sourceCount = (p.open_rfis || 0) + (p.open_submittals || 0) + (p.pending_change_orders || 0);
 
     return `
-        <div class="health-card" onclick="selectProject('${p.id}')">
+        <div class="health-card ${healthClass}" onclick="selectProject('${p.id}')">
             <div class="health-card-header">
                 <div>
                     <div class="health-card-title">${esc(p.name)}</div>
                     <div class="health-card-number">${esc(p.number || '')}</div>
                 </div>
-                <div class="health-indicator ${health}">${healthLabel}</div>
+                <div class="health-indicator ${statusColorClass}">${statusLabel}</div>
             </div>
-            <div class="health-card-stats">
-                <div class="health-card-stat">
-                    <div class="num ${p.overdue_rfis > 0 ? 'danger' : ''}">${p.open_rfis}</div>
-                    <div class="lbl">Open RFIs</div>
-                </div>
-                <div class="health-card-stat">
-                    <div class="num">${p.open_submittals}</div>
-                    <div class="lbl">Submittals</div>
-                </div>
-                <div class="health-card-stat">
-                    <div class="num ${p.pending_change_orders > 0 ? 'warn' : ''}">${p.pending_change_orders}</div>
-                    <div class="lbl">Pending COs</div>
-                </div>
-                ${p.intelligence?.total_active > 0 ? `
-                <div class="health-card-stat">
-                    <div class="num ${p.intelligence.high > 0 ? 'danger' : ''}">${p.intelligence.total_active}</div>
-                    <div class="lbl">Intel Items</div>
-                </div>` : ''}
-            </div>
+            ${summary ? `<div class="health-card-summary">${esc(summary)}</div>` : health === 'unknown' ? `<div class="health-card-summary" style="color:var(--text-muted); font-style:italic;">Awaiting first analysis cycle.</div>` : ''}
+            ${p.intelligence?.total_active > 0 ? `
+            <div class="health-card-counts">
+                ${criticalCount > 0 ? `<span class="count-item"><span class="count-num critical">${criticalCount}</span>Critical</span>` : ''}
+                ${highCount > 0 ? `<span class="count-item"><span class="count-num high">${highCount}</span>High</span>` : ''}
+                ${watchCount > 0 ? `<span class="count-item"><span class="count-num">${watchCount}</span>Watch</span>` : ''}
+            </div>` : ''}
+            <div class="health-card-confidence">${sourceCount > 0 ? `${sourceCount} data sources active` : 'Limited data'}</div>
             ${p.last_synthesis ? `
-            <div style="font-size:10px; color:var(--text-muted); margin-top:8px; padding-top:8px; border-top:1px solid var(--border);">
+            <div class="health-card-footer">
                 Last analysis: ${timeAgo(p.last_synthesis.completed_at)} | ${p.last_synthesis.cycle_type.replace(/_/g, ' ')}
             </div>` : ''}
         </div>
@@ -1279,6 +1508,7 @@ async function submitRadarItem() {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify(body),
+        credentials: 'same-origin',
     });
 
     if (res.ok) {
@@ -1439,7 +1669,7 @@ async function runSynthesis() {
     // If on dashboard with multiple projects, run sweep first for all projects
     if (state.view === 'dashboard' && state.projects.length > 1) {
         for (const p of state.projects) {
-            try { await fetch(`${API_BASE}/synthesis/sweep?project_id=${p.id}`, { method: 'POST' }); } catch(e) {}
+            try { await fetch(`${API_BASE}/synthesis/sweep?project_id=${p.id}`, { method: 'POST', credentials: 'same-origin' }); } catch(e) {}
         }
     }
 
@@ -1448,7 +1678,7 @@ async function runSynthesis() {
     btn.style.opacity = '0.7';
 
     try {
-        const res = await fetch(`${API_BASE}/synthesis/trigger?project_id=${pid}&cycle_type=morning_briefing`, { method: 'POST' });
+        const res = await fetch(`${API_BASE}/synthesis/trigger?project_id=${pid}&cycle_type=morning_briefing`, { method: 'POST', credentials: 'same-origin' });
         const data = await res.json();
         const jobId = data.job_id;
 
@@ -1505,7 +1735,7 @@ async function runSignalSweep() {
     btn.textContent = 'Sweeping...';
 
     try {
-        const res = await fetch(`${API_BASE}/synthesis/sweep?project_id=${pid}`, { method: 'POST' });
+        const res = await fetch(`${API_BASE}/synthesis/sweep?project_id=${pid}`, { method: 'POST', credentials: 'same-origin' });
         const data = await res.json();
         const total = Object.values(data.results || {}).reduce((a, b) => a + Math.max(0, b), 0);
         btn.textContent = `${total} signals found`;
@@ -1519,6 +1749,97 @@ async function runSignalSweep() {
         btn.textContent = 'Sweep Signals';
         btn.disabled = false;
     }
+}
+
+// =============================================================================
+// HEALTH SORT
+// =============================================================================
+function sortProjectsByHealth(projects) {
+    const healthOrder = { red: 0, yellow: 1, green: 2, unknown: 3 };
+    return [...projects].sort((a, b) => {
+        // Critical items first
+        const aCrit = a.intelligence?.critical || 0;
+        const bCrit = b.intelligence?.critical || 0;
+        if (aCrit !== bCrit) return bCrit - aCrit;
+        // Then by health status
+        const aHealth = a.last_synthesis?.overall_health || 'unknown';
+        const bHealth = b.last_synthesis?.overall_health || 'unknown';
+        if (healthOrder[aHealth] !== healthOrder[bHealth]) return healthOrder[aHealth] - healthOrder[bHealth];
+        // Then alphabetical
+        return (a.name || '').localeCompare(b.name || '');
+    });
+}
+
+// =============================================================================
+// ACTIVITY FEED
+// =============================================================================
+async function loadActivityFeed() {
+    const feedList = document.getElementById('activity-feed-list');
+    if (!feedList) return;
+
+    // Try /api/signals/recent first, fall back to per-project signals
+    let signals = [];
+    const recentRes = await api('/signals/recent?limit=20');
+    if (recentRes?.data) {
+        signals = recentRes.data;
+    } else {
+        // Fall back: get signals from all projects
+        for (const p of state.projects) {
+            const res = await api(`/projects/${p.id}/signals?limit=10`);
+            if (res?.data) {
+                signals.push(...res.data.map(s => ({ ...s, project_name: p.name })));
+            }
+        }
+        signals.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+        signals = signals.slice(0, 20);
+    }
+
+    if (signals.length === 0) {
+        feedList.innerHTML = '<div style="padding:16px; text-align:center; color:var(--text-muted); font-size:13px;">No recent activity.</div>';
+        return;
+    }
+
+    // Dedup by summary
+    const seen = new Set();
+    const deduped = [];
+    for (const s of signals) {
+        const key = s.summary?.substring(0, 80) || '';
+        if (!seen.has(key)) {
+            seen.add(key);
+            deduped.push(s);
+        }
+    }
+
+    feedList.innerHTML = deduped.map(s => {
+        const isCritical = s.signal_category === 'contradiction' || (s.effective_weight && s.effective_weight > 0.8);
+        const projName = s.project_name || findProjectName(s.project_id);
+        const ts = new Date(s.created_at);
+        const timeStr = ts.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        return `
+            <div class="activity-entry">
+                ${isCritical ? '<div class="activity-critical-dot"></div>' : '<div style="width:6px;flex-shrink:0;"></div>'}
+                <div class="activity-time">${timeStr}</div>
+                <div class="activity-desc">${esc(s.summary || '').substring(0, 120)}</div>
+                ${projName ? `<div class="activity-project-pill">${esc(projName)}</div>` : ''}
+            </div>
+        `;
+    }).join('');
+}
+
+function findProjectName(projectId) {
+    if (!projectId) return '';
+    const p = state.projects.find(p => p.id === projectId);
+    return p?.name || '';
+}
+
+function showToast(msg) {
+    const existing = document.querySelector('.toast');
+    if (existing) existing.remove();
+    const toast = document.createElement('div');
+    toast.className = 'toast';
+    toast.textContent = msg;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 3000);
 }
 
 // =============================================================================
