@@ -108,6 +108,36 @@
             color: var(--text-muted);
         }
 
+        .topbar-tools {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .topbar-tool-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            background: rgba(255,255,255,0.04);
+            border: 0.5px solid rgba(255,255,255,0.06);
+            cursor: pointer;
+            transition: all 0.15s;
+            text-decoration: none;
+        }
+
+        .topbar-tool-btn:hover {
+            background: rgba(255,255,255,0.1);
+            border-color: rgba(255,255,255,0.15);
+        }
+
+        .topbar-tool-btn svg {
+            width: 20px;
+            height: 20px;
+        }
+
         .topbar-meta .sync-dot {
             width: 8px; height: 8px;
             border-radius: 50%;
@@ -123,30 +153,132 @@
             margin-top: 56px;
         }
 
-        /* SIDEBAR */
-        .sidebar {
-            width: 280px;
-            min-width: 280px;
-            background: var(--surface);
-            border-right: 1px solid var(--border);
+        /* NAV RAIL */
+        .nav-rail {
+            width: 60px;
+            min-width: 60px;
+            background: #0D1117;
+            border-right: 1px solid #243040;
             display: flex;
             flex-direction: column;
-            overflow: hidden;
+            padding: 16px 0;
+            z-index: 50;
         }
 
-        .sidebar-header {
-            padding: 16px;
-            border-bottom: 1px solid var(--border);
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: var(--text-muted);
-            font-weight: 600;
+        .nav-rail-logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 36px;
+            margin-bottom: 16px;
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-primary);
+            cursor: pointer;
         }
 
-        .sidebar-list {
-            flex: 1;
-            overflow-y: auto;
+        .nav-rail-item {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 44px;
+            cursor: pointer;
+            position: relative;
+            color: #6B7280;
+            transition: color 0.15s;
+        }
+        .nav-rail-item:hover { color: #E8ECF1; }
+        .nav-rail-item.active { color: #E8ECF1; }
+        .nav-rail-item.active::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 8px;
+            bottom: 8px;
+            width: 3px;
+            background: #3B6B8A;
+            border-radius: 0 3px 3px 0;
+        }
+
+        .nav-rail-item svg { width: 20px; height: 20px; }
+        .nav-rail-spacer { flex: 1; }
+
+        .nav-rail-tooltip {
+            display: none;
+            position: absolute;
+            left: 64px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: #1A2332;
+            color: #E8ECF1;
+            font-size: 12px;
+            padding: 4px 10px;
+            border-radius: 5px;
+            white-space: nowrap;
+            border: 1px solid #243040;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            z-index: 100;
+        }
+        .nav-rail-item:hover .nav-rail-tooltip { display: block; }
+
+        /* Project dropdown */
+        .nav-project-dropdown {
+            position: fixed;
+            left: 64px;
+            width: 280px;
+            background: #1A2332;
+            border: 1px solid #243040;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            z-index: 200;
+            display: none;
+        }
+        .nav-project-dropdown.open { display: block; }
+        .nav-pd-header { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; border-bottom: 1px solid #243040; }
+        .nav-pd-header span { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: #6B7280; font-weight: 600; }
+        .nav-pd-header button { background: none; border: none; color: #6B7280; cursor: pointer; font-size: 14px; }
+        .nav-pd-search { padding: 8px 14px; border-bottom: 1px solid #243040; }
+        .nav-pd-search input { width: 100%; background: rgba(255,255,255,0.06); border: 0.5px solid rgba(255,255,255,0.1); border-radius: 5px; color: #E8ECF1; font-size: 12px; padding: 6px 10px; outline: none; font-family: var(--font); }
+        .nav-pd-search input::placeholder { color: #6B7280; }
+        .nav-pd-list { max-height: 300px; overflow-y: auto; padding: 6px; }
+        .nav-pd-item { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 6px; cursor: pointer; transition: background 0.15s; }
+        .nav-pd-item:hover { background: #1F2B3D; }
+        .nav-pd-item.active { background: #1F2B3D; }
+        .nav-pd-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+        .nav-pd-dot.green { background: var(--accent-green); }
+        .nav-pd-dot.yellow { background: var(--accent-yellow); }
+        .nav-pd-dot.red { background: var(--accent-red); }
+        .nav-pd-dot.gray { background: #6B7280; }
+        .nav-pd-name { font-size: 13px; font-weight: 500; color: #E8ECF1; }
+        .nav-pd-number { font-size: 11px; color: #6B7280; }
+
+        /* User menu */
+        .nav-user-menu {
+            position: fixed;
+            left: 64px;
+            bottom: 16px;
+            width: 200px;
+            background: #1A2332;
+            border: 1px solid #243040;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            z-index: 200;
+            display: none;
+            padding: 8px;
+        }
+        .nav-user-menu.open { display: block; }
+        .nav-user-menu-name { padding: 8px 10px; font-size: 14px; font-weight: 600; color: #E8ECF1; }
+        .nav-user-menu-divider { height: 1px; background: #243040; margin: 4px 0; }
+        .nav-user-menu-item { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 5px; cursor: pointer; font-size: 12px; color: #9AABB8; transition: background 0.15s; }
+        .nav-user-menu-item:hover { background: #1F2B3D; color: #E8ECF1; }
+
+        .radar-toggle {
+            width: 24px; height: 24px; border-radius: 6px;
+            background: rgba(255,255,255,0.06); border: 0.5px solid rgba(255,255,255,0.1);
+            color: rgba(255,255,255,0.4); font-size: 12px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; transition: all 0.15s; flex-shrink: 0;
+        }
+        .radar-toggle:hover { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.7); }
             padding: 8px;
         }
 
@@ -209,8 +341,21 @@
             min-width: 280px;
             border-left: 1px solid var(--border);
             background: var(--surface);
-            overflow-y: auto;
+            overflow-y: hidden;
             padding: 16px;
+        }
+        .radar-sidebar {
+            overflow-y: hidden !important;
+            transition: width 0.2s ease, min-width 0.2s ease, padding 0.2s ease;
+            position: relative;
+        }
+
+        .radar-sidebar.collapsed {
+            width: 0;
+            min-width: 0;
+            padding: 0;
+            border-left: none;
+            overflow: hidden;
         }
 
         .radar-sidebar-header {
@@ -218,6 +363,9 @@
             font-weight: 700;
             color: var(--text-primary);
             margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         .radar-sidebar-item {
@@ -464,8 +612,6 @@
         }
 
         .activity-feed-list {
-            max-height: 280px;
-            overflow-y: auto;
         }
 
         .activity-entry {
@@ -765,6 +911,8 @@
         }
 
         .data-table tr:hover td { background: var(--hover); }
+        .data-table tr.ref-row-hover { transition: background 0.15s; }
+        .data-table tr.ref-row-hover:hover td { background: rgba(55,138,221,0.06); }
 
         .status-badge {
             display: inline-block;
@@ -1648,9 +1796,9 @@
             background: var(--surface);
             border: 1px solid var(--border);
             border-radius: 12px;
-            width: 680px;
+            width: 720px;
             max-width: 90vw;
-            max-height: 70vh;
+            max-height: 75vh;
             display: flex;
             flex-direction: column;
             box-shadow: 0 16px 48px rgba(0,0,0,0.4);
@@ -1688,31 +1836,118 @@
             flex-shrink: 0;
         }
 
+        /* Filter chips row */
+        .search-filters {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 20px;
+            border-bottom: 1px solid var(--border);
+            flex-wrap: wrap;
+        }
+
+        .search-chip {
+            font-size: 11px;
+            font-weight: 500;
+            padding: 4px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.15s;
+            border: 1px solid transparent;
+            user-select: none;
+        }
+
+        .search-chip.chip-all { color: rgba(255,255,255,0.6); background: rgba(255,255,255,0.08); }
+        .search-chip.chip-all.active { color: #fff; background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.15); }
+        .search-chip.chip-rfis { color: #f09595; opacity: 0.45; }
+        .search-chip.chip-rfis.active { opacity: 1; background: rgba(232,78,78,0.25); border-color: rgba(232,78,78,0.4); }
+        .search-chip.chip-submittals { color: #5dcaa5; opacity: 0.45; }
+        .search-chip.chip-submittals.active { opacity: 1; background: rgba(93,202,165,0.25); border-color: rgba(93,202,165,0.4); }
+        .search-chip.chip-drawings { color: #85b7eb; opacity: 0.45; }
+        .search-chip.chip-drawings.active { opacity: 1; background: rgba(55,138,221,0.25); border-color: rgba(55,138,221,0.4); }
+        .search-chip.chip-documents { color: #ed93b1; opacity: 0.45; }
+        .search-chip.chip-documents.active { opacity: 1; background: rgba(212,83,126,0.25); border-color: rgba(212,83,126,0.4); }
+        .search-chip.chip-contacts { color: #fac775; opacity: 0.45; }
+        .search-chip.chip-contacts.active { opacity: 1; background: rgba(250,199,117,0.25); border-color: rgba(250,199,117,0.4); }
+        .search-chip.chip-intelligence { color: #afa9ec; opacity: 0.45; }
+        .search-chip.chip-intelligence.active { opacity: 1; background: rgba(127,119,221,0.25); border-color: rgba(127,119,221,0.4); }
+
+        /* Scope row */
+        .search-scope {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 20px;
+            border-bottom: 1px solid var(--border);
+            font-size: 12px;
+            color: rgba(255,255,255,0.5);
+        }
+
+        .search-scope label {
+            font-size: 11px;
+            color: rgba(255,255,255,0.4);
+        }
+
+        .search-scope select {
+            background: rgba(255,255,255,0.06);
+            border: 0.5px solid rgba(255,255,255,0.1);
+            border-radius: 6px;
+            color: rgba(255,255,255,0.7);
+            font-size: 12px;
+            font-family: var(--font);
+            padding: 4px 8px;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .search-scope select:hover { border-color: rgba(255,255,255,0.2); }
+
+        .search-scope .scope-divider {
+            width: 1px;
+            height: 16px;
+            background: rgba(255,255,255,0.25);
+        }
+
         .search-results {
             overflow-y: auto;
             padding: 8px 0;
             flex: 1;
+            max-height: 380px;
         }
 
         .search-group-label {
             font-size: 11px;
-            font-weight: 600;
+            font-weight: 500;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            color: var(--text-muted);
+            color: rgba(255,255,255,0.35);
             padding: 10px 20px 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .search-group-count {
+            font-size: 11px;
+            font-weight: 400;
+            color: rgba(255,255,255,0.3);
+            text-transform: none;
+            letter-spacing: 0;
         }
 
         .search-result-item {
             display: flex;
             align-items: flex-start;
             gap: 10px;
-            padding: 10px 20px;
+            padding: 8px 12px;
+            margin: 2px 8px;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.03);
             cursor: pointer;
             transition: background 0.15s;
         }
 
-        .search-result-item:hover { background: var(--card-hover); }
+        .search-result-item:hover, .search-result-item.sr-focused { background: rgba(255,255,255,0.07); }
 
         .search-result-item .sri-icon {
             width: 28px;
@@ -1721,16 +1956,17 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 13px;
+            font-size: 11px;
             flex-shrink: 0;
             font-weight: 700;
         }
 
-        .search-result-item .sri-icon.rfi { background: rgba(74,144,217,0.15); color: var(--accent-blue); }
-        .search-result-item .sri-icon.sub { background: rgba(232,168,56,0.15); color: var(--accent-amber); }
-        .search-result-item .sri-icon.intel { background: rgba(224,85,85,0.15); color: var(--accent-red); }
-        .search-result-item .sri-icon.signal { background: rgba(52,199,123,0.15); color: var(--accent-green); }
-        .search-result-item .sri-icon.contact { background: rgba(59,107,138,0.15); color: var(--steel-blue-light); }
+        .search-result-item .sri-icon.rfi { background: rgba(232,78,78,0.2); color: #f09595; }
+        .search-result-item .sri-icon.sub { background: rgba(93,202,165,0.2); color: #5dcaa5; }
+        .search-result-item .sri-icon.intel { background: rgba(127,119,221,0.2); color: #afa9ec; }
+        .search-result-item .sri-icon.drawing { background: rgba(55,138,221,0.2); color: #85b7eb; }
+        .search-result-item .sri-icon.doc { background: rgba(212,83,126,0.2); color: #ed93b1; }
+        .search-result-item .sri-icon.contact { background: rgba(250,199,117,0.2); color: #fac775; border-radius: 50%; font-size: 10px; }
 
         .search-result-item .sri-body { flex: 1; min-width: 0; }
 
@@ -1756,11 +1992,54 @@
             flex-shrink: 0;
         }
 
+        .search-highlight {
+            background: rgba(250,199,117,0.2);
+            color: #fac775;
+            padding: 0 3px;
+            border-radius: 2px;
+        }
+
+        .search-discipline-badge {
+            display: inline-block;
+            background: rgba(55,138,221,0.12);
+            font-size: 10px;
+            padding: 1px 6px;
+            border-radius: 3px;
+        }
+
+        .search-superseded { color: rgba(240,153,123,0.7); }
+
+        .search-show-more {
+            text-align: center;
+            padding: 6px 0 10px;
+            font-size: 11px;
+            color: rgba(55,138,221,0.7);
+            cursor: pointer;
+        }
+        .search-show-more:hover { color: rgba(55,138,221,1); }
+
+        .search-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 20px;
+            border-top: 1px solid var(--border);
+            font-size: 11px;
+        }
+
+        .search-footer-left { color: rgba(255,255,255,0.3); }
+        .search-footer-right { color: rgba(255,255,255,0.25); }
+
         .search-empty {
             text-align: center;
             padding: 32px 20px;
-            color: var(--text-muted);
+            color: rgba(255,255,255,0.4);
             font-size: 13px;
+        }
+        .search-empty-sub {
+            font-size: 11px;
+            color: rgba(255,255,255,0.25);
+            margin-top: 6px;
         }
 
         .search-loading {
@@ -1768,6 +2047,210 @@
             padding: 24px;
             color: var(--text-muted);
             font-size: 13px;
+        }
+
+        /* UPLOAD MODAL */
+        .upload-modal {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            width: 560px;
+            max-width: 90vw;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 16px 48px rgba(0,0,0,0.4);
+            padding: 24px;
+        }
+
+        .upload-header { margin-bottom: 16px; }
+        .upload-header h3 { font-size: 16px; font-weight: 500; color: var(--text-primary); margin: 0; }
+        .upload-header .upload-sub { font-size: 12px; color: rgba(255,255,255,0.35); margin-top: 4px; }
+
+        .upload-dropzone {
+            border: 1.5px dashed rgba(55,138,221,0.4);
+            border-radius: 10px;
+            background: rgba(55,138,221,0.04);
+            padding: 32px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.15s;
+            margin-bottom: 16px;
+        }
+        .upload-dropzone.dragover { border-style: solid; background: rgba(55,138,221,0.08); }
+        .upload-dropzone .dz-icon { font-size: 28px; margin-bottom: 8px; opacity: 0.5; }
+        .upload-dropzone .dz-text { font-size: 14px; color: rgba(255,255,255,0.6); }
+        .upload-dropzone .dz-sub { font-size: 11px; color: rgba(255,255,255,0.25); margin-top: 4px; }
+
+        .upload-file-card {
+            display: flex; align-items: center; gap: 10px;
+            background: rgba(255,255,255,0.03); border: 0.5px solid rgba(255,255,255,0.08);
+            border-radius: 8px; padding: 10px 12px; margin-bottom: 6px;
+        }
+        .upload-file-card .ufc-badge { font-size: 10px; font-weight: 700; padding: 4px 8px; border-radius: 4px; flex-shrink: 0; }
+        .upload-file-card .ufc-info { flex: 1; min-width: 0; }
+        .upload-file-card .ufc-name { font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .upload-file-card .ufc-size { font-size: 11px; color: rgba(255,255,255,0.35); }
+        .upload-file-card .ufc-status { font-size: 11px; color: rgba(93,202,165,0.8); flex-shrink: 0; }
+        .upload-file-card .ufc-status.error { color: #f09595; }
+        .upload-file-card .ufc-remove { background: none; border: none; color: rgba(255,255,255,0.25); cursor: pointer; font-size: 14px; padding: 2px 6px; }
+        .upload-file-card .ufc-remove:hover { color: #f09595; }
+
+        .upload-section-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: rgba(255,255,255,0.35); margin: 14px 0 8px; font-weight: 500; }
+
+        .upload-chips { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+        .upload-chip {
+            font-size: 11px; padding: 4px 12px; border-radius: 20px; cursor: pointer;
+            background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.4);
+            border: 1px solid transparent; transition: all 0.15s; user-select: none;
+        }
+        .upload-chip.active { background: rgba(55,138,221,0.2); color: #85b7eb; border-color: rgba(55,138,221,0.35); }
+
+        .upload-notes {
+            width: 100%; background: #252830; border: 0.5px solid rgba(255,255,255,0.08);
+            border-radius: 8px; color: #e0e0e0; font-size: 13px; font-family: inherit;
+            padding: 10px 12px; min-height: 56px; resize: vertical; outline: none;
+        }
+        .upload-notes::placeholder { color: rgba(255,255,255,0.25); }
+
+        .upload-scope { display: flex; align-items: center; gap: 12px; margin: 12px 0; font-size: 12px; color: rgba(255,255,255,0.5); }
+        .upload-scope label { font-size: 11px; color: rgba(255,255,255,0.4); }
+        .upload-scope select { background: rgba(255,255,255,0.06); border: 0.5px solid rgba(255,255,255,0.1); border-radius: 6px; color: rgba(255,255,255,0.7); font-size: 12px; font-family: var(--font); padding: 4px 8px; outline: none; cursor: pointer; }
+        .upload-scope .scope-divider { width: 1px; height: 16px; background: rgba(255,255,255,0.25); }
+
+        .upload-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--border); }
+        .upload-footer-hint { font-size: 11px; color: rgba(255,255,255,0.25); }
+        .upload-footer-actions { display: flex; gap: 8px; }
+        .upload-btn-cancel { background: none; border: 0.5px solid rgba(255,255,255,0.15); color: rgba(255,255,255,0.5); padding: 6px 14px; border-radius: 6px; font-size: 12px; cursor: pointer; }
+        .upload-btn-submit { background: rgba(55,138,221,0.3); border: 1px solid rgba(55,138,221,0.4); color: #85b7eb; padding: 6px 14px; border-radius: 6px; font-size: 12px; cursor: pointer; font-weight: 500; transition: all 0.15s; }
+        .upload-btn-submit:disabled { opacity: 0.4; cursor: default; }
+        .upload-btn-submit:not(:disabled):hover { background: rgba(55,138,221,0.4); }
+
+        .upload-project-picker { background: rgba(250,199,117,0.06); border: 0.5px solid rgba(250,199,117,0.2); border-radius: 8px; padding: 12px 14px; margin-bottom: 14px; }
+        .upload-project-picker .upp-label { font-size: 12px; color: rgba(250,199,117,0.8); font-weight: 500; margin-bottom: 8px; }
+        .upload-project-chip { font-size: 11px; padding: 5px 12px; border-radius: 6px; cursor: pointer; background: rgba(255,255,255,0.04); color: rgba(255,255,255,0.4); border: 1px solid transparent; transition: all 0.15s; display: inline-block; margin: 0 4px 4px 0; }
+        .upload-project-chip.active { background: rgba(55,138,221,0.2); color: #85b7eb; border-color: rgba(55,138,221,0.35); }
+
+        /* Drag overlay for page-level drop */
+        /* DRAWING BROWSER */
+        .drawing-browser {
+            background: #161D26;
+            border: 1px solid #243040;
+            border-radius: 8px;
+            margin-top: 24px;
+            overflow: hidden;
+        }
+        .db-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            cursor: pointer;
+            border-bottom: 1px solid #243040;
+        }
+        .db-header:hover { background: rgba(255,255,255,0.02); }
+        .db-body { display: flex; height: calc(100vh - 280px); min-height: 400px; }
+        .db-body.collapsed { display: none; height: 0; min-height: 0; }
+        .db-list-panel {
+            width: 40%;
+            min-width: 320px;
+            border-right: 1px solid #243040;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            overflow: hidden;
+        }
+        .db-filters {
+            display: flex;
+            gap: 6px;
+            padding: 10px 12px;
+            border-bottom: 1px solid #243040;
+        }
+        .db-filters select, .db-filters input {
+            background: rgba(255,255,255,0.06);
+            border: 0.5px solid rgba(255,255,255,0.1);
+            border-radius: 5px;
+            color: rgba(255,255,255,0.7);
+            font-size: 11px;
+            font-family: var(--font);
+            padding: 5px 8px;
+            outline: none;
+        }
+        .db-filters input::placeholder { color: rgba(255,255,255,0.25); }
+        .db-drawing-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            padding: 8px 12px;
+            cursor: pointer;
+            border-bottom: 1px solid rgba(255,255,255,0.03);
+            transition: background 0.15s;
+        }
+        .db-drawing-row:hover { background: #1F2B3D; }
+        .db-drawing-row:hover .db-star { opacity: 1 !important; }
+        .db-drawing-row.selected { background: #1A2332; border-left: 3px solid #4A90D9; padding-left: 9px; }
+        .db-disc-badge {
+            font-size: 9px;
+            font-weight: 700;
+            padding: 2px 5px;
+            border-radius: 3px;
+            flex-shrink: 0;
+            text-transform: uppercase;
+            margin-top: 2px;
+        }
+        .db-drawing-info { flex: 1; min-width: 0; }
+        .db-drawing-number { font-size: 13px; font-weight: 600; color: #E8ECF1; }
+        .db-drawing-rev { font-size: 11px; color: #9AABB8; float: right; }
+        .db-drawing-title { font-size: 12px; color: #9AABB8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .db-drawing-meta { font-size: 11px; color: #6B7280; }
+        .db-viewer-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #0F1419;
+            height: 100%;
+            overflow: hidden;
+        }
+        #db-viewer-toolbar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 12px;
+            background: #161D26;
+            border-bottom: 1px solid #243040;
+        }
+        #db-viewer-content {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        #db-viewer-content iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        #db-list {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        /* MARKUP TOOLBAR */
+        .mt-btn {
+            width: 28px; height: 28px; border-radius: 5px;
+            background: #243040; border: none; color: #9AABB8;
+            cursor: pointer; font-size: 14px; display: flex;
+            align-items: center; justify-content: center; transition: all 0.15s;
+        }
+        .mt-btn:hover { background: #1F2B3D; color: #E8ECF1; }
+        .mt-btn.active { background: #3B6B8A; color: #E8ECF1; border: 1px solid rgba(74,144,217,0.4); }
+
+        .drag-overlay {
+            position: fixed; inset: 0; z-index: 250;
+            background: rgba(55,138,221,0.04);
+            border: 1.5px dashed rgba(55,138,221,0.4);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 16px; color: rgba(55,138,221,0.7); pointer-events: none;
         }
     </style>
 </head>
@@ -1782,8 +2265,34 @@
     <div class="topbar-nav">
         <button id="nav-dashboard" class="active" onclick="navigate('dashboard')">Overview</button>
         <button id="nav-radar" onclick="navigate('radar')">Radar</button>
+        <button onclick="showToast('Reports coming soon')">Reports</button>
     </div>
     <div class="topbar-meta">
+        <div class="topbar-tools">
+            <a href="https://sandbox.procore.com/4281379/company/home/list" target="_blank" rel="noopener noreferrer" class="topbar-tool-btn" title="Open Procore">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" fill="#F47E20"/>
+                    <path d="M15.5 8.5h-3.75c-.69 0-1.25.56-1.25 1.25v4.5c0 .69.56 1.25 1.25 1.25H15.5c.69 0 1.25-.56 1.25-1.25V12.5h-1.5v1.5h-3v-4h3V11.5h1.5V9.75c0-.69-.56-1.25-1.25-1.25z" fill="white"/>
+                    <path d="M8.5 10h-2v4h1.5v-1.5H9.5c.55 0 1-.45 1-1v-.5c0-.55-.45-1-1-1zm0 1.5H8v-1h.5v1z" fill="white"/>
+                </svg>
+            </a>
+            <a href="https://outlook.office.com" target="_blank" rel="noopener noreferrer" class="topbar-tool-btn" title="Open Outlook">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M2 6.5V17.5L9.5 19V5L2 6.5Z" fill="#0078D4"/>
+                    <path d="M9.5 5V19L22 17.5V6.5L9.5 5Z" fill="#0078D4" opacity="0.8"/>
+                    <path d="M22 6.5L15.75 10L9.5 6.5V8.5L15.75 12L22 8.5V6.5Z" fill="#28A8EA"/>
+                    <ellipse cx="5.75" cy="12" rx="2.25" ry="3" fill="#0078D4"/>
+                    <ellipse cx="5.75" cy="12" rx="1.5" ry="2" fill="#C8E6FF"/>
+                </svg>
+            </a>
+            <a href="https://onedrive.live.com" target="_blank" rel="noopener noreferrer" class="topbar-tool-btn" title="Open OneDrive">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M9.5 14.5L14 10.5C14 10.5 13.2 7 10 7C7.5 7 5.5 8.8 5.2 11.2C3.3 11.5 2 13.2 2 15C2 17 3.8 18.5 6 18.5H18C20.2 18.5 22 16.7 22 14.5C22 12.5 20.5 10.8 18.5 10.5C18.5 10.5 17.5 8 15 8C13.5 8 12.2 9 11.5 10" fill="none" stroke="#0078D4" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M6 18.5H18C20.2 18.5 22 16.7 22 14.5C22 12.5 20.5 10.8 18.5 10.5C18 8.5 16 7 14 7.5" stroke="#0364B8" stroke-width="1" stroke-linecap="round" opacity="0.5"/>
+                    <path d="M5.2 11.2C3.3 11.5 2 13.2 2 15C2 17 3.8 18.5 6 18.5" stroke="#0078D4" stroke-width="1.5" stroke-linecap="round"/>
+                </svg>
+            </a>
+        </div>
         <span id="topbar-datetime"></span>
         <span><span class="sync-dot" id="sync-dot"></span> <span id="last-sync" style="display:none;">Loading...</span></span>
         <div style="width:28px; height:28px; border-radius:50%; background:var(--steel-blue-dark); display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:600; color:var(--text-primary);">M</div>
@@ -1792,11 +2301,46 @@
 
 <!-- LAYOUT -->
 <div class="layout">
-    <!-- SIDEBAR -->
-    <div class="sidebar">
-        <div class="sidebar-header">Projects</div>
-        <div class="sidebar-list" id="project-list">
-            <div class="loading"><div class="spinner"></div> Loading projects...</div>
+    <!-- NAV RAIL -->
+    <div class="nav-rail">
+        <div class="nav-rail-logo" onclick="navigate('dashboard')" title="SteelSync">SS</div>
+        <div class="nav-rail-item active" id="nav-rail-overview" onclick="navigate('dashboard')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+            <span class="nav-rail-tooltip">Overview</span>
+        </div>
+        <div class="nav-rail-item" id="nav-rail-projects" onclick="toggleProjectDropdown()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
+            <span class="nav-rail-tooltip">Projects</span>
+        </div>
+        <div class="nav-rail-item" id="nav-rail-radar" onclick="navigate('radar')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+            <span class="nav-rail-tooltip">Radar</span>
+        </div>
+        <div class="nav-rail-item" onclick="showToast('Reports coming soon')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+            <span class="nav-rail-tooltip">Reports</span>
+        </div>
+        <div class="nav-rail-spacer"></div>
+        <div class="nav-rail-item" onclick="showToast('Settings coming soon')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+            <span class="nav-rail-tooltip">Settings</span>
+        </div>
+        <div class="nav-rail-item" id="nav-rail-user" onclick="toggleUserMenu()">
+            <div style="width:24px;height:24px;border-radius:50%;background:#3B6B8A;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:#E8ECF1;">M</div>
+            <span class="nav-rail-tooltip">Account</span>
+        </div>
+    </div>
+    <div class="nav-project-dropdown" id="nav-project-dropdown"></div>
+    <div class="nav-user-menu" id="nav-user-menu">
+        <div class="nav-user-menu-name">Moby</div>
+        <div class="nav-user-menu-divider"></div>
+        <div class="nav-user-menu-item" onclick="showToast('Settings coming soon'); toggleUserMenu();">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9"/></svg>
+            Settings
+        </div>
+        <div class="nav-user-menu-item" onclick="showToast('Logout coming soon'); toggleUserMenu();">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+            Log out
         </div>
     </div>
 
@@ -1806,6 +2350,9 @@
             <!-- Content injected by JS -->
         </div>
         <div class="radar-sidebar" id="radar-sidebar"></div>
+        <div class="radar-expand-wrap" style="position:relative;">
+            <button class="radar-expand radar-toggle" id="radar-expand-btn" onclick="toggleSidebar('radar')" title="Expand Radar" style="display:none;position:fixed;right:8px;top:64px;">&#9664;</button>
+        </div>
     </div>
 </div>
 
@@ -1855,9 +2402,9 @@ function navigate(view, projectId, skipPush) {
 
     // Update URL without reload
     if (!skipPush) {
-        let path = '/';
-        if (view === 'project' && state.selectedProjectId) path = `/project/${state.selectedProjectId}`;
-        else if (view === 'radar') path = '/radar';
+        let path = '/command-center';
+        if (view === 'project' && state.selectedProjectId) path = `/command-center/project/${state.selectedProjectId}`;
+        else if (view === 'radar') path = '/command-center/radar';
         history.pushState({ view, projectId: state.selectedProjectId }, '', path);
     }
 
@@ -1866,16 +2413,19 @@ function navigate(view, projectId, skipPush) {
     const navBtn = document.getElementById('nav-' + view);
     if (navBtn) navBtn.classList.add('active');
 
-    // Update sidebar selection
-    document.querySelectorAll('.project-item').forEach(el => {
-        el.classList.toggle('active', el.dataset.id === state.selectedProjectId);
-    });
+    // Update nav rail active state
+    document.querySelectorAll('.nav-rail-item').forEach(el => el.classList.remove('active'));
+    if (view === 'dashboard') document.getElementById('nav-rail-overview')?.classList.add('active');
+    else if (view === 'project') document.getElementById('nav-rail-projects')?.classList.add('active');
+    else if (view === 'radar') document.getElementById('nav-rail-radar')?.classList.add('active');
 
     render();
 }
 
 function selectProject(projectId) {
     state.selectedProjectId = projectId;
+    state._rfisExpanded = false;
+    state._subsExpanded = false;
     navigate('project', projectId);
 }
 
@@ -1962,10 +2512,10 @@ async function renderDashboard(container) {
                 <span class="qa-label">Request Analysis</span>
                 <span class="qa-sub">Submit for deep review</span>
             </button>
-            <button class="quick-action-btn" onclick="showToast('Reports coming soon')">
-                <span class="qa-icon">&#8862;</span>
-                <span class="qa-label">View Reports</span>
-                <span class="qa-sub">Past briefings</span>
+            <button class="quick-action-btn" onclick="openUploadModal('', '')">
+                <span class="qa-icon">&#128228;</span>
+                <span class="qa-label">Upload Document</span>
+                <span class="qa-sub">Feed the intelligence pipeline</span>
             </button>
             <button class="quick-action-btn" onclick="navigate('radar')">
                 <span class="qa-icon">&#9678;</span>
@@ -1973,10 +2523,51 @@ async function renderDashboard(container) {
                 <span class="qa-sub">Flag for monitoring</span>
             </button>
         </div>
+
+        <div class="drawing-browser" id="drawing-browser">
+            <div class="db-header" onclick="toggleDrawingBrowser()">
+                <span style="font-size:14px;font-weight:600;color:#E8ECF1;">Drawings</span>
+                <span id="db-chevron" style="font-size:12px;color:#6B7280;transition:transform 0.2s;">&#9660;</span>
+            </div>
+            <div class="db-body" id="db-body">
+                <div class="db-list-panel" id="db-list-panel">
+                    <div class="db-filters">
+                        <select id="db-filter-project" onchange="loadDrawings()" style="flex:1;">
+                            <option value="">All Projects</option>
+                            ${d.projects.map(p => '<option value="' + p.id + '">' + esc(p.name) + '</option>').join('')}
+                        </select>
+                        <select id="db-filter-discipline" onchange="loadDrawings()" style="flex:1;">
+                            <option value="">All Disciplines</option>
+                        </select>
+                        <input id="db-search" type="text" placeholder="Search number or title..." oninput="debounceDrawingSearch()" style="flex:1.5;">
+                    </div>
+                    <div id="db-count" style="font-size:11px;color:#6B7280;padding:4px 0;"></div>
+                    <div id="db-list" style="flex:1;overflow-y:auto;">
+                        <div style="text-align:center;padding:24px;color:#6B7280;font-size:12px;">Loading drawings...</div>
+                    </div>
+                    <div id="db-load-more" style="display:none;text-align:center;padding:8px;">
+                        <button onclick="loadMoreDrawings()" style="background:none;border:none;color:rgba(55,138,221,0.7);font-size:11px;cursor:pointer;">Load more</button>
+                    </div>
+                </div>
+                <div class="db-viewer-panel" id="db-viewer-panel">
+                    <div id="db-viewer-toolbar" style="display:none;">
+                        <span id="db-viewer-info" style="font-size:12px;color:#9AABB8;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
+                        <button id="db-markup-btn" onclick="enterMarkupMode()" style="font-size:11px;padding:3px 10px;border-radius:5px;background:rgba(255,255,255,0.06);border:0.5px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.5);cursor:pointer;">Markup</button>
+                    <a id="db-viewer-download" href="#" target="_blank" style="font-size:11px;color:rgba(55,138,221,0.7);text-decoration:none;">Download</a>
+                    </div>
+                    <div id="db-viewer-content">
+                        <div style="display:flex;align-items:center;justify-content:center;height:100%;color:#6B7280;font-size:14px;">Select a drawing to view</div>
+                    </div>
+                </div>
+            </div>
+        </div>
     `;
 
     // Load activity feed async
+    loadDrawingDisciplines();
+    loadDrawings();
     loadActivityFeed();
+
 }
 
 function renderHealthCard(p) {
@@ -1999,7 +2590,7 @@ function renderHealthCard(p) {
     const watchCount = (p.intelligence?.total_active || 0) - criticalCount - highCount;
 
     // Source count for confidence
-    const sourceCount = (p.open_rfis || 0) + (p.open_submittals || 0) + (p.pending_change_orders || 0);
+    const sourceCount = (p.open_rfis || 0) + (p.open_submittals || 0) + (p.pending_change_orders || 0) + (p.document_count || 0);
 
     return `
         <div class="health-card ${healthClass}" onclick="selectProject('${p.id}')">
@@ -2173,6 +2764,7 @@ async function renderProjectDetail(container) {
         ${renderTier('high', 'Attention', highItems, true)}
         ${renderTier('watch', 'Tracking', watchItems, false)}
 
+
         <div class="quick-actions" style="margin-top:24px;">
             <button class="quick-action-btn" onclick="openSearch()">
                 <span class="qa-icon">&#128269;</span>
@@ -2184,16 +2776,23 @@ async function renderProjectDetail(container) {
                 <span class="qa-label">Request Deep Dive</span>
                 <span class="qa-sub">Detailed analysis on demand</span>
             </button>
-            <button class="quick-action-btn" onclick="showToast('Reports coming soon')">
-                <span class="qa-icon">&#128196;</span>
-                <span class="qa-label">View Reports</span>
-                <span class="qa-sub">Briefing history & archives</span>
+            <button class="quick-action-btn" onclick="openUploadModal('${pid}', '${esc(p.name)}')">
+                <span class="qa-icon">&#128228;</span>
+                <span class="qa-label">Upload Document</span>
+                <span class="qa-sub">Feed the intelligence pipeline</span>
             </button>
             <button class="quick-action-btn" onclick="openRadarForm()">
                 <span class="qa-icon">&#127919;</span>
                 <span class="qa-label">Add to Radar</span>
                 <span class="qa-sub">Track an item or pattern</span>
             </button>
+        </div>
+
+        <div class="ref-section">
+            <div class="ref-section-heading">Recent Activity</div>
+            <div id="project-activity-feed" style="margin-bottom:8px;">
+                <div style="font-size:12px;color:var(--text-muted);padding:8px 0;">Loading activity...</div>
+            </div>
         </div>
 
         <div class="ref-section">
@@ -2213,6 +2812,8 @@ async function renderProjectDetail(container) {
     state._subsTotal = subsRes?.total_count || subs.length;
     if (!state.refTab) state.refTab = 'rfis';
     renderRefTab();
+    renderProjectActivityFeed(pid);
+    renderExternalToolBar(pid);
 
     // Typewriter effect
     if (shouldTypewrite && synthText) {
@@ -2407,6 +3008,74 @@ function switchRefTab(tab) {
     renderRefTab();
 }
 
+async function renderExternalToolBar(projectId) {
+    // Render into topbar tools area as icon-only buttons
+    let container = document.getElementById('topbar-ext-tools');
+    if (!container) {
+        container = document.createElement('span');
+        container.id = 'topbar-ext-tools';
+        container.style.cssText = 'display:flex;gap:6px;align-items:center;';
+        const toolsDiv = document.querySelector('.topbar-tools');
+        if (toolsDiv) toolsDiv.appendChild(container);
+    }
+    const res = await api(`/projects/${projectId}/external-tools`);
+    const tools = res?.data || [];
+    if (tools.length === 0) { container.innerHTML = ''; return; }
+
+    const iconSvgs = {
+        smartsheet: '<svg viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="2" stroke="#5dcaa5" stroke-width="1.5"/><line x1="3" y1="9" x2="21" y2="9" stroke="#5dcaa5" stroke-width="1"/><line x1="3" y1="15" x2="21" y2="15" stroke="#5dcaa5" stroke-width="1"/><line x1="9" y1="3" x2="9" y2="21" stroke="#5dcaa5" stroke-width="1"/><line x1="15" y1="3" x2="15" y2="21" stroke="#5dcaa5" stroke-width="1"/></svg>',
+        onedrive: '<svg viewBox="0 0 24 24" fill="none"><path d="M9.5 14.5L14 10.5C14 10.5 13.2 7 10 7C7.5 7 5.5 8.8 5.2 11.2C3.3 11.5 2 13.2 2 15C2 17 3.8 18.5 6 18.5H18C20.2 18.5 22 16.7 22 14.5C22 12.5 20.5 10.8 18.5 10.5" stroke="#0078D4" stroke-width="1.5" stroke-linecap="round"/></svg>',
+        excel: '<svg viewBox="0 0 24 24" fill="none"><rect x="4" y="3" width="16" height="18" rx="2" stroke="#217346" stroke-width="1.5"/><path d="M8 9l4 6M12 9l-4 6" stroke="#217346" stroke-width="1.5" stroke-linecap="round"/></svg>',
+        sharepoint: '<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="10" r="6" stroke="#0078D4" stroke-width="1.5"/><circle cx="16" cy="16" r="4" stroke="#0078D4" stroke-width="1.5"/><circle cx="8" cy="16" r="3" stroke="#0078D4" stroke-width="1"/></svg>',
+        browser: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>',
+    };
+
+    container.innerHTML = tools.map(t => `
+        <a href="${esc(t.base_url)}" target="_blank" rel="noopener noreferrer" class="topbar-tool-btn" title="${esc(t.tool_name)}">
+            ${iconSvgs[t.tool_icon] || iconSvgs.browser}
+        </a>
+    `).join('');
+}
+
+async function renderProjectActivityFeed(projectId) {
+    const container = document.getElementById('project-activity-feed');
+    if (!container) return;
+    const res = await api('/activity/recent?limit=50');
+    if (!res?.data) { container.innerHTML = '<div style="font-size:12px;color:var(--text-muted);padding:8px 0;">No recent activity.</div>'; return; }
+
+    // Filter to this project
+    const projName = (state.projects.find(p => p.id === projectId) || {}).name || '';
+    const items = res.data.filter(a => {
+        if (a.project_id === projectId) return true;
+        if (a.project_name && projName && a.project_name === projName) return true;
+        return false;
+    }).slice(0, 15);
+
+    if (items.length === 0) {
+        container.innerHTML = '<div style="font-size:12px;color:var(--text-muted);padding:8px 0;">No recent activity for this project.</div>';
+        return;
+    }
+
+    container.innerHTML = items.map(a => {
+        const timeStr = formatServerTime(a.created_at);
+        const url = a.procore_url || (a.document_id ? '/api/documents/' + a.document_id + '/view' : '');
+        const clickable = url ? `onclick="window.open('${esc(url)}', '_blank')" style="cursor:pointer;"` : '';
+        const isCritical = a.is_critical;
+        const projName = a.project_name || '';
+        const emailSubject = encodeURIComponent((projName ? projName + ' – ' : '') + (a.summary || '').substring(0, 100));
+        const procoreLink = a.procore_url ? '\n\nView in Procore: ' + a.procore_url : '';
+        const emailBody = encodeURIComponent((a.summary || '') + procoreLink + '\n\nPlease advise.\n\nThank you.');
+        const mailto = 'mailto:?subject=' + emailSubject + '&body=' + emailBody;
+        return `
+            <div class="activity-entry" ${clickable}>
+                ${isCritical ? '<div class="activity-critical-dot"></div>' : '<div style="width:6px;flex-shrink:0;"></div>'}
+                <div class="activity-time">${timeStr}</div>
+                <div class="activity-desc" ${url ? 'style="color:var(--text-primary);"' : ''}>${esc(a.summary || '').substring(0, 120)}</div>
+                <a href="${mailto}" onclick="event.stopPropagation();" title="Compose email about this item" style="flex-shrink:0;color:rgba(255,255,255,0.25);font-size:13px;text-decoration:none;padding:2px 4px;transition:color 0.15s;" onmouseover="this.style.color='#85b7eb'" onmouseout="this.style.color='rgba(255,255,255,0.25)'">&#9993;</a>
+            </div>`;
+    }).join('');
+}
+
 function renderRefTab() {
     const content = document.getElementById('ref-content');
     if (!content) return;
@@ -2420,6 +3089,10 @@ function renderRefTab() {
 
 function renderRefRFIs(container) {
     const rfis = state._rfis || [];
+    const initLimit = 25;
+    const showAll = state._rfisExpanded || false;
+    const visible = showAll ? rfis : rfis.slice(0, initLimit);
+    const hasMore = rfis.length > initLimit && !showAll;
     container.innerHTML = `
         <div class="panel">
             <div class="panel-header">
@@ -2438,22 +3111,34 @@ function renderRefRFIs(container) {
                                 <th>Due Date</th>
                                 <th>Days Open</th>
                                 <th>Cost Impact</th>
+                                <th></th>
                             </tr>
                         </thead>
                         <tbody>
-                            ${rfis.map(r => `
-                                <tr>
+                            ${visible.map(r => {
+                                const procoreAction = (r.actions || []).find(a => a.action_type === 'procore_link');
+                                const procoreUrl = procoreAction ? esc(procoreAction.url) : '';
+                                const rowClick = procoreUrl ? `onclick="window.open('${procoreUrl}', '_blank')" style="cursor:pointer;"` : '';
+                                const procoreBtn = procoreUrl ? `<a href="${procoreUrl}" target="_blank" rel="noopener noreferrer" title="Open in Procore" onclick="event.stopPropagation();" style="color:#e8944a;font-size:12px;text-decoration:none;opacity:0.6;transition:opacity 0.15s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.6'">P</a>` : '';
+                                const emailSubject = encodeURIComponent((r.subject || '') + ' — RFI #' + (r.number || ''));
+                                const emailBody = encodeURIComponent('Regarding RFI #' + (r.number || '') + ': ' + (r.subject || '') + (procoreUrl ? '\n\nView in Procore: ' + procoreUrl : '') + '\n\nPlease advise.\n\nThank you.');
+                                const mailto = 'mailto:?subject=' + emailSubject + '&body=' + emailBody;
+                                return `<tr ${rowClick} class="ref-row-hover">
                                     <td>${esc(r.number)}</td>
                                     <td style="max-width:300px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${esc(r.subject)}</td>
                                     <td><span class="status-badge ${r.is_overdue ? 'overdue' : r.status}">${r.is_overdue ? 'OVERDUE' : r.status}</span></td>
                                     <td>${r.due_date || '-'}</td>
                                     <td>${r.days_open != null ? r.days_open + 'd' : '-'}</td>
                                     <td>${r.cost_impact ? '$' + Number(r.cost_amount || 0).toLocaleString() : '-'}</td>
-                                </tr>
-                            `).join('')}
+                                    <td style="text-align:center;white-space:nowrap;">${procoreBtn} <a href="${mailto}" onclick="event.stopPropagation();" title="Compose email" style="color:rgba(255,255,255,0.25);font-size:12px;text-decoration:none;transition:color 0.15s;" onmouseover="this.style.color='#85b7eb'" onmouseout="this.style.color='rgba(255,255,255,0.25)'">&#9993;</a></td>
+                                </tr>`;
+                            }).join('')}
                         </tbody>
                     </table>
-                </div>`
+                </div>
+                ${hasMore ? `<div style="text-align:center;padding:10px 0;">
+                    <button onclick="state._rfisExpanded=true; renderRefTab();" style="background:none;border:none;color:rgba(55,138,221,0.7);font-size:12px;cursor:pointer;">Show ${rfis.length - initLimit} more RFIs</button>
+                </div>` : ''}`
             }
         </div>
     `;
@@ -2461,6 +3146,10 @@ function renderRefRFIs(container) {
 
 function renderRefSubmittals(container) {
     const subs = state._subs || [];
+    const initLimit = 25;
+    const showAll = state._subsExpanded || false;
+    const visible = showAll ? subs : subs.slice(0, initLimit);
+    const hasMore = subs.length > initLimit && !showAll;
     container.innerHTML = `
         <div class="panel">
             <div class="panel-header">
@@ -2479,22 +3168,34 @@ function renderRefSubmittals(container) {
                                 <th>Required</th>
                                 <th>In Review</th>
                                 <th>Spec</th>
+                                <th></th>
                             </tr>
                         </thead>
                         <tbody>
-                            ${subs.map(s => `
-                                <tr>
+                            ${visible.map(s => {
+                                const procoreAction = (s.actions || []).find(a => a.action_type === 'procore_link');
+                                const procoreUrl = procoreAction ? esc(procoreAction.url) : '';
+                                const rowClick = procoreUrl ? `onclick="window.open('${procoreUrl}', '_blank')" style="cursor:pointer;"` : '';
+                                const procoreBtn = procoreUrl ? `<a href="${procoreUrl}" target="_blank" rel="noopener noreferrer" title="Open in Procore" onclick="event.stopPropagation();" style="color:#e8944a;font-size:12px;text-decoration:none;opacity:0.6;transition:opacity 0.15s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.6'">P</a>` : '';
+                                const emailSubject = encodeURIComponent((s.title || '') + ' — Submittal #' + (s.number || ''));
+                                const emailBody = encodeURIComponent('Regarding Submittal #' + (s.number || '') + ': ' + (s.title || '') + (procoreUrl ? '\n\nView in Procore: ' + procoreUrl : '') + '\n\nPlease advise.\n\nThank you.');
+                                const mailto = 'mailto:?subject=' + emailSubject + '&body=' + emailBody;
+                                return `<tr ${rowClick} class="ref-row-hover">
                                     <td>${esc(s.number)}</td>
                                     <td style="max-width:300px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${esc(s.title)}</td>
                                     <td><span class="status-badge ${s.is_overdue ? 'overdue' : s.status}">${s.is_overdue ? 'OVERDUE' : s.status.replace(/_/g, ' ')}</span></td>
                                     <td>${s.required_date || '-'}</td>
                                     <td>${s.days_in_review != null ? s.days_in_review + 'd' : '-'}</td>
                                     <td>${esc(s.spec_section_number || '-')}</td>
-                                </tr>
-                            `).join('')}
+                                    <td style="text-align:center;white-space:nowrap;">${procoreBtn} <a href="${mailto}" onclick="event.stopPropagation();" title="Compose email" style="color:rgba(255,255,255,0.25);font-size:12px;text-decoration:none;transition:color 0.15s;" onmouseover="this.style.color='#85b7eb'" onmouseout="this.style.color='rgba(255,255,255,0.25)'">&#9993;</a></td>
+                                </tr>`;
+                            }).join('')}
                         </tbody>
                     </table>
-                </div>`
+                </div>
+                ${hasMore ? `<div style="text-align:center;padding:10px 0;">
+                    <button onclick="state._subsExpanded=true; renderRefTab();" style="background:none;border:none;color:rgba(55,138,221,0.7);font-size:12px;cursor:pointer;">Show ${subs.length - initLimit} more submittals</button>
+                </div>` : ''}`
             }
         </div>
     `;
@@ -2859,7 +3560,7 @@ async function renderRadarSidebar() {
     }
 
     sidebar.innerHTML = `
-        <div class="radar-sidebar-header">Radar</div>
+        <div class="radar-sidebar-header">Radar <button class="radar-toggle" onclick="toggleSidebar('radar')" title="Collapse Radar">&#9654;</button></div>
         ${items.length === 0 ? `
             <div class="radar-sidebar-empty">No active Radar items${state.view === 'project' ? ' for this project' : ''}.</div>
         ` : items.map(item => {
@@ -2892,44 +3593,95 @@ async function renderRadarSidebar() {
 async function loadSidebar() {
     const res = await api('/projects?limit=100');
     if (!res) return;
+    state.projects = res.data || [];
 
-    state.projects = res.data;
-    const list = document.getElementById('project-list');
-
-    if (state.projects.length === 0) {
-        list.innerHTML = '<div class="panel-empty">No projects found.<br>Sync data from Procore first.</div>';
-        return;
-    }
-
-    // Enrich sidebar with health data from dashboard if available
-    const dashData = state.dashboardData;
-    list.innerHTML = state.projects.map(p => {
-        // Look up health from dashboard projects (which include synthesis data)
-        let health = 'neutral';
-        if (dashData?.projects) {
-            const dp = dashData.projects.find(dp => dp.id === p.id);
-            if (dp?.last_synthesis?.overall_health) health = dp.last_synthesis.overall_health;
-            else if (dp?.intelligence?.total_active > 0) health = dp.intelligence.high > 0 ? 'red' : 'yellow';
-        }
-        const itemCount = (p.rfi_count || 0) + (p.submittal_count || 0);
-        return `
-            <div class="project-item ${p.id === state.selectedProjectId ? 'active' : ''}"
-                 data-id="${p.id}"
-                 onclick="selectProject('${p.id}')">
-                <div class="project-dot ${health}"></div>
-                <div class="project-info">
-                    <div class="project-name">${esc(p.name)}</div>
-                    <div class="project-number">${esc(p.number || '')}</div>
-                </div>
-                ${itemCount > 0 ? `<div class="project-badge">${itemCount}</div>` : ''}
-            </div>
-        `;
-    }).join('');
+    // Load external tools into topbar for the main project
+    const exclude = ['AP Companies Email Archive', 'Standard Project Template'];
+    const mainProject = state.projects.find(p => !exclude.includes(p.name));
+    if (mainProject) renderExternalToolBar(mainProject.id);
 }
 
 // =============================================================================
 // UTILITIES
 // =============================================================================
+function toggleSidebar(which) {
+    if (which === 'radar') {
+        const el = document.getElementById('radar-sidebar');
+        const expandBtn = document.getElementById('radar-expand-btn');
+        if (el) {
+            el.classList.toggle('collapsed');
+            if (expandBtn) expandBtn.style.display = el.classList.contains('collapsed') ? 'flex' : 'none';
+        }
+    }
+}
+
+function toggleProjectDropdown() {
+    const dd = document.getElementById('nav-project-dropdown');
+    const isOpen = dd.classList.contains('open');
+    closeAllNavMenus();
+    if (!isOpen) {
+        // Position dropdown next to the Projects nav item
+        const item = document.getElementById('nav-rail-projects');
+        const rect = item.getBoundingClientRect();
+        dd.style.top = rect.top + 'px';
+
+        // Populate
+        const exclude = ['AP Companies Email Archive', 'Standard Project Template'];
+        const projects = (state.projects || []).filter(p => !exclude.includes(p.name));
+        dd.innerHTML = `
+            <div class="nav-pd-header"><span>Projects</span><button onclick="closeAllNavMenus()">&times;</button></div>
+            <div class="nav-pd-search"><input type="text" placeholder="Search projects..." oninput="filterProjectDropdown(this.value)"></div>
+            <div class="nav-pd-list" id="nav-pd-list">
+                ${projects.map(p => {
+                    const health = p.last_synthesis?.overall_health || 'unknown';
+                    const dotClass = health === 'green' ? 'green' : health === 'yellow' ? 'yellow' : health === 'red' ? 'red' : 'gray';
+                    const isActive = state.selectedProjectId === p.id ? ' active' : '';
+                    return `<div class="nav-pd-item${isActive}" onclick="selectProject('${p.id}'); closeAllNavMenus();">
+                        <span class="nav-pd-dot ${dotClass}"></span>
+                        <div>
+                            <div class="nav-pd-name">${esc(p.name)}</div>
+                            <div class="nav-pd-number">${esc(p.number || '')}</div>
+                        </div>
+                    </div>`;
+                }).join('') || '<div style="padding:12px;font-size:12px;color:#6B7280;">No projects found.</div>'}
+            </div>`;
+        dd.classList.add('open');
+        setTimeout(() => dd.querySelector('input')?.focus(), 50);
+    }
+}
+
+function filterProjectDropdown(query) {
+    const items = document.querySelectorAll('#nav-pd-list .nav-pd-item');
+    const q = query.toLowerCase();
+    items.forEach(item => {
+        const name = item.querySelector('.nav-pd-name')?.textContent?.toLowerCase() || '';
+        const num = item.querySelector('.nav-pd-number')?.textContent?.toLowerCase() || '';
+        item.style.display = (name.includes(q) || num.includes(q)) ? '' : 'none';
+    });
+}
+
+function toggleUserMenu() {
+    const menu = document.getElementById('nav-user-menu');
+    const isOpen = menu.classList.contains('open');
+    closeAllNavMenus();
+    if (!isOpen) menu.classList.add('open');
+}
+
+function closeAllNavMenus() {
+    document.getElementById('nav-project-dropdown')?.classList.remove('open');
+    document.getElementById('nav-user-menu')?.classList.remove('open');
+}
+
+// Close nav menus on outside click
+document.addEventListener('click', (e) => {
+    if (!e.target.closest('.nav-rail, .nav-project-dropdown, .nav-user-menu')) {
+        closeAllNavMenus();
+    }
+});
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeAllNavMenus();
+});
+
 function esc(str) {
     if (!str) return '';
     const div = document.createElement('div');
@@ -3102,10 +3854,13 @@ async function loadActivityFeed() {
         const isCritical = a.is_critical || a.signal_category === 'contradiction' || (a.effective_weight && a.effective_weight > 0.8);
         const projName = a.project_name || findProjectName(a.project_id);
         const person = a.person || '';
-        // Parse server time directly (avoid browser timezone conversion)
         const timeStr = formatServerTime(a.created_at);
-        const url = a.procore_url || '';
+        const url = a.procore_url || (a.document_id ? '/api/documents/' + a.document_id + '/view' : '');
         const clickable = url ? `onclick="window.open('${esc(url)}', '_blank')" style="cursor:pointer;"` : '';
+        const emailSubject = encodeURIComponent((projName ? projName + ' – ' : '') + (a.summary || '').substring(0, 100));
+        const procoreLink = a.procore_url ? '\n\nView in Procore: ' + a.procore_url : '';
+        const emailBody = encodeURIComponent((a.summary || '') + procoreLink + '\n\nPlease advise.\n\nThank you.');
+        const mailto = 'mailto:?subject=' + emailSubject + '&body=' + emailBody;
         return `
             <div class="activity-entry" ${clickable}>
                 ${isCritical ? '<div class="activity-critical-dot"></div>' : '<div style="width:6px;flex-shrink:0;"></div>'}
@@ -3113,6 +3868,7 @@ async function loadActivityFeed() {
                 <div class="activity-desc" ${url ? 'style="color:var(--text-primary);"' : ''}>${esc(a.summary || '').substring(0, 120)}</div>
                 ${person ? `<div style="font-size:11px; color:var(--text-muted); white-space:nowrap; min-width:90px; text-align:right;">${esc(person)}</div>` : '<div style="min-width:90px;"></div>'}
                 ${projName ? `<div class="activity-project-pill">${esc(projName)}</div>` : '<div style="min-width:80px;"></div>'}
+                <a href="${mailto}" onclick="event.stopPropagation();" title="Compose email about this item" style="flex-shrink:0;color:rgba(255,255,255,0.25);font-size:13px;text-decoration:none;padding:2px 4px;transition:color 0.15s;" onmouseover="this.style.color='#85b7eb'" onmouseout="this.style.color='rgba(255,255,255,0.25)'">&#9993;</a>
             </div>
         `;
     }).join('');
@@ -3156,7 +3912,7 @@ function openDeepDive(item) {
     const overlay = document.createElement('div');
     overlay.className = 'radar-form-overlay';
     overlay.id = 'dd-overlay';
-    overlay.onclick = (e) => { if (e.target === overlay) closeDeepDive(); };
+    overlay.onclick = (e) => { if (e.target === overlay && !document.getElementById('dd-body')?.dataset.hasResult) closeDeepDive(); };
     overlay.innerHTML = `
         <div class="radar-form-modal">
             <div class="radar-form-header">
@@ -3188,7 +3944,7 @@ function openDeepDive(item) {
     renderDDBody();
 }
 
-function ddKeyHandler(e) { if (e.key === 'Escape') closeDeepDive(); }
+function ddKeyHandler(e) { if (e.key === 'Escape' && !document.getElementById('dd-body')?.dataset.hasResult) closeDeepDive(); }
 
 function closeDeepDive() {
     const overlay = document.getElementById('dd-overlay');
@@ -3367,9 +4123,24 @@ async function submitDeepDive() {
         focus_steering: _ddMode === 'linked' ? (document.getElementById('dd-steering')?.value?.trim() || null) : null,
     };
 
-    btn.innerHTML = 'Submitting...';
+    btn.innerHTML = 'Analyzing...';
     btn.style.opacity = '0.7';
     btn.disabled = true;
+
+    // Show loading status messages
+    const body = document.getElementById('dd-body');
+    const statusMsgs = ['Assembling project context...', 'Reviewing signals and evidence...', 'Running Senior PM analysis...', 'Processing recommendations...'];
+    let msgIdx = 0;
+    const statusEl = document.createElement('div');
+    statusEl.style.cssText = 'text-align:center;padding:16px 0;font-size:13px;color:rgba(255,255,255,0.4);';
+    statusEl.textContent = statusMsgs[0];
+    body.querySelectorAll('.rf-group, .rf-scope-row, textarea, .upload-scope').forEach(el => el.style.opacity = '0.3');
+    body.appendChild(statusEl);
+    const msgTimer = setInterval(() => {
+        msgIdx = (msgIdx + 1) % statusMsgs.length;
+        statusEl.textContent = statusMsgs[msgIdx];
+    }, 4000);
+    const longTimer = setTimeout(() => { statusEl.textContent = 'Still working — complex analyses can take up to 90 seconds.'; }, 60000);
 
     try {
         console.log('[Deep Dive] POST /api/deep-dive/requests', payload);
@@ -3379,184 +4150,1716 @@ async function submitDeepDive() {
             body: JSON.stringify(payload),
             credentials: 'same-origin',
         });
+        clearInterval(msgTimer);
+        clearTimeout(longTimer);
+
         if (res.status === 429) {
             throw new Error("You've reached today's analysis limit. Your next request will be available tomorrow.");
         }
-        if (!res.ok && res.status !== 404) throw new Error('Request failed');
-        // 404 = endpoint doesn't exist yet — still show success for demo
-        if (res.status === 404) console.log('[Deep Dive] POST returned 404 — endpoint not built yet, showing success for demo');
-    } catch (err) {
-        console.log('[Deep Dive] POST failed:', err.message);
-        if (err.message.includes('limit')) {
-            btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/><path d="M11 8v6M8 11h6"/></svg> Request analysis`;
-            btn.style.opacity = '1';
-            btn.disabled = false;
-            showToast(err.message);
-            return;
-        }
-    }
+        if (!res.ok) throw new Error('Request failed');
 
-    // Success state (including 404 for demo)
-    btn.innerHTML = '&#10003; Analysis requested';
-    btn.classList.add('success');
-    btn.style.opacity = '1';
-    setTimeout(() => closeDeepDive(), 2000);
+        const data = await res.json();
+        if (data.status === 'failed') throw new Error(data.error || 'Analysis failed');
+
+        // Render result view
+        renderDeepDiveResult(data, payload.concern_description || payload.focus_steering || 'Analysis');
+
+    } catch (err) {
+        clearInterval(msgTimer);
+        clearTimeout(longTimer);
+        console.log('[Deep Dive] Failed:', err.message);
+        btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/><path d="M11 8v6M8 11h6"/></svg> Request analysis`;
+        btn.style.opacity = '1';
+        btn.disabled = false;
+        statusEl.remove();
+        body.querySelectorAll('.rf-group, .rf-scope-row, textarea, .upload-scope').forEach(el => el.style.opacity = '1');
+        showToast(err.message.includes('limit') ? err.message : 'Analysis failed — please try again');
+    }
+}
+
+function renderDeepDiveResult(data, title) {
+    const body = document.getElementById('dd-body');
+    if (!body) return;
+    body.dataset.hasResult = 'true';
+    const r = data.result || {};
+    const a = r.escalation_assessment || {};
+    const ev = r.evidence_chain || [];
+    const ctx = r.related_context || {};
+    const actions = a.recommended_actions || [];
+    const assumptions = a.assumptions || [];
+    const da = data.drawing_analysis || {};
+    const drawingsAnalyzed = da.drawings_analyzed || [];
+    const durationSec = Math.round((data.processing_duration_ms || 0) / 1000);
+    const opusCost = (data.input_tokens || 0) * 0.015 / 1000 + (data.output_tokens || 0) * 0.075 / 1000;
+    const totalCost = opusCost + (data.drawing_cost || 0);
+    const costEstimate = totalCost.toFixed(3);
+    const costDetail = drawingsAnalyzed.length > 0 ? ` (includes ${drawingsAnalyzed.length} drawing analysis${drawingsAnalyzed.length > 1 ? 'es' : ''})` : '';
+
+    const justifiedColor = a.justified ? '#5dcaa5' : '#f09595';
+    const justifiedText = a.justified ? 'Yes — concern is justified' : 'No — concern is not justified';
+    const confColor = a.confidence === 'high' ? '#5dcaa5' : a.confidence === 'medium' ? '#fac775' : '#f09595';
+    const evidenceColor = a.evidence_quality === 'strong' ? '#5dcaa5' : a.evidence_quality === 'moderate' ? '#fac775' : '#f09595';
+    const weightColors = { primary: 'rgba(55,138,221,0.3)', supporting: 'rgba(255,255,255,0.08)', circumstantial: 'rgba(255,255,255,0.04)' };
+    const weightTextColors = { primary: '#85b7eb', supporting: 'rgba(255,255,255,0.5)', circumstantial: 'rgba(255,255,255,0.35)' };
+
+    body.innerHTML = `
+        <div style="margin-bottom:16px;">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;">
+                <div style="font-size:15px;font-weight:500;color:#e8e8e8;">${esc(title)}</div>
+                <button onclick="closeDeepDive()" style="background:none;border:none;color:rgba(255,255,255,0.3);font-size:18px;cursor:pointer;padding:0 4px;line-height:1;" title="Close">&times;</button>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                <span style="font-size:11px;color:rgba(255,255,255,0.35);">Analysis completed</span>
+                <span style="font-size:11px;color:rgba(255,255,255,0.25);">Analyzed in ${durationSec}s</span>
+                <span style="font-size:11px;color:rgba(255,255,255,0.2);">~$${costEstimate}${costDetail}</span>
+            </div>
+        </div>
+
+        <div style="background:rgba(255,255,255,0.03);border:0.5px solid rgba(255,255,255,0.08);border-radius:8px;padding:16px;margin-bottom:12px;">
+            <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:rgba(255,255,255,0.35);margin-bottom:10px;">Assessment</div>
+            <div style="display:flex;gap:12px;align-items:center;margin-bottom:10px;">
+                <span style="font-size:14px;font-weight:600;color:${justifiedColor};">${justifiedText}</span>
+            </div>
+            <div style="display:flex;gap:10px;margin-bottom:12px;">
+                <span style="font-size:11px;padding:3px 8px;border-radius:4px;background:rgba(255,255,255,0.05);color:${confColor};">${esc(a.confidence || '')} confidence</span>
+                <span style="font-size:11px;padding:3px 8px;border-radius:4px;background:rgba(255,255,255,0.05);color:${evidenceColor};">${esc(a.evidence_quality || '')} evidence</span>
+            </div>
+            <div style="font-size:13px;color:rgba(255,255,255,0.7);line-height:1.6;">${esc(a.impact_assessment || '')}</div>
+        </div>
+
+        ${drawingsAnalyzed.length > 0 ? `
+        <details open style="margin-bottom:12px;">
+            <summary style="font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:rgba(255,255,255,0.35);cursor:pointer;padding:8px 0;">Drawing Evidence (${drawingsAnalyzed.length} drawing${drawingsAnalyzed.length > 1 ? 's' : ''} analyzed)</summary>
+            <div style="display:flex;flex-direction:column;gap:6px;margin-top:6px;">
+                ${drawingsAnalyzed.map(d => `
+                    <div style="background:rgba(255,255,255,0.03);border-left:3px solid #E8A838;border-radius:0 6px 6px 0;padding:10px 12px;">
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                            <span style="font-size:12px;font-weight:600;color:#E8ECF1;">${esc(d.drawing_number)} ${esc(d.revision)} — ${esc(d.title)} <span style="font-size:10px;color:#9AABB8;">(${esc(d.discipline)})</span></span>
+                            <span style="font-size:10px;color:rgba(55,138,221,0.7);cursor:pointer;" onclick="closeDeepDive(); navigate('dashboard');">View</span>
+                        </div>
+                        <div style="font-size:12px;color:rgba(255,255,255,0.6);line-height:1.5;">${esc(d.analysis).substring(0, 300)}${d.analysis.length > 300 ? '...' : ''}</div>
+                        <div style="font-size:10px;color:#6B7280;margin-top:4px;">~$${(d.cost || 0).toFixed(3)} · ${esc(d.model_used || '')}</div>
+                    </div>
+                `).join('')}
+            </div>
+        </details>` : ''}
+
+        ${actions.length > 0 ? `
+        <div style="background:rgba(255,255,255,0.03);border:0.5px solid rgba(255,255,255,0.08);border-radius:8px;padding:16px;margin-bottom:12px;">
+            <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:rgba(255,255,255,0.35);margin-bottom:10px;">Recommended Actions</div>
+            <ol style="margin:0;padding-left:20px;color:rgba(255,255,255,0.7);font-size:13px;line-height:1.8;">
+                ${actions.map(act => `<li>${esc(act)}</li>`).join('')}
+            </ol>
+        </div>` : ''}
+
+        <details open style="margin-bottom:12px;">
+            <summary style="font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:rgba(255,255,255,0.35);cursor:pointer;padding:8px 0;">Evidence Chain (${ev.length})</summary>
+            <div style="display:flex;flex-direction:column;gap:6px;margin-top:6px;">
+                ${ev.map(e => `
+                    <div style="background:${weightColors[e.evidence_weight] || 'rgba(255,255,255,0.04)'};border:0.5px solid rgba(255,255,255,0.06);border-radius:6px;padding:10px 12px;">
+                        <div style="font-size:12px;color:rgba(255,255,255,0.7);margin-bottom:4px;">${esc(e.signal_summary || '')}</div>
+                        <div style="display:flex;gap:8px;font-size:10px;">
+                            <span style="color:${weightTextColors[e.evidence_weight] || 'rgba(255,255,255,0.35)'};">${esc(e.evidence_weight || '')}</span>
+                            <span style="color:rgba(255,255,255,0.3);">${esc(e.source_reliability || '')} reliability</span>
+                            <span style="color:rgba(255,255,255,0.25);">${esc(e.source_reference || '')}</span>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        </details>
+
+        ${assumptions.length > 0 ? `
+        <details style="margin-bottom:12px;">
+            <summary style="font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:rgba(255,255,255,0.35);cursor:pointer;padding:8px 0;">Assumptions (${assumptions.length})</summary>
+            <ul style="margin:6px 0 0;padding-left:20px;color:rgba(255,255,255,0.5);font-size:12px;line-height:1.7;">
+                ${assumptions.map(a => `<li>${esc(a)}</li>`).join('')}
+            </ul>
+        </details>` : ''}
+
+        ${ctx.missing_information || ctx.historical_patterns ? `
+        <details style="margin-bottom:12px;">
+            <summary style="font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:rgba(255,255,255,0.35);cursor:pointer;padding:8px 0;">Related Context</summary>
+            <div style="font-size:12px;color:rgba(255,255,255,0.5);line-height:1.6;margin-top:6px;">
+                ${ctx.historical_patterns ? '<div style="margin-bottom:8px;"><strong style="color:rgba(255,255,255,0.4);">Historical Patterns:</strong> ' + esc(ctx.historical_patterns) + '</div>' : ''}
+                ${ctx.missing_information ? '<div><strong style="color:rgba(255,255,255,0.4);">Missing Information:</strong> ' + esc(ctx.missing_information) + '</div>' : ''}
+            </div>
+        </details>` : ''}
+
+        <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.06);">
+            <button onclick="closeDeepDive()" style="background:none;border:0.5px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.5);padding:6px 14px;border-radius:6px;font-size:12px;cursor:pointer;">Close</button>
+        </div>
+    `;
 }
 
 // =============================================================================
 // SEARCH
 // =============================================================================
 let searchTimeout = null;
+let searchActiveTypes = new Set(); // empty = all
+let searchProjectId = '';
+let searchStatus = '';
+let searchFocusIdx = -1;
+let searchProjectsList = [];
 
-function openSearch() {
-    // Create overlay
+async function openSearch() {
+    // Fetch projects list for scope dropdown
+    if (searchProjectsList.length === 0) {
+        const pRes = await api('/projects?limit=200');
+        searchProjectsList = (pRes?.data || []).map(p => ({id: p.id, name: p.name}));
+    }
+
     const overlay = document.createElement('div');
     overlay.className = 'search-overlay';
     overlay.id = 'search-overlay';
     overlay.onclick = (e) => { if (e.target === overlay) closeSearch(); };
+
+    const projOptions = searchProjectsList.map(p => `<option value="${p.id}">${esc(p.name)}</option>`).join('');
+
     overlay.innerHTML = `
         <div class="search-modal">
             <div class="search-input-wrap">
                 <span class="search-icon">&#128269;</span>
                 <input class="search-input" id="search-input" type="text"
-                    placeholder="Search RFIs, submittals, contacts, intelligence..."
+                    placeholder="Search RFIs, submittals, drawings, documents, contacts, intelligence..."
                     autocomplete="off" autofocus>
-                <span class="search-hint">ESC to close</span>
+                <span class="search-hint">ESC</span>
+            </div>
+            <div class="search-filters" id="search-filters">
+                <div class="search-chip chip-all active" data-type="all" onclick="toggleSearchChip(this)">All</div>
+                <div class="search-chip chip-rfis" data-type="rfis" onclick="toggleSearchChip(this)">RFIs</div>
+                <div class="search-chip chip-submittals" data-type="submittals" onclick="toggleSearchChip(this)">Submittals</div>
+                <div class="search-chip chip-drawings" data-type="drawings" onclick="toggleSearchChip(this)">Drawings</div>
+                <div class="search-chip chip-documents" data-type="documents" onclick="toggleSearchChip(this)">Documents</div>
+                <div class="search-chip chip-contacts" data-type="contacts" onclick="toggleSearchChip(this)">Contacts</div>
+                <div class="search-chip chip-intelligence" data-type="intelligence" onclick="toggleSearchChip(this)">Intelligence</div>
+            </div>
+            <div class="search-scope">
+                <label>Scope:</label>
+                <select id="search-project-select" onchange="searchProjectId=this.value; triggerSearch();">
+                    <option value="">All projects</option>
+                    ${projOptions}
+                </select>
+                <div class="scope-divider"></div>
+                <label>Status:</label>
+                <select id="search-status-select" onchange="searchStatus=this.value; triggerSearch();">
+                    <option value="">Any status</option>
+                    <option value="open">Open</option>
+                    <option value="closed">Closed</option>
+                </select>
             </div>
             <div class="search-results" id="search-results">
                 <div class="search-empty">
                     <div style="font-size:24px; margin-bottom:8px; opacity:0.4;">&#128269;</div>
-                    Search across all projects — RFIs, submittals, intelligence items, contacts
+                    Search across all projects — RFIs, submittals, drawings, documents, contacts, intelligence
                 </div>
+            </div>
+            <div class="search-footer" id="search-footer" style="display:none;">
+                <div class="search-footer-left" id="search-footer-left"></div>
+                <div class="search-footer-right">&#8593;&#8595; navigate &nbsp; &#8629; open</div>
             </div>
         </div>
     `;
     document.body.appendChild(overlay);
 
+    searchActiveTypes = new Set();
+    searchProjectId = '';
+    searchStatus = '';
+    searchFocusIdx = -1;
+
     const input = document.getElementById('search-input');
     input.focus();
-    input.addEventListener('input', (e) => {
+    input.addEventListener('input', () => {
         clearTimeout(searchTimeout);
-        const q = e.target.value.trim();
+        const q = input.value.trim();
         if (q.length < 2) {
             document.getElementById('search-results').innerHTML = `
                 <div class="search-empty">
                     <div style="font-size:24px; margin-bottom:8px; opacity:0.4;">&#128269;</div>
-                    Search across all projects — RFIs, submittals, intelligence items, contacts
+                    Search across all projects — RFIs, submittals, drawings, documents, contacts, intelligence
                 </div>`;
+            document.getElementById('search-footer').style.display = 'none';
             return;
         }
         document.getElementById('search-results').innerHTML = '<div class="search-loading"><div class="spinner" style="display:inline-block;margin-right:8px;"></div>Searching...</div>';
         searchTimeout = setTimeout(() => runSearch(q), 300);
     });
 
-    // ESC to close
     document.addEventListener('keydown', searchKeyHandler);
 }
 
+function toggleSearchChip(el) {
+    const type = el.dataset.type;
+    if (type === 'all') {
+        searchActiveTypes = new Set();
+        document.querySelectorAll('.search-chip').forEach(c => c.classList.remove('active'));
+        el.classList.add('active');
+    } else {
+        document.querySelector('.search-chip.chip-all').classList.remove('active');
+        if (searchActiveTypes.has(type)) {
+            searchActiveTypes.delete(type);
+            el.classList.remove('active');
+        } else {
+            searchActiveTypes.add(type);
+            el.classList.add('active');
+        }
+        // If none selected, re-activate "All"
+        if (searchActiveTypes.size === 0) {
+            document.querySelector('.search-chip.chip-all').classList.add('active');
+        }
+    }
+    triggerSearch();
+}
+
+function triggerSearch() {
+    const input = document.getElementById('search-input');
+    if (!input) return;
+    const q = input.value.trim();
+    if (q.length < 2) return;
+    clearTimeout(searchTimeout);
+    document.getElementById('search-results').innerHTML = '<div class="search-loading"><div class="spinner" style="display:inline-block;margin-right:8px;"></div>Searching...</div>';
+    searchTimeout = setTimeout(() => runSearch(q), 150);
+}
+
 function searchKeyHandler(e) {
-    if (e.key === 'Escape') closeSearch();
+    if (e.key === 'Escape') { closeSearch(); return; }
+    const items = document.querySelectorAll('#search-results .search-result-item');
+    if (!items.length) return;
+    if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        searchFocusIdx = Math.min(searchFocusIdx + 1, items.length - 1);
+        items.forEach((it, i) => it.classList.toggle('sr-focused', i === searchFocusIdx));
+        items[searchFocusIdx]?.scrollIntoView({block: 'nearest'});
+    } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        searchFocusIdx = Math.max(searchFocusIdx - 1, 0);
+        items.forEach((it, i) => it.classList.toggle('sr-focused', i === searchFocusIdx));
+        items[searchFocusIdx]?.scrollIntoView({block: 'nearest'});
+    } else if (e.key === 'Enter' && searchFocusIdx >= 0 && items[searchFocusIdx]) {
+        e.preventDefault();
+        items[searchFocusIdx].click();
+    }
 }
 
 function closeSearch() {
     const overlay = document.getElementById('search-overlay');
     if (overlay) overlay.remove();
     document.removeEventListener('keydown', searchKeyHandler);
+    searchFocusIdx = -1;
+}
+
+function highlightTerm(text, query) {
+    if (!text || !query) return esc(text || '');
+    const escaped = esc(text);
+    const qEsc = esc(query);
+    const re = new RegExp(`(${qEsc.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+    return escaped.replace(re, '<span class="search-highlight">$1</span>');
 }
 
 async function runSearch(query) {
-    const res = await api(`/search?q=${encodeURIComponent(query)}&limit=10`);
+    let url = `/search?q=${encodeURIComponent(query)}&limit=10`;
+    if (searchActiveTypes.size > 0) url += `&types=${[...searchActiveTypes].join(',')}`;
+    if (searchProjectId) url += `&project_id=${encodeURIComponent(searchProjectId)}`;
+    if (searchStatus) url += `&status=${encodeURIComponent(searchStatus)}`;
+
+    const res = await api(url);
     const container = document.getElementById('search-results');
+    const footer = document.getElementById('search-footer');
     if (!container) return;
 
-    if (!res || res.total === 0) {
-        container.innerHTML = `<div class="search-empty">No results for "${esc(query)}"</div>`;
+    if (!res || res.total_results === 0) {
+        container.innerHTML = `<div class="search-empty">No results found for '${esc(query)}'<div class="search-empty-sub">Try a different search term or adjust your filters</div></div>`;
+        if (footer) footer.style.display = 'none';
         return;
     }
 
-    const d = res.data;
+    const d = res.results;
     let html = '';
+    searchFocusIdx = -1;
 
-    // RFIs
-    if (d.rfis?.length) {
-        html += '<div class="search-group-label">RFIs</div>';
-        html += d.rfis.map(r => {
-            const statusBadge = r.is_overdue ? '<span style="color:var(--accent-red); font-size:10px; font-weight:600;">OVERDUE</span>' : r.status;
-            const click = r.procore_url ? `onclick="window.open('${esc(r.procore_url)}', '_blank')"` : '';
-            return `<div class="search-result-item" ${click}>
-                <div class="sri-icon rfi">RFI</div>
-                <div class="sri-body">
-                    <div class="sri-title">#${esc(r.number)} — ${esc(r.subject)}</div>
-                    <div class="sri-meta">${statusBadge}${r.due_date ? ' · Due ' + r.due_date : ''}</div>
-                </div>
-                <div class="sri-project">${esc(r.project_name || '')}</div>
-            </div>`;
-        }).join('');
-    }
+    // Render order per spec: RFIs, Drawings, Submittals, Documents, Contacts, Intelligence
+    const groupOrder = [
+        { key: 'rfis', label: 'RFIs', renderer: renderRfiResults },
+        { key: 'drawings', label: 'Drawings', renderer: renderDrawingResults },
+        { key: 'submittals', label: 'Submittals', renderer: renderSubmittalResults },
+        { key: 'documents', label: 'Documents', renderer: renderDocumentResults },
+        { key: 'contacts', label: 'Contacts', renderer: renderContactResults },
+        { key: 'intelligence', label: 'Intelligence', renderer: renderIntelResults },
+    ];
 
-    // Submittals
-    if (d.submittals?.length) {
-        html += '<div class="search-group-label">Submittals</div>';
-        html += d.submittals.map(s => {
-            const click = s.procore_url ? `onclick="window.open('${esc(s.procore_url)}', '_blank')"` : '';
-            return `<div class="search-result-item" ${click}>
-                <div class="sri-icon sub">SUB</div>
-                <div class="sri-body">
-                    <div class="sri-title">#${esc(s.number)} — ${esc(s.title)}</div>
-                    <div class="sri-meta">${esc(s.status || '')}${s.required_date ? ' · Required ' + s.required_date : ''}</div>
-                </div>
-                <div class="sri-project">${esc(s.project_name || '')}</div>
-            </div>`;
-        }).join('');
-    }
-
-    // Intelligence items
-    if (d.intelligence_items?.length) {
-        html += '<div class="search-group-label">Intelligence</div>';
-        html += d.intelligence_items.map(i => {
-            const sevColor = i.severity === 'critical' ? 'var(--accent-red)' : i.severity === 'high' ? 'var(--accent-amber)' : 'var(--accent-blue)';
-            return `<div class="search-result-item" onclick="closeSearch(); selectProject('${i.project_id || ''}')">
-                <div class="sri-icon intel" style="color:${sevColor};">!</div>
-                <div class="sri-body">
-                    <div class="sri-title">${esc(i.title)}</div>
-                    <div class="sri-meta">${esc(i.severity || '')} · ${esc(i.item_type || '')} · ${i.confidence ? Math.round(i.confidence * 100) + '% confidence' : ''}</div>
-                </div>
-                <div class="sri-project">${esc(i.project_name || '')}</div>
-            </div>`;
-        }).join('');
-    }
-
-    // Signals
-    if (d.signals?.length) {
-        html += '<div class="search-group-label">Signals</div>';
-        html += d.signals.map(s => `
-            <div class="search-result-item">
-                <div class="sri-icon signal">S</div>
-                <div class="sri-body">
-                    <div class="sri-title">${esc(s.summary)}</div>
-                    <div class="sri-meta">${esc(s.signal_category || '')} · ${formatServerTime(s.created_at)}</div>
-                </div>
-                <div class="sri-project">${esc(s.project_name || '')}</div>
-            </div>
-        `).join('');
-    }
-
-    // Contacts
-    if (d.contacts?.length) {
-        html += '<div class="search-group-label">Contacts</div>';
-        html += d.contacts.map(c => `
-            <div class="search-result-item">
-                <div class="sri-icon contact">${esc((c.first_name || '')[0] || '')}${esc((c.last_name || '')[0] || '')}</div>
-                <div class="sri-body">
-                    <div class="sri-title">${esc(c.first_name || '')} ${esc(c.last_name || '')}</div>
-                    <div class="sri-meta">${esc(c.title || '')}${c.company_name ? ' · ' + esc(c.company_name) : ''}${c.email ? ' · ' + esc(c.email) : ''}</div>
-                </div>
-            </div>
-        `).join('');
+    for (const g of groupOrder) {
+        const group = d[g.key];
+        if (!group || group.results.length === 0) continue;
+        const total = group.total_count;
+        const items = group.results;
+        const initShow = 3;
+        html += `<div class="search-group-label">${g.label}<span class="search-group-count">${total} result${total !== 1 ? 's' : ''}</span></div>`;
+        html += `<div class="search-group-items" data-group="${g.key}">`;
+        items.forEach((item, idx) => {
+            const hidden = idx >= initShow ? ' style="display:none" data-overflow="1"' : '';
+            html += g.renderer(item, query, hidden);
+        });
+        html += '</div>';
+        if (items.length > initShow) {
+            const moreCount = Math.min(total, items.length) - initShow;
+            html += `<div class="search-show-more" data-group="${g.key}" onclick="expandSearchGroup('${g.key}')">Show ${moreCount} more ${g.label.toLowerCase()}</div>`;
+        }
     }
 
     container.innerHTML = html;
+
+    // Footer
+    if (footer) {
+        footer.style.display = 'flex';
+        const activeFilters = searchActiveTypes.size > 0 ? ` · Filtered: ${[...searchActiveTypes].join(', ')}` : ' across all projects';
+        document.getElementById('search-footer-left').textContent = `${res.total_results} results${activeFilters}`;
+    }
 }
+
+function expandSearchGroup(groupKey) {
+    const groupEl = document.querySelector(`.search-group-items[data-group="${groupKey}"]`);
+    if (groupEl) groupEl.querySelectorAll('[data-overflow]').forEach(el => { el.style.display = ''; el.removeAttribute('data-overflow'); });
+    const moreEl = document.querySelector(`.search-show-more[data-group="${groupKey}"]`);
+    if (moreEl) moreEl.remove();
+}
+
+function renderRfiResults(r, query, hidden) {
+    const statusBadge = r.is_overdue ? '<span style="color:#f09595; font-size:10px; font-weight:600;">OVERDUE</span>' : esc(r.status || '');
+    const click = r.procore_url ? `onclick="window.open('${esc(r.procore_url)}', '_blank')"` : '';
+    return `<div class="search-result-item" ${click}${hidden}>
+        <div class="sri-icon rfi">RFI</div>
+        <div class="sri-body">
+            <div class="sri-title">#${esc(r.number)} — ${highlightTerm(r.subject, query)}</div>
+            <div class="sri-meta">${statusBadge}${r.due_date ? ' · Due ' + r.due_date : ''} · ${esc(r.project_name || '')}</div>
+        </div>
+    </div>`;
+}
+
+function renderSubmittalResults(s, query, hidden) {
+    const click = s.procore_url ? `onclick="window.open('${esc(s.procore_url)}', '_blank')"` : '';
+    return `<div class="search-result-item" ${click}${hidden}>
+        <div class="sri-icon sub">SUB</div>
+        <div class="sri-body">
+            <div class="sri-title">#${esc(s.number)} — ${highlightTerm(s.title, query)}</div>
+            <div class="sri-meta">${esc(s.status || '')} · ${esc(s.project_name || '')}</div>
+        </div>
+    </div>`;
+}
+
+function renderDrawingResults(dr, query, hidden) {
+    const click = dr.procore_url ? `onclick="window.open('${esc(dr.procore_url)}', '_blank')"` : '';
+    const disc = dr.discipline ? `<span class="search-discipline-badge">${esc(dr.discipline)}</span>` : '';
+    const currentLabel = dr.is_current === false ? '<span class="search-superseded">superseded</span>' : 'current';
+    const rev = dr.revision ? 'Rev ' + esc(dr.revision) : '';
+    const meta = [rev, disc, currentLabel, esc(dr.project_name || '')].filter(Boolean).join(' · ');
+    return `<div class="search-result-item" ${click}${hidden}>
+        <div class="sri-icon drawing">DWG</div>
+        <div class="sri-body">
+            <div class="sri-title">${highlightTerm(dr.number, query)} — ${highlightTerm(dr.title || '', query)}</div>
+            <div class="sri-meta">${meta}</div>
+        </div>
+    </div>`;
+}
+
+function renderDocumentResults(doc, query, hidden) {
+    let click = '';
+    if (doc.procore_url) {
+        click = `onclick="window.open('${esc(doc.procore_url)}', '_blank')"`;
+    } else if (doc.file_url) {
+        // Use /view for emails (renders as HTML), /file for everything else
+        const viewUrl = '/api/documents/' + esc(doc.id) + '/view';
+        click = `onclick="window.open('${viewUrl}', '_blank')"`;
+    } else {
+        click = 'style="cursor:default; opacity:0.6"';
+    }
+    const meta = [doc.doc_type ? esc(doc.doc_type) : '', esc(doc.project_name || '')].filter(Boolean).join(' · ');
+    const noFile = !doc.procore_url && !doc.file_url ? '<span style="font-size:10px;color:rgba(255,255,255,0.3);margin-left:6px;">metadata only</span>' : '';
+    return `<div class="search-result-item" ${click}${hidden}>
+        <div class="sri-icon doc">DOC</div>
+        <div class="sri-body">
+            <div class="sri-title">${highlightTerm(doc.title, query)}${noFile}</div>
+            <div class="sri-meta">${meta}</div>
+        </div>
+    </div>`;
+}
+
+function renderContactResults(c, query, hidden) {
+    const initials = esc((c.first_name || '')[0] || '') + esc((c.last_name || '')[0] || '');
+    const email = c.email || '';
+    const meta = [c.company_name ? esc(c.company_name) : '', email ? esc(email) : ''].filter(Boolean).join(' · ');
+    const click = email ? `onclick="navigator.clipboard.writeText('${esc(email)}'); showToast('Email copied')" title="Click to copy email"` : 'style="cursor:default"';
+    return `<div class="search-result-item" ${click}${hidden}>
+        <div class="sri-icon contact">${initials}</div>
+        <div class="sri-body">
+            <div class="sri-title">${highlightTerm((c.first_name || '') + ' ' + (c.last_name || ''), query)}</div>
+            <div class="sri-meta">${meta}</div>
+        </div>
+    </div>`;
+}
+
+function renderIntelResults(i, query, hidden) {
+    const sevColors = {critical: '#f09595', high: '#fac775', medium: '#85b7eb', low: '#afa9ec'};
+    const sevColor = sevColors[i.severity] || '#afa9ec';
+    const sevBadge = `<span style="color:${sevColor}; font-weight:600;">${esc(i.severity || '')}</span>`;
+    return `<div class="search-result-item" onclick="closeSearch(); selectProject('${i.project_id || ''}')"${hidden}>
+        <div class="sri-icon intel">INT</div>
+        <div class="sri-body">
+            <div class="sri-title">${highlightTerm(i.title, query)}</div>
+            <div class="sri-meta">${sevBadge} · ${esc(i.status || '')} · ${esc(i.project_name || '')}</div>
+        </div>
+    </div>`;
+}
+
+// =============================================================================
+// DRAWING BROWSER
+// =============================================================================
+let dbDrawings = [];
+let dbOffset = 0;
+let dbSelectedId = null;
+let dbSearchTimer = null;
+let dbFavorites = new Set();
+let dbRecentDrawings = [];
+let dbSelectedIdx = -1;
+
+function toggleDrawingBrowser() {
+    const body = document.getElementById('db-body');
+    const chevron = document.getElementById('db-chevron');
+    if (!body) return;
+    body.classList.toggle('collapsed');
+    if (chevron) chevron.style.transform = body.classList.contains('collapsed') ? 'rotate(-90deg)' : '';
+}
+
+async function loadDrawingDisciplines() {
+    const res = await api('/drawings/disciplines');
+    const sel = document.getElementById('db-filter-discipline');
+    if (!res || !sel) return;
+    const opts = (res.disciplines || []).map(d =>
+        `<option value="${d}">${d.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}</option>`
+    ).join('');
+    sel.innerHTML = '<option value="">All Disciplines</option>' + opts;
+}
+
+async function loadDrawings() {
+    dbOffset = 0;
+    dbDrawings = [];
+    await fetchDrawings();
+    await loadDrawingFavorites();
+    await loadRecentDrawings();
+}
+
+async function loadMoreDrawings() {
+    await fetchDrawings();
+}
+
+async function fetchDrawings() {
+    const projectId = document.getElementById('db-filter-project')?.value || '';
+    const discipline = document.getElementById('db-filter-discipline')?.value || '';
+    const search = document.getElementById('db-search')?.value?.trim() || '';
+    let url = `/drawings?limit=50&offset=${dbOffset}`;
+    if (projectId) url += `&project_id=${encodeURIComponent(projectId)}`;
+    if (discipline) url += `&discipline=${encodeURIComponent(discipline)}`;
+    if (search.length >= 2) url += `&search=${encodeURIComponent(search)}`;
+
+    const res = await api(url);
+    if (!res) return;
+
+    dbDrawings = dbOffset === 0 ? (res.drawings || []) : dbDrawings.concat(res.drawings || []);
+    dbOffset += (res.drawings || []).length;
+
+    const countEl = document.getElementById('db-count');
+    if (countEl) countEl.textContent = `${res.total_count} drawing${res.total_count !== 1 ? 's' : ''}`;
+
+    const moreEl = document.getElementById('db-load-more');
+    if (moreEl) moreEl.style.display = res.has_more ? '' : 'none';
+
+    renderDrawingList();
+}
+
+function debounceDrawingSearch() {
+    clearTimeout(dbSearchTimer);
+    dbSearchTimer = setTimeout(() => loadDrawings(), 300);
+}
+
+const discColors = {
+    architectural: '#4A90D9', structural: '#E8A838', mechanical: '#34C77B',
+    electrical: '#E05555', plumbing: '#9B59B6', fire_protection: '#E8A838',
+    civil: '#6B7280', landscape: '#34C77B', other: '#6B7280',
+};
+const discAbbrev = {
+    architectural: 'ARC', structural: 'STR', mechanical: 'MEC',
+    electrical: 'ELE', plumbing: 'PLB', fire_protection: 'FP',
+    civil: 'CIV', landscape: 'LND', other: 'OTH',
+};
+
+async function loadDrawingFavorites() {
+    const res = await api('/drawings/favorites');
+    dbFavorites = new Set((res?.favorites || []).map(f => f.drawing_id));
+    renderDrawingQuickAccess();
+}
+
+async function loadRecentDrawings() {
+    const res = await api('/drawings/recent');
+    dbRecentDrawings = res?.recent_drawings || [];
+    renderDrawingQuickAccess();
+}
+
+function renderDrawingQuickAccess() {
+    const container = document.getElementById('db-list');
+    if (!container) return;
+    // Prepend quick access sections before the drawing list
+    let qa = document.getElementById('db-quick-access');
+    if (!qa) {
+        qa = document.createElement('div');
+        qa.id = 'db-quick-access';
+        container.parentNode.insertBefore(qa, container);
+    }
+
+    const activeProjectFilter = document.getElementById('db-filter-project')?.value || '';
+
+    let html = '';
+    // Favorites — filter by active project if one is selected
+    const favDrawings = dbDrawings.filter(d => dbFavorites.has(d.id));
+    const filteredFavs = activeProjectFilter ? favDrawings.filter(d => d.project_id === activeProjectFilter) : favDrawings;
+    if (filteredFavs.length > 0) {
+        html += `<details class="db-qa-section" style="border-bottom:1px solid #243040;">
+            <summary style="padding:8px 12px;font-size:11px;color:#E8A838;cursor:pointer;display:flex;align-items:center;gap:6px;">
+                <span>&#9733;</span> Favorites (${filteredFavs.length})
+            </summary>
+            <div style="padding:0 4px 6px;">
+                ${filteredFavs.map(d => `<div class="db-drawing-row" onclick="selectDrawing('${d.id}')" style="padding:5px 12px;">
+                    <span style="font-size:12px;font-weight:600;color:#E8ECF1;">${esc(d.number)}</span>
+                    <span style="font-size:11px;color:#9AABB8;margin-left:6px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(d.title || '')}</span>
+                </div>`).join('')}
+            </div>
+        </details>`;
+    }
+
+    // Recently Viewed — filter by active project if one is selected
+    const filteredRecent = activeProjectFilter
+        ? dbRecentDrawings.filter(d => {
+            const match = dbDrawings.find(dr => dr.id === d.drawing_id);
+            return match && match.project_id === activeProjectFilter;
+          })
+        : dbRecentDrawings;
+    if (filteredRecent.length > 0) {
+        html += `<details class="db-qa-section" style="border-bottom:1px solid #243040;">
+            <summary style="padding:8px 12px;font-size:11px;color:#9AABB8;cursor:pointer;display:flex;align-items:center;gap:6px;">
+                <span>&#128337;</span> Recently Viewed (${filteredRecent.length})
+            </summary>
+            <div style="padding:0 4px 6px;">
+                ${filteredRecent.slice(0, 10).map(d => `<div class="db-drawing-row" onclick="selectDrawing('${d.drawing_id}')" style="padding:5px 12px;">
+                    <span style="font-size:12px;font-weight:600;color:#E8ECF1;">${esc(d.number)}</span>
+                    <span style="font-size:11px;color:#9AABB8;margin-left:6px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(d.title || '')}</span>
+                </div>`).join('')}
+            </div>
+        </details>`;
+    }
+
+    qa.innerHTML = html;
+}
+
+async function toggleFavorite(drawingId, event) {
+    if (event) event.stopPropagation();
+    const res = await fetch(API_BASE + '/drawings/' + drawingId + '/favorite', { method: 'POST', credentials: 'same-origin' });
+    const data = await res.json();
+    if (data.favorited) dbFavorites.add(drawingId); else dbFavorites.delete(drawingId);
+    renderDrawingList();
+    renderDrawingQuickAccess();
+    // Update star in toolbar if this is the selected drawing
+    const toolbarStar = document.getElementById('db-viewer-star');
+    if (toolbarStar && dbSelectedId === drawingId) {
+        toolbarStar.innerHTML = dbFavorites.has(drawingId) ? '&#9733;' : '&#9734;';
+        toolbarStar.style.color = dbFavorites.has(drawingId) ? '#E8A838' : '#6B7280';
+    }
+}
+
+function renderDrawingList() {
+    const container = document.getElementById('db-list');
+    if (!container) return;
+    if (dbDrawings.length === 0) {
+        container.innerHTML = '<div style="text-align:center;padding:24px;color:#6B7280;font-size:12px;">No drawings found.</div>';
+        return;
+    }
+    container.innerHTML = dbDrawings.map((d, idx) => {
+        const color = discColors[d.discipline] || '#6B7280';
+        const abbrev = discAbbrev[d.discipline] || 'OTH';
+        const selected = d.id === dbSelectedId ? ' selected' : '';
+        const isFav = dbFavorites.has(d.id);
+        const starStyle = isFav ? 'color:#E8A838;' : 'color:#6B7280;opacity:0;';
+        return `<div class="db-drawing-row${selected}" onclick="selectDrawing('${d.id}')" data-idx="${idx}">
+            <span class="db-disc-badge" style="background:${color}22;color:${color};">${abbrev}</span>
+            <div class="db-drawing-info">
+                <div><span class="db-drawing-number">${esc(d.number)}</span><span class="db-drawing-rev">Rev ${esc(d.revision || '0')}</span></div>
+                <div class="db-drawing-title">${esc(d.title || '')}</div>
+                <div class="db-drawing-meta">${esc(d.project_name || '')} · ${esc(d.set_name || '')}</div>
+            </div>
+            <span class="db-star" onclick="toggleFavorite('${d.id}', event)" title="${isFav ? 'Remove from favorites' : 'Add to favorites'}" style="font-size:14px;cursor:pointer;flex-shrink:0;transition:opacity 0.15s;${starStyle}">${isFav ? '&#9733;' : '&#9734;'}</span>
+        </div>`;
+    }).join('');
+}
+
+async function selectDrawing(id) {
+    // Also accept drawing_id from recent views
+    let d = dbDrawings.find(dr => dr.id === id);
+    if (!d) {
+        // Might be from recents — find by drawing_id
+        const recent = dbRecentDrawings.find(r => r.drawing_id === id);
+        if (recent) id = recent.drawing_id;
+        d = dbDrawings.find(dr => dr.id === id);
+    }
+
+    dbSelectedId = id;
+    dbSelectedIdx = dbDrawings.findIndex(dr => dr.id === id);
+    renderDrawingList();
+
+    const toolbar = document.getElementById('db-viewer-toolbar');
+    const info = document.getElementById('db-viewer-info');
+    const dl = document.getElementById('db-viewer-download');
+    const content = document.getElementById('db-viewer-content');
+
+    if (!d) {
+        // Drawing not in current list — load its PDF directly
+        if (toolbar) toolbar.style.display = 'flex';
+        if (info) info.textContent = id;
+        if (content) content.innerHTML = `<iframe src="/api/drawings/${id}/pdf" style="width:100%;height:100%;border:none;"></iframe>`;
+        return;
+    }
+
+    if (toolbar) toolbar.style.display = 'flex';
+    const isFav = dbFavorites.has(id);
+    if (info) info.innerHTML = `${esc(d.number)} — ${esc(d.title || '')}
+        <span id="db-viewer-star" onclick="toggleFavorite('${id}', event)" style="cursor:pointer;font-size:14px;margin-left:8px;color:${isFav ? '#E8A838' : '#6B7280'};">${isFav ? '&#9733;' : '&#9734;'}</span>
+        <span id="db-viewer-rfis" style="margin-left:8px;"></span>`;
+    if (dl) {
+        dl.href = d.pdf_url + '?download=true';
+        dl.download = '';
+        dl.onclick = function(e) { handleDrawingDownload(e, id, d); };
+    }
+    // PNG-based viewer with zoom/pan
+    const pngUrl = `/api/drawings/${id}/png`;
+    if (content) {
+        content.innerHTML = `
+            <div id="drawing-viewer-wrap" style="width:100%;height:100%;overflow:hidden;position:relative;cursor:grab;background:#0F1419;">
+                <div id="drawing-viewer-inner" style="transform-origin:0 0;position:absolute;">
+                    <img id="drawing-viewer-img" src="${pngUrl}" style="display:block;max-width:none;" onload="initDrawingViewer()">
+                    <div id="drawing-markups-overlay" style="position:absolute;top:0;left:0;pointer-events:none;"></div>
+                </div>
+            </div>`;
+    }
+    // Load saved markups list
+    loadMarkupsList(id);
+
+    // Record view (fire and forget)
+    fetch(API_BASE + '/drawings/' + id + '/view', { method: 'POST', credentials: 'same-origin' }).catch(() => {});
+
+    // Load linked RFIs
+    const rfiRes = await api('/drawings/' + id + '/rfis');
+    const rfis = rfiRes?.linked_rfis || [];
+    const rfiBadge = document.getElementById('db-viewer-rfis');
+    if (rfiBadge && rfis.length > 0) {
+        rfiBadge.innerHTML = `<span onclick="toggleDrawingRfiPanel()" style="cursor:pointer;font-size:11px;padding:2px 8px;border-radius:10px;background:rgba(74,144,217,0.2);color:#4A90D9;">RFIs (${rfis.length})</span>`;
+        rfiBadge._rfis = rfis;
+    }
+
+    // Update recents after a short delay
+    setTimeout(() => loadRecentDrawings(), 1000);
+}
+
+function toggleDrawingRfiPanel() {
+    const badge = document.getElementById('db-viewer-rfis');
+    const rfis = badge?._rfis || [];
+    let panel = document.getElementById('db-rfi-panel');
+    if (panel) { panel.remove(); return; }
+
+    const toolbar = document.getElementById('db-viewer-toolbar');
+    if (!toolbar) return;
+    panel = document.createElement('div');
+    panel.id = 'db-rfi-panel';
+    panel.style.cssText = 'background:#1A2332;border-bottom:1px solid #243040;padding:10px 12px;max-height:200px;overflow-y:auto;';
+    panel.innerHTML = rfis.map(r => {
+        const statusColor = (r.status === 'closed' || r.status === 'answered') ? '#6B7280' : '#4A90D9';
+        const click = r.procore_link ? `onclick="window.open('${esc(r.procore_link)}', '_blank')"` : '';
+        return `<div style="display:flex;align-items:center;gap:8px;padding:6px 0;cursor:${r.procore_link ? 'pointer' : 'default'};" ${click}>
+            <span style="font-size:11px;font-weight:600;color:#E8ECF1;">RFI #${esc(r.number)}</span>
+            <span style="font-size:11px;color:#9AABB8;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(r.subject)}</span>
+            <span style="font-size:10px;color:${statusColor};">${esc(r.status)}${r.days_open != null ? ' · ' + r.days_open + 'd' : ''}</span>
+        </div>`;
+    }).join('');
+    toolbar.after(panel);
+}
+
+// =============================================================================
+// DRAWING VIEWER — Zoom/Pan
+// =============================================================================
+let viewerScale = 1;
+let viewerPanX = 0, viewerPanY = 0;
+let viewerPanning = false;
+let viewerLastX = 0, viewerLastY = 0;
+let viewerImgW = 0, viewerImgH = 0;
+
+function initDrawingViewer() {
+    const img = document.getElementById('drawing-viewer-img');
+    const wrap = document.getElementById('drawing-viewer-wrap');
+    if (!img || !wrap) return;
+    viewerImgW = img.naturalWidth;
+    viewerImgH = img.naturalHeight;
+    // Fit to width
+    viewerScale = wrap.clientWidth / viewerImgW;
+    viewerPanX = 0;
+    viewerPanY = 0;
+    applyViewerTransform();
+
+    // Zoom
+    wrap.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        const factor = e.deltaY > 0 ? 0.9 : 1.1;
+        const rect = wrap.getBoundingClientRect();
+        const cx = e.clientX - rect.left;
+        const cy = e.clientY - rect.top;
+        const newScale = Math.max(0.05, Math.min(5, viewerScale * factor));
+        viewerPanX = cx - (cx - viewerPanX) * (newScale / viewerScale);
+        viewerPanY = cy - (cy - viewerPanY) * (newScale / viewerScale);
+        viewerScale = newScale;
+        applyViewerTransform();
+    }, { passive: false });
+
+    // Prevent native drag on image (stops upload overlay from triggering during pan)
+    img.addEventListener('dragstart', (e) => e.preventDefault());
+
+    // Pan
+    wrap.addEventListener('mousedown', (e) => {
+        if (markupActive && markupTool !== 'hand') return;
+        e.preventDefault();
+        viewerPanning = true;
+        viewerLastX = e.clientX;
+        viewerLastY = e.clientY;
+        wrap.style.cursor = 'grabbing';
+    });
+    wrap.addEventListener('mousemove', (e) => {
+        if (!viewerPanning) return;
+        viewerPanX += e.clientX - viewerLastX;
+        viewerPanY += e.clientY - viewerLastY;
+        viewerLastX = e.clientX;
+        viewerLastY = e.clientY;
+        applyViewerTransform();
+    });
+    wrap.addEventListener('mouseup', () => { viewerPanning = false; wrap.style.cursor = markupActive && markupTool !== 'hand' ? 'crosshair' : 'grab'; });
+    wrap.addEventListener('mouseleave', () => { viewerPanning = false; });
+}
+
+function applyViewerTransform() {
+    const inner = document.getElementById('drawing-viewer-inner');
+    if (inner) inner.style.transform = `translate(${viewerPanX}px, ${viewerPanY}px) scale(${viewerScale})`;
+}
+
+// Markup list for current drawing
+let visibleMarkupIds = new Set();
+
+async function loadMarkupsList(drawingId) {
+    const res = await api(`/drawings/${drawingId}/markups`);
+    const markups = res?.markups || [];
+    // Insert markup list panel between toolbar and viewer
+    let panel = document.getElementById('db-markups-panel');
+    if (!panel) {
+        panel = document.createElement('div');
+        panel.id = 'db-markups-panel';
+        const toolbar = document.getElementById('db-viewer-toolbar');
+        if (toolbar) toolbar.after(panel);
+    }
+    if (markups.length === 0) {
+        panel.innerHTML = '';
+        return;
+    }
+    visibleMarkupIds = new Set([markups[0].id]); // show most recent by default
+    panel.innerHTML = `
+        <details open style="background:#1A2332;border-bottom:1px solid #243040;">
+            <summary style="padding:6px 12px;font-size:11px;color:#9AABB8;cursor:pointer;">Saved Markups (${markups.length})</summary>
+            <div style="padding:2px 12px 8px;">
+                ${markups.map(m => {
+                    const checked = visibleMarkupIds.has(m.id) ? 'checked' : '';
+                    const time = m.updated_at ? new Date(m.updated_at).toLocaleTimeString('en-US', {hour:'2-digit',minute:'2-digit'}) : '';
+                    return `<div style="display:flex;align-items:center;gap:8px;padding:4px 0;font-size:12px;">
+                        <input type="checkbox" ${checked} onchange="toggleMarkupVisibility('${m.id}','${drawingId}',this.checked)" style="accent-color:#4A90D9;">
+                        <span style="flex:1;color:#E8ECF1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(m.title || 'Untitled')}</span>
+                        <span style="color:#6B7280;font-size:10px;">${time}</span>
+                        <span onclick="deleteMarkupEntry('${m.id}','${drawingId}')" style="cursor:pointer;color:#6B7280;font-size:12px;" title="Delete">&#128465;</span>
+                    </div>`;
+                }).join('')}
+            </div>
+        </details>`;
+    // Render visible markups
+    renderVisibleMarkups(drawingId);
+}
+
+async function toggleMarkupVisibility(markupId, drawingId, visible) {
+    if (visible) visibleMarkupIds.add(markupId); else visibleMarkupIds.delete(markupId);
+    renderVisibleMarkups(drawingId);
+}
+
+async function renderVisibleMarkups(drawingId) {
+    const overlay = document.getElementById('drawing-markups-overlay');
+    if (!overlay) return;
+    if (visibleMarkupIds.size === 0) { overlay.innerHTML = ''; return; }
+
+    let svgContent = '';
+    for (const mid of visibleMarkupIds) {
+        const res = await api(`/drawings/${drawingId}/markups/${mid}`);
+        const data = res?.data?.markup_data;
+        if (!data) continue;
+        const parsed = typeof data === 'string' ? JSON.parse(data) : data;
+        for (const el of (parsed.elements || [])) {
+            svgContent += markupElementToSvg(el);
+        }
+    }
+    const img = document.getElementById('drawing-viewer-img');
+    const w = img?.naturalWidth || 1000;
+    const h = img?.naturalHeight || 1000;
+    overlay.innerHTML = `<svg width="${w}" height="${h}" style="display:block;" xmlns="http://www.w3.org/2000/svg">
+        <defs><marker id="ah" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0,10 3.5,0 7" fill="red"/></marker></defs>
+        ${svgContent}
+    </svg>`;
+}
+
+function markupElementToSvg(el) {
+    if (el.type === 'freehand' && el.points?.length > 1) {
+        return `<path d="M${el.points.map(p=>p.join(',')).join('L')}" stroke="${el.stroke||'red'}" stroke-width="${el.stroke_width||3}" fill="none" stroke-linecap="round"/>`;
+    } else if (el.type === 'line') {
+        return `<line x1="${el.x1}" y1="${el.y1}" x2="${el.x2}" y2="${el.y2}" stroke="${el.stroke||'red'}" stroke-width="${el.stroke_width||3}"/>`;
+    } else if (el.type === 'arrow') {
+        return `<line x1="${el.x1}" y1="${el.y1}" x2="${el.x2}" y2="${el.y2}" stroke="${el.stroke||'red'}" stroke-width="${el.stroke_width||3}" marker-end="url(#ah)"/>`;
+    } else if (el.type === 'rectangle') {
+        return `<rect x="${el.x}" y="${el.y}" width="${el.width}" height="${el.height}" stroke="${el.stroke||'red'}" stroke-width="${el.stroke_width||3}" fill="none"/>`;
+    } else if (el.type === 'cloud') {
+        return `<rect x="${el.x}" y="${el.y}" width="${el.width}" height="${el.height}" stroke="${el.stroke||'red'}" stroke-width="${el.stroke_width||3}" fill="none" rx="12" stroke-dasharray="12,6"/>`;
+    } else if (el.type === 'circle') {
+        return `<circle cx="${el.cx}" cy="${el.cy}" r="${el.r}" stroke="${el.stroke||'red'}" stroke-width="${el.stroke_width||3}" fill="none"/>`;
+    } else if (el.type === 'text') {
+        return `<text x="${el.x}" y="${el.y}" fill="${el.fill||el.stroke||'red'}" font-size="${el.font_size||24}" font-weight="${el.font_weight||'bold'}" font-family="Arial,sans-serif">${esc(el.content||'')}</text>`;
+    }
+    return '';
+}
+
+async function deleteMarkupEntry(markupId, drawingId) {
+    if (!confirm('Delete this markup?')) return;
+    await fetch(API_BASE + `/drawings/${drawingId}/markups/${markupId}`, { method: 'DELETE', credentials: 'same-origin' });
+    visibleMarkupIds.delete(markupId);
+    loadMarkupsList(drawingId);
+    showToast('Markup deleted');
+}
+
+function handleDrawingDownload(e, drawingId, drawingData) {
+    // If markups are visible (SVG overlay has content), export as PNG with overlay
+    const overlay = document.getElementById('drawing-markups-overlay');
+    const hasSvg = overlay && overlay.querySelector('svg') && overlay.querySelector('svg').children.length > 1;
+    if (hasSvg || visibleMarkupIds.size > 0) {
+        e.preventDefault();
+        e.stopPropagation();
+        exportMarkedUpDrawing(drawingId, drawingData);
+        return false;
+    }
+    // Otherwise let the default PDF download happen
+}
+
+async function exportMarkedUpDrawing(drawingId, drawingData) {
+    const img = document.getElementById('drawing-viewer-img');
+    const overlay = document.getElementById('drawing-markups-overlay');
+    if (!img) { showToast('No drawing loaded'); return; }
+
+    showToast('Preparing download...');
+
+    // Wait for image to be fully loaded
+    const canvas = document.createElement('canvas');
+    canvas.width = img.naturalWidth;
+    canvas.height = img.naturalHeight;
+    const ctx = canvas.getContext('2d');
+
+    // Need to reload image without CORS restrictions for canvas export
+    const tempImg = new Image();
+    tempImg.crossOrigin = 'anonymous';
+    tempImg.onload = () => {
+        ctx.drawImage(tempImg, 0, 0, canvas.width, canvas.height);
+
+        // Draw markup elements directly onto canvas (bypass SVG-to-image which can fail)
+        ctx.strokeStyle = '#FF0000';
+        ctx.lineWidth = 3;
+        ctx.lineCap = 'round';
+        ctx.font = 'bold 24px Arial';
+
+        // Get all visible markup elements
+        const allElements = [];
+        for (const mid of visibleMarkupIds) {
+            const cached = document.getElementById('drawing-markups-overlay')?.querySelector('svg');
+            // We already have the elements in memory from renderVisibleMarkups
+        }
+
+        // Use the SVG content directly — render via data URI
+        const svgEl = overlay?.querySelector('svg');
+        if (svgEl) {
+            const svgClone = svgEl.cloneNode(true);
+            svgClone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+            const svgData = new XMLSerializer().serializeToString(svgClone);
+            const svgDataUri = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)));
+            const svgImg = new Image();
+            svgImg.onload = () => {
+                ctx.drawImage(svgImg, 0, 0);
+                triggerCanvasDownload(canvas, drawingData);
+            };
+            svgImg.onerror = () => {
+                // Fallback: download without markup overlay
+                triggerCanvasDownload(canvas, drawingData);
+            };
+            svgImg.src = svgDataUri;
+        } else {
+            triggerCanvasDownload(canvas, drawingData);
+        }
+    };
+    tempImg.onerror = () => {
+        showToast('Failed to prepare download');
+    };
+    tempImg.src = img.src;
+}
+
+function triggerCanvasDownload(canvas, drawingData) {
+    try {
+        const link = document.createElement('a');
+        link.download = `${drawingData?.number || 'drawing'}_markup_${new Date().toISOString().slice(0,10)}.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+        showToast('Download started');
+    } catch (e) {
+        showToast('Download failed — try right-click > Save As on the drawing');
+    }
+}
+
+// =============================================================================
+// MARKUP MODE
+// =============================================================================
+let markupActive = false;
+let markupTool = 'pen';
+let markupColor = '#FF0000';
+let markupElements = [];
+let markupUndoStack = [];
+let markupDrawingId = null;
+let markupId = null;
+let markupSvg = null;
+let markupDrawing = false;
+let markupStartX = 0, markupStartY = 0;
+let markupCurrentPath = [];
+let markupTempEl = null;
+
+async function enterMarkupMode() {
+    if (!dbSelectedId) return;
+    markupDrawingId = dbSelectedId;
+    markupElements = [];
+    markupUndoStack = [];
+    markupId = null;
+    markupActive = true;
+    markupTool = 'hand';
+    markupColor = '#FF0000';
+
+    const content = document.getElementById('db-viewer-content');
+    if (!content) return;
+
+    const pngUrl = `/api/drawings/${markupDrawingId}/png`;
+
+    content.innerHTML = `
+        <div id="markup-container" style="position:relative;overflow:hidden;width:100%;height:100%;background:#0F1419;">
+            <div id="markup-toolbar" style="position:sticky;top:0;z-index:10;display:flex;gap:4px;padding:6px 10px;background:#1A2332;border-bottom:1px solid #243040;flex-wrap:wrap;align-items:center;">
+                <button class="mt-btn active" data-tool="hand" onclick="setMarkupTool('hand',this)" title="Pan (Hand)">&#9995;</button>
+                <button class="mt-btn" data-tool="pen" onclick="setMarkupTool('pen',this)" title="Freehand">&#9998;</button>
+                <button class="mt-btn" data-tool="line" onclick="setMarkupTool('line',this)" title="Line">&#9135;</button>
+                <button class="mt-btn" data-tool="rectangle" onclick="setMarkupTool('rectangle',this)" title="Rectangle">&#9633;</button>
+                <button class="mt-btn" data-tool="circle" onclick="setMarkupTool('circle',this)" title="Circle">&#9675;</button>
+                <button class="mt-btn" data-tool="arrow" onclick="setMarkupTool('arrow',this)" title="Arrow">&#10132;</button>
+                <button class="mt-btn" data-tool="text" onclick="setMarkupTool('text',this)" title="Text">T</button>
+                <button class="mt-btn" data-tool="cloud" onclick="setMarkupTool('cloud',this)" title="Revision Cloud">&#9729;</button>
+                <span style="width:1px;height:20px;background:rgba(255,255,255,0.15);margin:0 4px;"></span>
+                ${['#FF0000','#0066FF','#00AA00','#000000','#FF8800'].map(c => `<span class="mt-color${c==='#FF0000'?' active':''}" data-color="${c}" onclick="setMarkupColor('${c}',this)" style="width:18px;height:18px;border-radius:50%;background:${c};cursor:pointer;border:2px solid ${c==='#FF0000'?'#fff':'transparent'};display:inline-block;"></span>`).join('')}
+                <span style="width:1px;height:20px;background:rgba(255,255,255,0.15);margin:0 4px;"></span>
+                <button class="mt-btn" onclick="markupUndo()" title="Undo">&#8630;</button>
+                <button class="mt-btn" onclick="saveMarkup()" title="Save" style="color:#5dcaa5;">&#128190;</button>
+                <button class="mt-btn" onclick="exitMarkupMode()" title="Exit" style="color:#f09595;">&#10005;</button>
+                <span style="flex:1;"></span>
+                <span style="font-size:10px;color:#6B7280;" id="markup-status">Unsaved</span>
+            </div>
+            <div id="markup-canvas-wrap" style="position:absolute;transform-origin:0 0;">
+                <img id="markup-img" src="${pngUrl}" style="display:block;max-width:none;" onload="initMarkupSvg()">
+                <svg id="markup-svg" style="position:absolute;top:0;left:0;" xmlns="http://www.w3.org/2000/svg"></svg>
+            </div>
+        </div>
+    `;
+}
+
+function initMarkupSvg() {
+    const img = document.getElementById('markup-img');
+    const svg = document.getElementById('markup-svg');
+    const container = document.getElementById('markup-container');
+    const wrap = document.getElementById('markup-canvas-wrap');
+    if (!img || !svg || !container) return;
+
+    svg.setAttribute('width', img.naturalWidth);
+    svg.setAttribute('height', img.naturalHeight);
+    svg.style.width = img.naturalWidth + 'px';
+    svg.style.height = img.naturalHeight + 'px';
+    markupSvg = svg;
+
+    // Fit to width
+    const toolbarH = document.getElementById('markup-toolbar')?.offsetHeight || 40;
+    viewerScale = container.clientWidth / img.naturalWidth;
+    viewerPanX = 0;
+    viewerPanY = toolbarH;
+    viewerImgW = img.naturalWidth;
+    viewerImgH = img.naturalHeight;
+    applyMarkupTransform();
+
+    // Zoom (always works)
+    container.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        const factor = e.deltaY > 0 ? 0.9 : 1.1;
+        const rect = container.getBoundingClientRect();
+        const cx = e.clientX - rect.left;
+        const cy = e.clientY - rect.top;
+        const newScale = Math.max(0.05, Math.min(5, viewerScale * factor));
+        viewerPanX = cx - (cx - viewerPanX) * (newScale / viewerScale);
+        viewerPanY = cy - (cy - viewerPanY) * (newScale / viewerScale);
+        viewerScale = newScale;
+        applyMarkupTransform();
+    }, { passive: false });
+
+    // Pan (hand tool) and draw (other tools) via SVG
+    svg.addEventListener('mousedown', (e) => {
+        if (markupTool === 'hand') {
+            viewerPanning = true;
+            viewerLastX = e.clientX;
+            viewerLastY = e.clientY;
+            container.style.cursor = 'grabbing';
+        } else {
+            markupMouseDown(e);
+        }
+    });
+    svg.addEventListener('mousemove', (e) => {
+        if (viewerPanning) {
+            viewerPanX += e.clientX - viewerLastX;
+            viewerPanY += e.clientY - viewerLastY;
+            viewerLastX = e.clientX;
+            viewerLastY = e.clientY;
+            applyMarkupTransform();
+        } else {
+            markupMouseMove(e);
+        }
+    });
+    svg.addEventListener('mouseup', (e) => {
+        if (viewerPanning) {
+            viewerPanning = false;
+            container.style.cursor = markupTool === 'hand' ? 'grab' : 'crosshair';
+        } else {
+            markupMouseUp(e);
+        }
+    });
+    svg.addEventListener('mouseleave', (e) => {
+        viewerPanning = false;
+        markupMouseUp(e);
+    });
+
+    // Load existing markups
+    loadExistingMarkups();
+}
+
+function applyMarkupTransform() {
+    const wrap = document.getElementById('markup-canvas-wrap');
+    if (wrap) wrap.style.transform = `translate(${viewerPanX}px, ${viewerPanY}px) scale(${viewerScale})`;
+}
+
+async function loadExistingMarkups() {
+    const res = await api(`/drawings/${markupDrawingId}/markups`);
+    const markups = res?.markups || [];
+
+    // Show markup selector in toolbar
+    const toolbar = document.getElementById('markup-toolbar');
+    if (!toolbar) return;
+    let selector = document.getElementById('markup-selector');
+    if (!selector) {
+        selector = document.createElement('span');
+        selector.id = 'markup-selector';
+        selector.style.cssText = 'margin-left:8px;';
+        // Insert before the status span
+        const status = document.getElementById('markup-status');
+        if (status) status.before(selector);
+    }
+
+    if (markups.length > 0) {
+        selector.innerHTML = `<select id="markup-select" onchange="loadMarkupById(this.value)" style="background:rgba(255,255,255,0.06);border:0.5px solid rgba(255,255,255,0.1);border-radius:4px;color:rgba(255,255,255,0.7);font-size:11px;padding:3px 6px;font-family:var(--font);">
+            <option value="">New markup</option>
+            ${markups.map(m => `<option value="${m.id}">${esc(m.title || 'Untitled')}</option>`).join('')}
+        </select>`;
+        // Don't auto-load — start with a clean canvas
+        markupElements = [];
+        renderMarkupElements();
+        document.getElementById('markup-status').textContent = 'New markup';
+    }
+}
+
+async function loadMarkupById(mid) {
+    if (!mid) {
+        // "New markup" selected — clear canvas
+        markupId = null;
+        markupElements = [];
+        markupUndoStack = [];
+        renderMarkupElements();
+        document.getElementById('markup-status').textContent = 'New markup';
+        return;
+    }
+    markupId = mid;
+    const full = await api(`/drawings/${markupDrawingId}/markups/${mid}`);
+    if (full?.data?.markup_data) {
+        const data = typeof full.data.markup_data === 'string' ? JSON.parse(full.data.markup_data) : full.data.markup_data;
+        markupElements = data.elements || [];
+        markupUndoStack = [];
+        renderMarkupElements();
+        document.getElementById('markup-status').textContent = 'Loaded';
+    }
+}
+
+function setMarkupTool(tool, btn) {
+    markupTool = tool;
+    document.querySelectorAll('.mt-btn[data-tool]').forEach(b => b.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+    else document.querySelector(`.mt-btn[data-tool="${tool}"]`)?.classList.add('active');
+    const container = document.getElementById('markup-container');
+    if (container) container.style.cursor = tool === 'hand' ? 'grab' : tool === 'text' ? 'text' : 'crosshair';
+}
+
+function setMarkupColor(color, el) {
+    markupColor = color;
+    document.querySelectorAll('.mt-color').forEach(c => c.style.borderColor = 'transparent');
+    if (el) el.style.borderColor = '#fff';
+}
+
+function getSvgCoords(e) {
+    const svg = markupSvg;
+    const rect = svg.getBoundingClientRect();
+    const scaleX = svg.getAttribute('width') / rect.width;
+    const scaleY = svg.getAttribute('height') / rect.height;
+    return { x: (e.clientX - rect.left) * scaleX, y: (e.clientY - rect.top) * scaleY };
+}
+
+function markupMouseDown(e) {
+    markupDrawing = true;
+    const p = getSvgCoords(e);
+    markupStartX = p.x;
+    markupStartY = p.y;
+
+    if (markupTool === 'text') {
+        const text = prompt('Enter text (will appear in uppercase):');
+        if (text) {
+            markupElements.push({
+                type: 'text', id: 'e' + Date.now(), x: p.x, y: p.y,
+                content: text.toUpperCase(), font_size: 24, fill: markupColor, font_weight: 'bold'
+            });
+            renderMarkupElements();
+            markupUndoStack.push(markupElements.length - 1);
+        }
+        markupDrawing = false;
+        return;
+    }
+
+    if (markupTool === 'pen') {
+        markupCurrentPath = [[p.x, p.y]];
+    }
+}
+
+function markupMouseMove(e) {
+    if (!markupDrawing) return;
+    const p = getSvgCoords(e);
+
+    if (markupTool === 'pen') {
+        markupCurrentPath.push([p.x, p.y]);
+        // Draw temp freehand
+        renderMarkupElements();
+        if (markupCurrentPath.length > 1) {
+            const pathData = 'M' + markupCurrentPath.map(pt => pt.join(',')).join('L');
+            const temp = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            temp.setAttribute('d', pathData);
+            temp.setAttribute('stroke', markupColor);
+            temp.setAttribute('stroke-width', '3');
+            temp.setAttribute('fill', 'none');
+            temp.setAttribute('stroke-linecap', 'round');
+            markupSvg.appendChild(temp);
+        }
+        return;
+    }
+
+    // Preview for shapes
+    renderMarkupElements();
+    const dx = p.x - markupStartX, dy = p.y - markupStartY;
+    if (markupTool === 'line' || markupTool === 'arrow') {
+        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        line.setAttribute('x1', markupStartX); line.setAttribute('y1', markupStartY);
+        line.setAttribute('x2', p.x); line.setAttribute('y2', p.y);
+        line.setAttribute('stroke', markupColor); line.setAttribute('stroke-width', '3');
+        if (markupTool === 'arrow') line.setAttribute('marker-end', 'url(#arrowhead)');
+        markupSvg.appendChild(line);
+    } else if (markupTool === 'rectangle' || markupTool === 'cloud') {
+        const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        rect.setAttribute('x', Math.min(markupStartX, p.x)); rect.setAttribute('y', Math.min(markupStartY, p.y));
+        rect.setAttribute('width', Math.abs(dx)); rect.setAttribute('height', Math.abs(dy));
+        rect.setAttribute('stroke', markupColor); rect.setAttribute('stroke-width', '3'); rect.setAttribute('fill', 'none');
+        if (markupTool === 'cloud') { rect.setAttribute('stroke-dasharray', '8,4'); rect.setAttribute('rx', '10'); }
+        markupSvg.appendChild(rect);
+    } else if (markupTool === 'circle') {
+        const circ = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        circ.setAttribute('cx', markupStartX); circ.setAttribute('cy', markupStartY);
+        circ.setAttribute('r', Math.sqrt(dx*dx + dy*dy));
+        circ.setAttribute('stroke', markupColor); circ.setAttribute('stroke-width', '3'); circ.setAttribute('fill', 'none');
+        markupSvg.appendChild(circ);
+    }
+}
+
+function markupMouseUp(e) {
+    if (!markupDrawing) return;
+    markupDrawing = false;
+    const p = getSvgCoords(e);
+    const dx = p.x - markupStartX, dy = p.y - markupStartY;
+
+    if (markupTool === 'pen' && markupCurrentPath.length > 2) {
+        markupElements.push({ type: 'freehand', id: 'e' + Date.now(), points: markupCurrentPath, stroke: markupColor, stroke_width: 3 });
+        markupUndoStack.push(markupElements.length - 1);
+    } else if (markupTool === 'line') {
+        markupElements.push({ type: 'line', id: 'e' + Date.now(), x1: markupStartX, y1: markupStartY, x2: p.x, y2: p.y, stroke: markupColor, stroke_width: 3 });
+        markupUndoStack.push(markupElements.length - 1);
+    } else if (markupTool === 'arrow') {
+        markupElements.push({ type: 'arrow', id: 'e' + Date.now(), x1: markupStartX, y1: markupStartY, x2: p.x, y2: p.y, stroke: markupColor, stroke_width: 3 });
+        markupUndoStack.push(markupElements.length - 1);
+    } else if (markupTool === 'rectangle') {
+        markupElements.push({ type: 'rectangle', id: 'e' + Date.now(), x: Math.min(markupStartX, p.x), y: Math.min(markupStartY, p.y), width: Math.abs(dx), height: Math.abs(dy), stroke: markupColor, stroke_width: 3, fill: 'none' });
+        markupUndoStack.push(markupElements.length - 1);
+    } else if (markupTool === 'cloud') {
+        markupElements.push({ type: 'cloud', id: 'e' + Date.now(), x: Math.min(markupStartX, p.x), y: Math.min(markupStartY, p.y), width: Math.abs(dx), height: Math.abs(dy), stroke: markupColor, stroke_width: 3, fill: 'none' });
+        markupUndoStack.push(markupElements.length - 1);
+    } else if (markupTool === 'circle') {
+        markupElements.push({ type: 'circle', id: 'e' + Date.now(), cx: markupStartX, cy: markupStartY, r: Math.sqrt(dx*dx + dy*dy), stroke: markupColor, stroke_width: 3, fill: 'none' });
+        markupUndoStack.push(markupElements.length - 1);
+    }
+
+    markupCurrentPath = [];
+    renderMarkupElements();
+    document.getElementById('markup-status').textContent = 'Unsaved changes';
+}
+
+function renderMarkupElements() {
+    if (!markupSvg) return;
+    // Keep SVG dimensions, clear content
+    const w = markupSvg.getAttribute('width');
+    const h = markupSvg.getAttribute('height');
+    markupSvg.innerHTML = `<defs><marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="${markupColor}"/></marker></defs>`;
+
+    for (const el of markupElements) {
+        let svgEl;
+        if (el.type === 'freehand' && el.points?.length > 1) {
+            svgEl = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            svgEl.setAttribute('d', 'M' + el.points.map(p => p.join(',')).join('L'));
+            svgEl.setAttribute('stroke', el.stroke); svgEl.setAttribute('stroke-width', el.stroke_width || 3);
+            svgEl.setAttribute('fill', 'none'); svgEl.setAttribute('stroke-linecap', 'round');
+        } else if (el.type === 'line') {
+            svgEl = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            svgEl.setAttribute('x1', el.x1); svgEl.setAttribute('y1', el.y1);
+            svgEl.setAttribute('x2', el.x2); svgEl.setAttribute('y2', el.y2);
+            svgEl.setAttribute('stroke', el.stroke); svgEl.setAttribute('stroke-width', el.stroke_width || 3);
+        } else if (el.type === 'arrow') {
+            svgEl = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            svgEl.setAttribute('x1', el.x1); svgEl.setAttribute('y1', el.y1);
+            svgEl.setAttribute('x2', el.x2); svgEl.setAttribute('y2', el.y2);
+            svgEl.setAttribute('stroke', el.stroke); svgEl.setAttribute('stroke-width', el.stroke_width || 3);
+            svgEl.setAttribute('marker-end', 'url(#arrowhead)');
+        } else if (el.type === 'rectangle') {
+            svgEl = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+            svgEl.setAttribute('x', el.x); svgEl.setAttribute('y', el.y);
+            svgEl.setAttribute('width', el.width); svgEl.setAttribute('height', el.height);
+            svgEl.setAttribute('stroke', el.stroke); svgEl.setAttribute('stroke-width', el.stroke_width || 3);
+            svgEl.setAttribute('fill', el.fill || 'none');
+        } else if (el.type === 'cloud') {
+            // Revision cloud — rect with wavy border
+            svgEl = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+            svgEl.setAttribute('x', el.x); svgEl.setAttribute('y', el.y);
+            svgEl.setAttribute('width', el.width); svgEl.setAttribute('height', el.height);
+            svgEl.setAttribute('stroke', el.stroke); svgEl.setAttribute('stroke-width', el.stroke_width || 3);
+            svgEl.setAttribute('fill', 'none'); svgEl.setAttribute('rx', '12');
+            svgEl.setAttribute('stroke-dasharray', '12,6');
+        } else if (el.type === 'circle') {
+            svgEl = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            svgEl.setAttribute('cx', el.cx); svgEl.setAttribute('cy', el.cy); svgEl.setAttribute('r', el.r);
+            svgEl.setAttribute('stroke', el.stroke); svgEl.setAttribute('stroke-width', el.stroke_width || 3);
+            svgEl.setAttribute('fill', el.fill || 'none');
+        } else if (el.type === 'text') {
+            svgEl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            svgEl.setAttribute('x', el.x); svgEl.setAttribute('y', el.y);
+            svgEl.setAttribute('fill', el.fill || el.stroke || '#FF0000');
+            svgEl.setAttribute('font-size', el.font_size || 24);
+            svgEl.setAttribute('font-weight', el.font_weight || 'bold');
+            svgEl.setAttribute('font-family', 'Arial, sans-serif');
+            svgEl.textContent = el.content || '';
+        }
+        if (svgEl) markupSvg.appendChild(svgEl);
+    }
+}
+
+function markupUndo() {
+    if (markupUndoStack.length === 0) return;
+    const idx = markupUndoStack.pop();
+    markupElements.splice(idx, 1);
+    renderMarkupElements();
+    document.getElementById('markup-status').textContent = 'Unsaved changes';
+}
+
+async function saveMarkup() {
+    const img = document.getElementById('markup-img');
+    const data = {
+        page_width: img?.naturalWidth || 0,
+        page_height: img?.naturalHeight || 0,
+        elements: markupElements,
+    };
+
+    if (markupId) {
+        await fetch(API_BASE + `/drawings/${markupDrawingId}/markups/${markupId}`, {
+            method: 'PUT', headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ markup_data: data }), credentials: 'same-origin',
+        });
+    } else {
+        const title = prompt('Name this markup:', 'Field markup ' + new Date().toLocaleDateString()) || 'Untitled';
+        const res = await fetch(API_BASE + `/drawings/${markupDrawingId}/markups`, {
+            method: 'POST', headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ title, markup_data: data, page_number: 1 }), credentials: 'same-origin',
+        });
+        const resData = await res.json();
+        markupId = resData?.data?.id;
+    }
+
+    document.getElementById('markup-status').textContent = 'Saved';
+    showToast('Markup saved');
+}
+
+function exitMarkupMode() {
+    if (markupElements.length > 0 && document.getElementById('markup-status')?.textContent === 'Unsaved changes') {
+        if (!confirm('You have unsaved changes. Exit markup mode?')) return;
+    }
+    markupActive = false;
+    // Re-render the PDF viewer
+    if (dbSelectedId) selectDrawing(dbSelectedId);
+}
+
+// Forward sidebar scroll to main content
+document.addEventListener('wheel', (e) => {
+    const sidebar = e.target.closest('.nav-rail, .radar-sidebar');
+    if (sidebar) {
+        const main = document.querySelector('.main-scroll');
+        if (main) main.scrollTop += e.deltaY;
+    }
+}, { passive: true });
+
+// Markup escape → hand tool
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && markupActive && markupTool !== 'hand') {
+        setMarkupTool('hand');
+        return;
+    }
+});
+
+// Drawing Browser keyboard navigation
+document.addEventListener('keydown', (e) => {
+    const browser = document.getElementById('drawing-browser');
+    if (!browser || browser.querySelector('.db-body.collapsed')) return;
+    // Don't capture when typing in inputs
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') {
+        if (e.key === 'Escape') { e.target.blur(); return; }
+        return;
+    }
+    // Only handle if drawing browser is visible (dashboard view)
+    if (state.view !== 'dashboard') return;
+
+    if (e.key === 'ArrowDown' && dbDrawings.length > 0) {
+        e.preventDefault();
+        dbSelectedIdx = Math.min(dbSelectedIdx + 1, dbDrawings.length - 1);
+        selectDrawing(dbDrawings[dbSelectedIdx].id);
+    } else if (e.key === 'ArrowUp' && dbDrawings.length > 0) {
+        e.preventDefault();
+        dbSelectedIdx = Math.max(dbSelectedIdx - 1, 0);
+        selectDrawing(dbDrawings[dbSelectedIdx].id);
+    } else if (e.key === '/' && !e.ctrlKey && !e.metaKey) {
+        e.preventDefault();
+        document.getElementById('db-search')?.focus();
+    } else if (e.key === 'f' && dbSelectedId) {
+        toggleFavorite(dbSelectedId);
+    }
+});
+
+// =============================================================================
+// UPLOAD
+// =============================================================================
+let uploadFiles = [];
+let uploadProjectId = '';
+let uploadProjectName = '';
+let uploadClassification = '';
+
+function openUploadModal(projectId, projectName) {
+    uploadFiles = [];
+    uploadProjectId = projectId || '';
+    uploadProjectName = projectName || '';
+    uploadClassification = '';
+
+    const overlay = document.createElement('div');
+    overlay.className = 'search-overlay';
+    overlay.id = 'upload-overlay';
+    overlay.onclick = (e) => { if (e.target === overlay) closeUploadModal(); };
+
+    const needsProjectPicker = !uploadProjectId;
+    const projectPickerHtml = needsProjectPicker ? `
+        <div class="upload-project-picker" id="upload-project-picker">
+            <div class="upp-label">Select project (required)</div>
+            <div id="upload-project-chips">${state.projects.map(p => `
+                <span class="upload-project-chip" data-id="${p.id}" data-name="${esc(p.name)}" onclick="selectUploadProject(this)">${esc(p.name)}</span>
+            `).join('')}</div>
+        </div>
+    ` : '';
+
+    overlay.innerHTML = `
+        <div class="upload-modal">
+            <div class="upload-header">
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                    <h3>Upload document</h3>
+                    <span style="font-size:11px;color:var(--text-muted);cursor:pointer;" onclick="closeUploadModal()">ESC</span>
+                </div>
+                ${uploadProjectName ? `<div class="upload-sub">${esc(uploadProjectName)}</div>` : ''}
+            </div>
+            ${projectPickerHtml}
+            <div class="upload-dropzone" id="upload-dropzone"
+                 onclick="document.getElementById('upload-file-input').click()">
+                <div class="dz-icon">&#128228;</div>
+                <div class="dz-text">Drag files here or click to browse</div>
+                <div class="dz-sub">PDF, DOCX, XLSX, DWG, DXF, images · Max 50 MB per file</div>
+            </div>
+            <input type="file" id="upload-file-input" multiple accept=".pdf,.docx,.xlsx,.dwg,.dxf,.png,.jpg,.jpeg,.tiff,.csv,.eml,.msg" style="display:none" onchange="handleUploadFiles(this.files)">
+            <div id="upload-file-list"></div>
+
+            <div class="upload-section-label">Classification (optional — system will auto-detect)</div>
+            <div class="upload-chips" id="upload-class-chips">
+                ${['Drawing','Specification','Submittal','Correspondence','Schedule','Other'].map(c => `
+                    <div class="upload-chip" data-val="${c.toLowerCase()}" onclick="toggleUploadClass(this)">${c}</div>
+                `).join('')}
+            </div>
+
+            <div class="upload-section-label">Notes (optional)</div>
+            <textarea class="upload-notes" id="upload-notes" placeholder="e.g., Updated lobby ceiling from architect — replaces Rev 1 from Feb"></textarea>
+
+            <div class="upload-scope">
+                <label>Source:</label>
+                <select id="upload-source">
+                    <option value="">Not specified</option>
+                    <option value="architect">Architect</option>
+                    <option value="owner">Owner</option>
+                    <option value="subcontractor">Subcontractor</option>
+                    <option value="consultant">Consultant</option>
+                    <option value="internal">Internal</option>
+                    <option value="other">Other</option>
+                </select>
+                <div class="scope-divider"></div>
+                <label>Priority:</label>
+                <select id="upload-priority">
+                    <option value="normal">Normal</option>
+                    <option value="high">High</option>
+                </select>
+            </div>
+
+            <div class="upload-footer">
+                <div class="upload-footer-hint">File enters the intelligence pipeline after upload</div>
+                <div class="upload-footer-actions">
+                    <button class="upload-btn-cancel" onclick="closeUploadModal()">Cancel</button>
+                    <button class="upload-btn-submit" id="upload-submit-btn" disabled onclick="submitUpload()">Upload & process</button>
+                </div>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(overlay);
+
+    // Dropzone drag events
+    const dz = document.getElementById('upload-dropzone');
+    dz.addEventListener('dragover', (e) => { e.preventDefault(); dz.classList.add('dragover'); });
+    dz.addEventListener('dragleave', () => dz.classList.remove('dragover'));
+    dz.addEventListener('drop', (e) => { e.preventDefault(); dz.classList.remove('dragover'); handleUploadFiles(e.dataTransfer.files); });
+
+    document.addEventListener('keydown', uploadKeyHandler);
+}
+
+function uploadKeyHandler(e) { if (e.key === 'Escape') closeUploadModal(); }
+
+function closeUploadModal() {
+    const overlay = document.getElementById('upload-overlay');
+    if (overlay) overlay.remove();
+    document.removeEventListener('keydown', uploadKeyHandler);
+}
+
+function selectUploadProject(el) {
+    document.querySelectorAll('.upload-project-chip').forEach(c => c.classList.remove('active'));
+    el.classList.add('active');
+    uploadProjectId = el.dataset.id;
+    uploadProjectName = el.dataset.name;
+    updateUploadSubmitState();
+}
+
+function toggleUploadClass(el) {
+    const wasActive = el.classList.contains('active');
+    document.querySelectorAll('#upload-class-chips .upload-chip').forEach(c => c.classList.remove('active'));
+    if (!wasActive) {
+        el.classList.add('active');
+        uploadClassification = el.dataset.val;
+    } else {
+        uploadClassification = '';
+    }
+}
+
+function handleUploadFiles(fileList) {
+    const allowed = ['.pdf','.docx','.xlsx','.dwg','.dxf','.png','.jpg','.jpeg','.tiff','.csv','.eml','.msg'];
+    for (const f of fileList) {
+        const ext = '.' + f.name.split('.').pop().toLowerCase();
+        if (!allowed.includes(ext)) {
+            showToast(`Unsupported file type: ${ext}`);
+            continue;
+        }
+        if (f.size > 50 * 1024 * 1024) {
+            showToast(`File too large: ${f.name} (${Math.round(f.size/1024/1024)}MB)`);
+            continue;
+        }
+        uploadFiles.push({ file: f, status: 'ready' });
+    }
+    renderUploadFileList();
+    updateUploadSubmitState();
+}
+
+function removeUploadFile(idx) {
+    uploadFiles.splice(idx, 1);
+    renderUploadFileList();
+    updateUploadSubmitState();
+}
+
+function renderUploadFileList() {
+    const container = document.getElementById('upload-file-list');
+    if (!container) return;
+    const badgeColors = {
+        pdf: ['#f09595','rgba(232,78,78,0.2)'], docx: ['#5dcaa5','rgba(93,202,165,0.2)'],
+        xlsx: ['#5dcaa5','rgba(93,202,165,0.2)'], dwg: ['#85b7eb','rgba(55,138,221,0.2)'],
+        dxf: ['#85b7eb','rgba(55,138,221,0.2)'], png: ['#fac775','rgba(250,199,117,0.2)'],
+        jpg: ['#fac775','rgba(250,199,117,0.2)'], jpeg: ['#fac775','rgba(250,199,117,0.2)'],
+        tiff: ['#fac775','rgba(250,199,117,0.2)'], csv: ['#afa9ec','rgba(127,119,221,0.2)'],
+        eml: ['#ed93b1','rgba(212,83,126,0.2)'], msg: ['#ed93b1','rgba(212,83,126,0.2)'],
+    };
+    container.innerHTML = uploadFiles.map((uf, i) => {
+        const ext = uf.file.name.split('.').pop().toLowerCase();
+        const [color, bg] = badgeColors[ext] || ['#afa9ec','rgba(127,119,221,0.2)'];
+        const sizeStr = uf.file.size < 1048576 ? Math.round(uf.file.size/1024) + 'KB' : (uf.file.size/1048576).toFixed(1) + 'MB';
+        const statusClass = uf.status === 'error' ? ' error' : '';
+        const statusText = uf.status === 'ready' ? 'Ready' : uf.status === 'uploading' ? 'Uploading...' : uf.status === 'done' ? 'Uploaded' : 'Failed';
+        return `<div class="upload-file-card">
+            <span class="ufc-badge" style="background:${bg};color:${color};">${esc(ext.toUpperCase())}</span>
+            <div class="ufc-info">
+                <div class="ufc-name">${esc(uf.file.name)}</div>
+                <div class="ufc-size">${sizeStr}</div>
+            </div>
+            <span class="ufc-status${statusClass}">${statusText}</span>
+            ${uf.status === 'ready' ? `<button class="ufc-remove" onclick="removeUploadFile(${i})">&times;</button>` : ''}
+        </div>`;
+    }).join('');
+}
+
+function updateUploadSubmitState() {
+    const btn = document.getElementById('upload-submit-btn');
+    if (btn) btn.disabled = uploadFiles.length === 0 || !uploadProjectId;
+}
+
+async function submitUpload() {
+    const btn = document.getElementById('upload-submit-btn');
+    if (btn) { btn.disabled = true; btn.textContent = 'Uploading...'; }
+
+    const notes = document.getElementById('upload-notes')?.value || '';
+    const source = document.getElementById('upload-source')?.value || '';
+    const priority = document.getElementById('upload-priority')?.value || 'normal';
+    let successCount = 0;
+
+    for (let i = 0; i < uploadFiles.length; i++) {
+        const uf = uploadFiles[i];
+        if (uf.status === 'done') continue;
+        uf.status = 'uploading';
+        renderUploadFileList();
+
+        const formData = new FormData();
+        formData.append('file', uf.file);
+        formData.append('project_id', uploadProjectId);
+        if (uploadClassification) formData.append('classification', uploadClassification);
+        if (notes) formData.append('notes', notes);
+        if (source) formData.append('source', source);
+        formData.append('priority', priority);
+        formData.append('uploaded_by', 'command-center');
+
+        try {
+            const res = await fetch('/api/documents/upload', { method: 'POST', body: formData, credentials: 'same-origin' });
+            if (res.ok) {
+                uf.status = 'done';
+                successCount++;
+            } else {
+                const err = await res.json().catch(() => ({}));
+                uf.status = 'error';
+                uf.errorMsg = err.detail || 'Upload failed';
+            }
+        } catch (e) {
+            uf.status = 'error';
+            uf.errorMsg = 'Network error';
+        }
+        renderUploadFileList();
+    }
+
+    if (successCount > 0) {
+        showToast(`${successCount} document${successCount > 1 ? 's' : ''} uploaded to ${uploadProjectName} — processing started`);
+        setTimeout(() => closeUploadModal(), 800);
+    } else {
+        if (btn) { btn.disabled = false; btn.textContent = 'Upload & process'; }
+    }
+}
+
+// Page-level drag-and-drop
+let dragCounter = 0;
+document.addEventListener('dragenter', (e) => {
+    e.preventDefault();
+    // Only show upload overlay for file drags from OS, not internal element drags
+    if (!e.dataTransfer || !e.dataTransfer.types.includes('Files')) return;
+    dragCounter++;
+    if (dragCounter === 1 && !document.getElementById('upload-overlay')) {
+        const overlay = document.createElement('div');
+        overlay.className = 'drag-overlay';
+        overlay.id = 'drag-page-overlay';
+        const projName = state.view === 'project' && state.selectedProjectId
+            ? (state.projects.find(p => p.id === state.selectedProjectId)?.name || 'this project')
+            : '';
+        overlay.textContent = projName ? `Drop files to upload to ${projName}` : 'Drop files — select a project to upload';
+        document.body.appendChild(overlay);
+    }
+});
+document.addEventListener('dragleave', (e) => {
+    e.preventDefault();
+    dragCounter--;
+    if (dragCounter <= 0) { dragCounter = 0; const o = document.getElementById('drag-page-overlay'); if (o) o.remove(); }
+});
+document.addEventListener('dragover', (e) => e.preventDefault());
+document.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dragCounter = 0;
+    const o = document.getElementById('drag-page-overlay');
+    if (o) o.remove();
+    if (document.getElementById('upload-overlay')) return; // modal already open
+    if (e.dataTransfer.files.length > 0) {
+        const proj = state.view === 'project' && state.selectedProjectId
+            ? state.projects.find(p => p.id === state.selectedProjectId)
+            : null;
+        openUploadModal(proj?.id || '', proj?.name || '');
+        setTimeout(() => handleUploadFiles(e.dataTransfer.files), 100);
+    }
+});
 
 function showToast(msg) {
     const existing = document.querySelector('.toast');
@@ -3582,7 +5885,7 @@ async function init() {
     if (projectMatch) {
         state.view = 'project';
         state.selectedProjectId = projectMatch[1];
-    } else if (path === '/radar' || path.startsWith('/radar')) {
+    } else if (path.includes('/radar')) {
         state.view = 'radar';
     } else {
         state.view = 'dashboard';
